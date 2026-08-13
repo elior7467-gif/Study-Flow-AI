@@ -11,9 +11,10 @@ import { LoginView } from './components/LoginView';
 import { SettingsModal } from './components/SettingsModal';
 import { ToastContainer, ToastMessage, ToastType } from './components/Toast';
 import { motion, AnimatePresence } from 'motion/react';
+import { SignedIn, SignedOut, useClerk } from '@clerk/clerk-react';
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { signOut } = useClerk();
   const [showSettings, setShowSettings] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
@@ -48,35 +49,28 @@ export default function App() {
     setActiveTab('chat');
   };
 
-  if (!isAuthenticated) {
-    return (
-      <LoginView
-        onLogin={() => setIsAuthenticated(true)}
-        soundEnabled={soundEnabled}
-      />
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans flex flex-col selection:bg-[#2563EB] selection:text-white">
-      <ToastContainer toasts={toasts} />
-      <SettingsModal
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
-        soundEnabled={soundEnabled}
-        onToggleSound={() => setSoundEnabled(!soundEnabled)}
-        onClearData={handleClearData}
-        onSignOut={() => setIsAuthenticated(false)}
-      />
+    <>
+      <SignedIn>
+        <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans flex flex-col selection:bg-[#2563EB] selection:text-white">
+          <ToastContainer toasts={toasts} />
+          <SettingsModal
+            isOpen={showSettings}
+            onClose={() => setShowSettings(false)}
+            soundEnabled={soundEnabled}
+            onToggleSound={() => setSoundEnabled(!soundEnabled)}
+            onClearData={handleClearData}
+            onSignOut={() => signOut()}
+          />
 
-      {/* Top Bar */}
-      <Header
-        currentUnit={selectedUnitId}
-        onSelectUnit={(unitId) => setSelectedUnitId(unitId)}
-        soundEnabled={soundEnabled}
-        onToggleSound={() => setSoundEnabled(!soundEnabled)}
-        onOpenSettings={() => setShowSettings(true)} onSignOut={() => setIsAuthenticated(false)}
-      />
+          {/* Top Bar */}
+          <Header
+            currentUnit={selectedUnitId}
+            onSelectUnit={(unitId) => setSelectedUnitId(unitId)}
+            soundEnabled={soundEnabled}
+            onToggleSound={() => setSoundEnabled(!soundEnabled)}
+            onOpenSettings={() => setShowSettings(true)}
+          />
 
       {/* Main View Container with Animated View Transitions */}
       <main className="flex-1 max-w-md md:max-w-2xl lg:max-w-4xl w-full mx-auto relative overflow-hidden">
@@ -127,6 +121,11 @@ export default function App() {
       {/* Persistent Bottom Tab Navigation */}
       <Navbar activeTab={activeTab} onTabChange={setActiveTab} soundEnabled={soundEnabled} />
     </div>
+      </SignedIn>
+      <SignedOut>
+        <LoginView soundEnabled={soundEnabled} />
+      </SignedOut>
+    </>
   );
 }
 

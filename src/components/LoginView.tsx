@@ -1,24 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'motion/react';
-import { Bot, ShieldCheck, Sparkles, ArrowRight } from 'lucide-react';
-import { playSound } from '../utils/sound';
+import { Bot, ShieldCheck, Sparkles } from 'lucide-react';
+import { SignIn } from '@clerk/clerk-react';
 
 interface LoginViewProps {
-  onLogin: () => void;
   soundEnabled: boolean;
 }
 
-export const LoginView: React.FC<LoginViewProps> = ({ onLogin, soundEnabled }) => {
-  const [isLoading, setIsLoading] = useState(false);
+export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled }) => {
 
-  const handleSignIn = () => {
-    playSound('click', soundEnabled);
-    setIsLoading(true);
-    setTimeout(() => {
-      playSound('success', soundEnabled);
-      onLogin();
-    }, 1500);
-  };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-6 relative overflow-hidden">
@@ -58,22 +48,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, soundEnabled }) =
           </div>
         </div>
 
-        <button
-          onClick={handleSignIn}
-          disabled={isLoading}
-          className="w-full cursor-pointer bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 disabled:opacity-70 disabled:active:scale-100"
-        >
-          {isLoading ? (
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : (
-            <>
-              Continue with Google <ArrowRight className="w-5 h-5" />
-            </>
-          )}
-        </button>
-        <p className="text-[10px] text-[#64748B] mt-4 font-semibold uppercase tracking-widest">
-          Join 3.2M+ Aspirants
-        </p>
+        <div className="flex justify-center mt-6">
+          <SignIn routing="hash" />
+        </div>
       </motion.div>
     </div>
   );

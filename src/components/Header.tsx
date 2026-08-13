@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { ShieldCheck, User, Sparkles, BookOpen, CheckCircle2, Zap, Info, TrendingUp, Cpu, Volume2, VolumeX } from 'lucide-react';
+import { ShieldCheck, Sparkles, BookOpen, CheckCircle2, Zap, Info, TrendingUp, Cpu, Volume2, VolumeX } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { playSound } from '../utils/sound';
+import { UserButton } from '@clerk/clerk-react';
 
 interface HeaderProps {
   currentUnit: string;
@@ -60,93 +61,8 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
           </motion.button>
 
           {/* User Profile Button */}
-          <div className="relative">
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                playSound('click', soundEnabled);
-                setShowProfile(!showProfile);
-              }}
-              id="profile-button"
-              className="w-9 h-9 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] flex items-center justify-center text-[#0F172A] hover:bg-[#E2E8F0] transition-colors overflow-hidden"
-              title="Aspirant Profile & Demo Info"
-            >
-              <User className="w-4 h-4 text-[#2563EB]" />
-            </motion.button>
-
-            {/* Profile Dropdown / Modal */}
-            <AnimatePresence>
-              {showProfile && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute right-0 mt-2 w-72 bg-white rounded-2xl border border-[#E2E8F0] shadow-lg p-4 z-50 text-sm"
-                >
-                  <div className="flex items-center gap-3 pb-3 border-b border-[#E2E8F0]">
-                    <div className="w-10 h-10 rounded-xl bg-[#0F172A] text-white flex items-center justify-center font-bold text-sm">
-                      JEE
-                    </div>
-                    <div>
-                      <div className="font-bold text-[#0F172A]">Aarav Sharma</div>
-                      <div className="text-xs text-[#64748B]">JEE Main & Advanced 2026</div>
-                    </div>
-                  </div>
-
-                  <div className="py-3 space-y-2 text-xs">
-                    <div className="bg-[#F8FAFC] border border-[#E2E8F0] p-2.5 rounded-xl space-y-1">
-                      <span className="font-bold text-[#0F172A] block">Dual-AI Guarantee</span>
-                      <p className="text-[11px] text-[#64748B] leading-relaxed">
-                        1st AI derives step-by-step. 2nd AI (Critic) fact-checks against NCERT textbook text line-by-line.
-                      </p>
-                    </div>
-                    <div className="flex items-center justify-between text-[#64748B]">
-                      <span>Current Chapter</span>
-                      <span className="font-semibold text-[#0F172A]">Laws of Motion</span>
-                    </div>
-                    <div className="flex items-center justify-between text-[#64748B]">
-                      <span>Target Exam</span>
-                      <span className="font-semibold text-[#2563EB] bg-[#2563EB]/15 px-2 py-0.5 rounded-lg">
-                        JEE Main 2026
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t border-[#E2E8F0] flex flex-col gap-1.5 text-xs">
-                    <button
-                      onClick={() => {
-                        setShowProfile(false);
-                        onOpenSettings?.();
-                      }}
-                      className="cursor-pointer w-full text-left flex items-center justify-between text-[#0F172A] font-bold p-2 rounded-lg hover:bg-[#F8FAFC] active:scale-95 transition-all"
-                    >
-                      Settings
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowProfile(false);
-                        onSignOut?.();
-                      }}
-                      className="cursor-pointer w-full text-left flex items-center justify-between text-[#F43F5E] font-bold p-2 rounded-lg hover:bg-[#F43F5E]/5 active:scale-95 transition-all"
-                    >
-                      Sign Out
-                    </button>
-                    <div className="flex justify-between items-center px-2 py-1 mt-1">
-                      <span className="flex items-center gap-1 text-[#64748B]">
-                        <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" /> Solver-Critic Active
-                      </span>
-                      <button
-                        onClick={() => setShowProfile(false)}
-                        className="text-[#64748B] hover:text-[#0F172A] cursor-pointer active:scale-95 transition-all"
-                      >
-                        Close
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          <div className="relative flex items-center justify-center bg-[#F1F5F9] border border-[#E2E8F0] rounded-xl w-9 h-9 p-0.5 ml-2 hover:bg-[#E2E8F0] transition-colors cursor-pointer">
+            <UserButton afterSignOutUrl="/" />
           </div>
         </div>
       </div>
