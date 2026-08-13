@@ -21,7 +21,10 @@ ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
 -- Allow read/write access to authenticated users (and anon for development if needed)
 -- Note: You may want to restrict this further in production based on auth.uid()
+DROP POLICY IF EXISTS "Allow all access to chats" ON public.chats;
 CREATE POLICY "Allow all access to chats" ON public.chats FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Allow all access to messages" ON public.messages;
 CREATE POLICY "Allow all access to messages" ON public.messages FOR ALL USING (true);
 
 -- Grant privileges to the anon and authenticated roles
@@ -45,6 +48,7 @@ CREATE TABLE IF NOT EXISTS public.documents (
 
 -- 3. Set up RLS for documents (optional but good practice)
 ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all access to documents" ON public.documents;
 CREATE POLICY "Allow all access to documents" ON public.documents FOR ALL USING (true);
 GRANT ALL ON public.documents TO anon, authenticated;
 
