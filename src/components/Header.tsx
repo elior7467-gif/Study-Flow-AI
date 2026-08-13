@@ -45,36 +45,6 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
 
         {/* Live System Telemetry & Investor Deck Modal Trigger */}
         <div className="flex items-center gap-2">
-          {/* Sound Toggle Button */}
-          {onToggleSound && (
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={() => {
-                onToggleSound();
-                playSound('click', !soundEnabled);
-              }}
-              className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-colors ${
-                soundEnabled
-                  ? 'bg-[#2563EB]/15 text-[#2563EB] border-[#2563EB]/30'
-                  : 'bg-[#F1F5F9] text-[#64748B] border-[#E2E8F0]'
-              }`}
-              title={soundEnabled ? 'Mute Interaction Sounds' : 'Enable Interaction Sounds'}
-            >
-              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            </motion.button>
-          )}
-
-          {/* SaaS Telemetry Pill */}
-          <div className="hidden lg:flex items-center gap-2 bg-[#F1F5F9] border border-[#E2E8F0] text-[#0F172A] text-[11px] font-semibold px-3 py-1.5 rounded-xl">
-            <span className="flex items-center gap-1 text-[#2563EB]">
-              <span className="w-2 h-2 rounded-full bg-[#2563EB] animate-ping" />
-              API 128ms
-            </span>
-            <span className="text-[#E2E8F0]">|</span>
-            <span className="flex items-center gap-1 text-[#0F172A]">
-              <Cpu className="w-3 h-3 text-[#2563EB]" /> Gemini 3.6 Flash
-            </span>
-          </div>
 
           <motion.button
             whileTap={{ scale: 0.95 }}

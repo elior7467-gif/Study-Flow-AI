@@ -2,19 +2,34 @@
 <img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
 </div>
 
-# Run and deploy your AI Studio app
+# StudyFlow AI
 
-This contains everything you need to run your app locally.
+StudyFlow AI is a zero-hallucination physics assistant tailored for JEE & NEET aspirants. It leverages a Dual-AI engine where a Solver AI drafts derivations, and a Critic AI rigorously fact-checks against the NCERT textbook line-by-line.
 
-View your app in AI Studio: https://ai.studio/apps/94377b50-d7b3-4e05-8a48-a67dff91fb05
+## Features
+
+- **Dual-AI Pipeline**: Drafts step-by-step solutions and verifies them against standard textbooks.
+- **Fact-Checked Citations**: Transparent feedback with textbook page references.
+- **Interactive Vault**: 3D physics simulators to visualize concepts like centripetal force and friction.
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
+**Prerequisites:** Node.js (v18 or higher recommended)
 
+1. Clone the repository and install dependencies:
+   ```bash
+   npm install
+   ```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+2. Configure environment variables:
+   Create a `.env` file based on `.env.example`, or just use the generated `.env` file, and insert your Gemini API Key.
+   ```bash
+   GEMINI_API_KEY="YOUR_GEMINI_API_KEY_HERE"
+   ```
+
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+The app will be available at `http://localhost:3000`.

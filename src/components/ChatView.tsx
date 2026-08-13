@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { playSound } from '../utils/sound';
+import { Latex } from './Latex';
 
 interface ChatViewProps {
   solutions: SolverResult[];
@@ -196,7 +197,7 @@ const AiMessageCard: React.FC<{ solution: SolverResult; soundEnabled: boolean }>
               </div>
 
               <p className="text-[11px] text-[#64748B] leading-relaxed">
-                {step.description}
+                <Latex>{step.description}</Latex>
               </p>
 
               {step.criticFeedback && (
@@ -207,8 +208,8 @@ const AiMessageCard: React.FC<{ solution: SolverResult; soundEnabled: boolean }>
               )}
 
               {step.mathBlock && (
-                <div className="bg-[#F1F5F9] p-3 rounded-xl text-xs font-mono text-[#0F172A] overflow-x-auto">
-                  {step.mathBlock}
+                <div className="bg-[#151E2E] p-3 rounded-xl text-xs font-mono text-[#F8FAFC] overflow-x-auto border border-[#334155]">
+                  <Latex block>{step.mathBlock}</Latex>
                 </div>
               )}
             </div>
@@ -216,12 +217,12 @@ const AiMessageCard: React.FC<{ solution: SolverResult; soundEnabled: boolean }>
         </div>
 
         {solution.finalEquation && (
-          <div className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-2xl p-4 text-center overflow-x-auto">
-            <span className="text-[9px] font-bold text-[#64748B] tracking-wider uppercase block mb-1">
+          <div className="bg-[#151E2E] border border-[#334155] rounded-2xl p-4 text-center overflow-x-auto">
+            <span className="text-[9px] font-bold text-[#94A3B8] tracking-wider uppercase block mb-1">
               Final Verified Equation / Result
             </span>
-            <code className="text-sm font-bold text-[#0F172A] font-mono">
-              {solution.finalEquation}
+            <code className="text-sm font-bold text-[#60A5FA] font-mono glow-text">
+              <Latex block>{solution.finalEquation}</Latex>
             </code>
           </div>
         )}

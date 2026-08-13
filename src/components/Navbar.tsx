@@ -43,9 +43,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange, soundEna
                 />
               )}
               <div
-                className={`relative z-10 transition-colors ${
-                  isActive ? 'text-[#2563EB] font-bold' : 'text-[#64748B] hover:text-[#0F172A]'
-                }`}
+                className={`relative z-10 transition-colors ${isActive ? 'text-[#2563EB] font-bold' : 'text-[#64748B] hover:text-[#0F172A]'
+                  }`}
               >
                 <div className="mb-0.5 flex justify-center">{tab.icon}</div>
                 <span className="text-[11px] tracking-tight block font-semibold">{tab.label}</span>

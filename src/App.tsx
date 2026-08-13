@@ -18,11 +18,11 @@ export default function App() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const [activeTab, setActiveTab] = useState<TabType>('hub');
-  const [units, setUnits] = useState<UnitOverview[]>(MOCK_UNITS);
+  const [units] = useState<UnitOverview[]>(MOCK_UNITS);
   const [selectedUnitId, setSelectedUnitId] = useState<string>('unit-4');
   const [chatSolutions, setChatSolutions] = useState<SolverResult[]>(INITIAL_CHAT_SOLUTIONS);
-  const [vaultProblems, setVaultProblems] = useState<VaultProblem[]>(MOCK_VAULT_PROBLEMS);
-  const [cohorts, setCohorts] = useState<CohortMetric[]>(MOCK_COHORTS);
+  const [vaultProblems] = useState<VaultProblem[]>(MOCK_VAULT_PROBLEMS);
+  const [cohorts] = useState<CohortMetric[]>(MOCK_COHORTS);
   const [initialChatQuery, setInitialChatQuery] = useState<string>('');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
 
@@ -119,7 +119,7 @@ export default function App() {
               />
             )}
 
-            {activeTab === 'analytics' && <AnalyticsView cohorts={cohorts} soundEnabled={soundEnabled} />}
+            {activeTab === 'analytics' && <AnalyticsView cohorts={cohorts} />}
           </motion.div>
         </AnimatePresence>
       </main>
