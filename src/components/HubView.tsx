@@ -75,7 +75,7 @@ export const HubView: React.FC<HubViewProps> = ({
       {/* Unit Selector Header */}
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight">
+          <h2 className="text-2xl md:text-3xl font-serif font-bold text-neo tracking-tight">
             {currentUnit.name}
           </h2>
 
@@ -83,7 +83,7 @@ export const HubView: React.FC<HubViewProps> = ({
             <select
               value={currentUnit.id}
               onChange={(e) => onSelectUnit(e.target.value)}
-              className="bg-neo shadow-neo-inner text-neo text-xs font-semibold py-2 px-3.5 rounded-xl pr-8 cursor-pointer appearance-none outline-none focus:shadow-neo-sm transition-all"
+              className="bg-neo-concave shadow-neo-inner text-neo text-xs font-semibold py-2 px-3.5 rounded-xl pr-8 cursor-pointer appearance-none outline-none focus:shadow-neo-sm transition-all"
               id="unit-selector"
             >
               {units.map((u) => (
@@ -92,10 +92,10 @@ export const HubView: React.FC<HubViewProps> = ({
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-4 h-4 text-[#64748B] dark:text-[#94A3B8] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-neo opacity-80 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
-        <p className="text-sm font-medium text-[#64748B] dark:text-[#94A3B8]">{currentUnit.course}</p>
+        <p className="text-sm font-medium text-neo opacity-80">{currentUnit.course}</p>
       </div>
 
       {/* Pitch & Value Proposition Hero Card */}
@@ -103,10 +103,10 @@ export const HubView: React.FC<HubViewProps> = ({
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
-        className="bg-neo shadow-neo rounded-[28px] p-6 text-neo space-y-4 relative overflow-hidden"
+        className="bg-neo-convex shadow-neo rounded-[28px] p-6 text-neo space-y-4 relative overflow-hidden"
       >
         <div className="flex items-center justify-between">
-          <span className="bg-neo shadow-neo-inner text-[#2563EB] text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
+          <span className="bg-neo-convex shadow-neo-inner text-[#2563EB] text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
             HACKATHON DEMO • NCERT PHYSICS CH 5
           </span>
           <span className="text-xs text-neo opacity-80 font-medium flex items-center gap-1">
@@ -125,9 +125,9 @@ export const HubView: React.FC<HubViewProps> = ({
 
         {/* 2-Step Dual Engine Illustration */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
-          <div className="bg-neo shadow-neo-inner rounded-2xl p-3 space-y-1">
+          <div className="bg-neo-concave shadow-neo-inner rounded-2xl p-3 space-y-1">
             <div className="font-bold text-[#2563EB] flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-full bg-neo shadow-neo text-[#2563EB] flex items-center justify-center text-[10px]">1</span>
+              <span className="w-5 h-5 rounded-full bg-neo-convex shadow-neo text-[#2563EB] flex items-center justify-center text-[10px]">1</span>
               <span>Solver AI</span>
             </div>
             <p className="text-neo opacity-80 text-[11px] leading-snug">
@@ -135,9 +135,9 @@ export const HubView: React.FC<HubViewProps> = ({
             </p>
           </div>
 
-          <div className="bg-neo shadow-neo-inner rounded-2xl p-3 space-y-1">
+          <div className="bg-neo-concave shadow-neo-inner rounded-2xl p-3 space-y-1">
             <div className="font-bold text-[#F43F5E] flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-full bg-neo shadow-neo text-[#F43F5E] flex items-center justify-center text-[10px]">2</span>
+              <span className="w-5 h-5 rounded-full bg-neo-convex shadow-neo text-[#F43F5E] flex items-center justify-center text-[10px]">2</span>
               <span>Critic AI Fact-Checker</span>
             </div>
             <p className="text-neo opacity-80 text-[11px] leading-snug">
@@ -156,7 +156,7 @@ export const HubView: React.FC<HubViewProps> = ({
               playSound('click', soundEnabled);
               onNavigateToChatWithQuery('A car of mass 1500 kg drives at 20 m/s on a flat circular turn of radius 50 m with μ_s = 0.6. Will it skid? Show step-by-step NCERT derivation.');
             }}
-            className="bg-neo shadow-neo text-[#2563EB] font-bold px-3 py-1.5 rounded-xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center gap-1 cursor-pointer"
+            className="bg-neo-convex shadow-neo-accent text-[#2563EB] font-bold px-3 py-1.5 rounded-xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center gap-1 cursor-pointer"
           >
             <ShieldCheck className="w-3.5 h-3.5" /> 1. In-Scope NCERT Question (Verified)
           </motion.button>
@@ -167,7 +167,7 @@ export const HubView: React.FC<HubViewProps> = ({
               playSound('click', soundEnabled);
               onNavigateToChatWithQuery('A block of 5 kg rests on a rough table with μ_s = 0.4. A horizontal force of 10 N is applied. Is static friction equal to 0.4 × 5 × 9.8 = 19.6 N?');
             }}
-            className="bg-neo shadow-neo text-[#F43F5E] font-bold px-3 py-1.5 rounded-xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center gap-1 cursor-pointer"
+            className="bg-neo-convex shadow-neo text-[#F43F5E] font-bold px-3 py-1.5 rounded-xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center gap-1 cursor-pointer"
           >
             <AlertTriangle className="w-3.5 h-3.5" /> 2. Misconception Trap (Honest Warning)
           </motion.button>
@@ -180,16 +180,16 @@ export const HubView: React.FC<HubViewProps> = ({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.2, delay: 0.05 }}
-          className="col-span-2 md:col-span-1 bg-neo shadow-neo rounded-[24px] p-5 flex flex-col justify-between relative overflow-hidden transition-all duration-300"
+          className="col-span-2 md:col-span-1 bg-neo-convex shadow-neo rounded-[24px] p-5 flex flex-col justify-between relative overflow-hidden transition-all duration-300"
         >
-          <div className="flex items-center justify-between text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] tracking-wider uppercase">
+          <div className="flex items-center justify-between text-xs font-semibold text-neo opacity-80 tracking-wider uppercase">
             <span>Overall Mastery</span>
             <TrendingUp className="w-4 h-4 text-[#2563EB] dark:text-[#60A5FA]" />
           </div>
 
           <div className="mt-3 space-y-2">
             <div className="flex items-baseline gap-3">
-              <span className="text-4xl md:text-5xl font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight">
+              <span className="text-4xl md:text-5xl font-extrabold text-neo tracking-tight">
                 {currentUnit.overallMastery}%
               </span>
               <span className="text-xs font-bold text-[#2563EB] dark:text-[#60A5FA] bg-[#2563EB]/15 dark:bg-[#2563EB]/20 px-2.5 py-1 rounded-full flex items-center gap-1">
@@ -198,7 +198,7 @@ export const HubView: React.FC<HubViewProps> = ({
             </div>
 
             {/* Animated Progress Bar */}
-            <div className="w-full bg-neo shadow-neo-inner h-2.5 rounded-full overflow-hidden">
+            <div className="w-full bg-neo-concave shadow-neo-inner h-2.5 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${currentUnit.overallMastery}%` }}
@@ -210,23 +210,23 @@ export const HubView: React.FC<HubViewProps> = ({
         </motion.div>
 
         {/* Card 2: Total Time */}
-        <div className="bg-neo shadow-neo rounded-[24px] p-5 flex flex-col justify-between transition-all duration-300">
-          <div className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] tracking-wider uppercase">
+        <div className="bg-neo-convex shadow-neo rounded-[24px] p-5 flex flex-col justify-between transition-all duration-300">
+          <div className="text-xs font-semibold text-neo opacity-80 tracking-wider uppercase">
             Total Time
           </div>
-          <div className="mt-3 text-2xl md:text-3xl font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight">
+          <div className="mt-3 text-2xl md:text-3xl font-extrabold text-neo tracking-tight">
             {currentUnit.totalTimeHours}h {currentUnit.totalTimeMinutes}m
           </div>
         </div>
 
         {/* Card 3: Questions */}
-        <div className="bg-neo shadow-neo rounded-[24px] p-5 flex flex-col justify-between transition-all duration-300">
-          <div className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] tracking-wider uppercase">
+        <div className="bg-neo-convex shadow-neo rounded-[24px] p-5 flex flex-col justify-between transition-all duration-300">
+          <div className="text-xs font-semibold text-neo opacity-80 tracking-wider uppercase">
             Questions
           </div>
-          <div className="mt-3 flex items-baseline gap-1 text-2xl md:text-3xl font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight">
+          <div className="mt-3 flex items-baseline gap-1 text-2xl md:text-3xl font-extrabold text-neo tracking-tight">
             <span>{currentUnit.questionsCompleted}</span>
-            <span className="text-sm font-normal text-[#64748B] dark:text-[#94A3B8]">
+            <span className="text-sm font-normal text-neo opacity-80">
               /{currentUnit.questionsTotal}
             </span>
           </div>
@@ -236,10 +236,10 @@ export const HubView: React.FC<HubViewProps> = ({
       {/* Conceptual Mastery Section */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight">
+          <h3 className="text-xl font-bold text-neo tracking-tight">
             Conceptual Mastery
           </h3>
-          <span className="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">
+          <span className="text-xs font-medium text-neo opacity-80">
             Solver-Critic Audit Log
           </span>
         </div>
@@ -254,13 +254,13 @@ export const HubView: React.FC<HubViewProps> = ({
                   setSelectedTopic(topic);
                   setTopicAuditResult(null);
                 }}
-                className="bg-neo shadow-neo hover:shadow-neo-sm active:shadow-neo-inner rounded-[24px] p-5 transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                className="bg-neo-convex shadow-neo hover:shadow-neo-sm active:shadow-neo-inner rounded-[24px] p-5 transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
               >
                 <div>
-                  <h4 className="text-base font-bold text-[#0F172A] dark:text-[#F8FAFC] group-hover:text-[#2563EB] dark:group-hover:text-[#60A5FA] transition-colors">
+                  <h4 className="text-base font-bold text-neo group-hover:text-[#2563EB] dark:group-hover:text-[#60A5FA] transition-colors">
                     {topic.title}
                   </h4>
-                  <p className="text-xs text-[#64748B] dark:text-[#94A3B8] mt-0.5">{topic.subtitle}</p>
+                  <p className="text-xs text-neo opacity-80 mt-0.5">{topic.subtitle}</p>
                 </div>
 
                 <div className="flex items-center gap-2 self-start sm:self-auto">
@@ -285,19 +285,19 @@ export const HubView: React.FC<HubViewProps> = ({
       {/* Topic Audit Modal / Drawer */}
       {selectedTopic && (
         <div className="fixed inset-0 z-50 bg-neo/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-neo shadow-neo rounded-[32px] max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-start justify-between border-b border-[#E2E8F0] dark:border-[#1E293B] pb-3">
+          <div className="bg-neo-convex shadow-neo rounded-[32px] max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between border-b border-black/5 dark:border-white/5 pb-3">
               <div>
-                <span className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider">
+                <span className="text-xs font-semibold text-neo opacity-80 uppercase tracking-wider">
                   Conceptual Audit • {currentUnit.name}
                 </span>
-                <h3 className="text-xl font-bold text-[#0F172A] dark:text-[#F8FAFC]">{selectedTopic.title}</h3>
-                <p className="text-xs text-[#64748B] dark:text-[#94A3B8]">{selectedTopic.subtitle}</p>
+                <h3 className="text-xl font-bold text-neo">{selectedTopic.title}</h3>
+                <p className="text-xs text-neo opacity-80">{selectedTopic.subtitle}</p>
               </div>
 
               <button
                 onClick={() => setSelectedTopic(null)}
-                className="text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC] p-1 text-lg font-bold cursor-pointer active:scale-95 transition-all"
+                className="text-neo opacity-80 hover:text-neo dark:hover:text-[#F8FAFC] p-1 text-lg font-bold cursor-pointer active:scale-95 transition-all"
               >
                 ✕
               </button>
@@ -305,7 +305,7 @@ export const HubView: React.FC<HubViewProps> = ({
 
             {/* Audit Status Banner */}
             <div
-              className={`p-4 rounded-2xl shadow-neo-inner flex items-center gap-3 ${
+              className={`p-4 rounded-2xl bg-neo-concave shadow-neo-inner flex items-center gap-3 ${
                 selectedTopic.status === 'VERIFIED'
                   ? 'text-[#2563EB]'
                   : 'text-[#F43F5E]'
@@ -320,7 +320,7 @@ export const HubView: React.FC<HubViewProps> = ({
                 <div className="text-xs font-bold uppercase tracking-wider">
                   Audit Status: {selectedTopic.status}
                 </div>
-                <div className="text-xs text-[#0F172A] font-medium mt-0.5">
+                <div className="text-xs text-neo font-medium mt-0.5">
                   {selectedTopic.auditDetails}
                 </div>
               </div>
@@ -328,16 +328,16 @@ export const HubView: React.FC<HubViewProps> = ({
 
             {/* Live Audit Data if triggered */}
             {topicAuditResult && (
-              <div className="bg-neo shadow-neo-inner p-4 rounded-2xl space-y-2 text-xs">
+              <div className="bg-neo-concave shadow-neo-inner p-4 rounded-2xl space-y-2 text-xs">
                 <div className="font-bold text-[#2563EB] dark:text-[#60A5FA] flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4" /> Live Critic AI Audit
                 </div>
-                <p className="text-[#0F172A] dark:text-[#F8FAFC] font-medium">{topicAuditResult.auditDetails}</p>
+                <p className="text-neo font-medium">{topicAuditResult.auditDetails}</p>
 
                 {topicAuditResult.insights && (
                   <div className="space-y-1 pt-1">
-                    <span className="font-semibold text-[#64748B] dark:text-[#94A3B8]">Key Insights:</span>
-                    <ul className="list-disc list-inside space-y-0.5 text-[#64748B] dark:text-[#94A3B8]">
+                    <span className="font-semibold text-neo opacity-80">Key Insights:</span>
+                    <ul className="list-disc list-inside space-y-0.5 text-neo opacity-80">
                       {topicAuditResult.insights.map((ins: string, idx: number) => (
                         <li key={idx}>{ins}</li>
                       ))}
@@ -352,7 +352,7 @@ export const HubView: React.FC<HubViewProps> = ({
               <button
                 onClick={() => handleRunTopicAudit(selectedTopic)}
                 disabled={auditingTopicId === selectedTopic.id}
-                className="flex-1 bg-neo shadow-neo text-[#2563EB] text-xs font-bold py-3 px-4 rounded-2xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                className="flex-1 bg-neo-convex shadow-neo-accent text-[#2563EB] text-xs font-bold py-3 px-4 rounded-2xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
               >
                 {auditingTopicId === selectedTopic.id ? (
                   <>
@@ -371,7 +371,7 @@ export const HubView: React.FC<HubViewProps> = ({
                   setSelectedTopic(null);
                   onNavigateToChatWithQuery(query);
                 }}
-                className="flex-1 bg-neo shadow-neo text-neo text-xs font-bold py-3 px-4 rounded-2xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-1 bg-neo-convex shadow-neo text-neo text-xs font-bold py-3 px-4 rounded-2xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <MessageSquare className="w-4 h-4" /> Ask AI Derivation
               </button>

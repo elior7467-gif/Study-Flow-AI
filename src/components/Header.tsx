@@ -25,16 +25,16 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95, boxShadow: "var(--shadow-in)" }}
-            className="w-9 h-9 rounded-xl bg-neo shadow-neo flex items-center justify-center text-[#2563EB] dark:text-[#60A5FA] flex-shrink-0 cursor-pointer transition-shadow"
+            className="w-9 h-9 rounded-xl bg-neo-convex shadow-neo flex items-center justify-center text-[#2563EB] dark:text-[#60A5FA] flex-shrink-0 cursor-pointer transition-shadow"
           >
             <ShieldCheck className="w-5 h-5" />
           </motion.div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-base md:text-lg font-extrabold tracking-tight text-[#0F172A] dark:text-[#F8FAFC]">
+              <h1 className="text-base md:text-lg font-extrabold tracking-tight text-neo">
                 StudyFlow AI
               </h1>
-              <span className="hidden sm:inline-flex items-center gap-1 bg-neo shadow-neo-inner text-[#2563EB] dark:text-[#60A5FA] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="hidden sm:inline-flex items-center gap-1 bg-neo-convex shadow-neo-inner text-[#2563EB] dark:text-[#60A5FA] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                 <CheckCircle2 className="w-3 h-3" /> Dual-AI Engine Active
               </span>
             </div>
@@ -54,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
               playSound('click', soundEnabled);
               setShowInvestorDeck(true);
             }}
-            className="hidden md:flex items-center gap-1.5 bg-neo shadow-neo text-neo hover:shadow-neo-sm text-xs font-bold px-3 py-1.5 rounded-xl transition-all"
+            className="hidden md:flex items-center gap-1.5 bg-neo-convex shadow-neo text-neo hover:shadow-neo-sm text-xs font-bold px-3 py-1.5 rounded-xl transition-all"
           >
             <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
             <span>SaaS Vision</span>
@@ -66,13 +66,13 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
               playSound('click', soundEnabled);
               onOpenSettings?.();
             }}
-            className="flex items-center justify-center w-9 h-9 rounded-xl bg-neo shadow-neo text-neo hover:shadow-neo-sm active:shadow-neo-inner transition-all ml-2"
+            className="flex items-center justify-center w-9 h-9 rounded-xl bg-neo-convex shadow-neo text-neo hover:shadow-neo-sm active:shadow-neo-inner transition-all ml-2"
           >
             <Settings className="w-4 h-4" />
           </button>
 
           {/* User Profile Button */}
-          <div className="relative flex items-center justify-center bg-neo shadow-neo rounded-xl w-9 h-9 p-0.5 ml-1 transition-all cursor-pointer hover:shadow-neo-sm">
+          <div className="relative flex items-center justify-center bg-neo-convex shadow-neo rounded-xl w-9 h-9 p-0.5 ml-1 transition-all cursor-pointer hover:shadow-neo-sm">
             <UserButton afterSignOutUrl="/" />
           </div>
         </div>
@@ -87,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 15 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="bg-white border border-[#E2E8F0] rounded-[28px] max-w-lg w-full p-6 shadow-2xl space-y-5 relative"
+              className="bg-neo-convex shadow-neo rounded-[28px] max-w-lg w-full p-6 space-y-5 relative"
             >
               <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
                 <div className="flex items-center gap-2">
@@ -95,26 +95,26 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
                     <TrendingUp className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="font-serif font-bold text-base text-[#0F172A]">
+                    <h3 className="font-serif font-bold text-base text-neo">
                       StudyFlow AI • Silicon Valley SaaS Thesis
                     </h3>
-                    <p className="text-[11px] text-[#64748B]">Target Market: $4B Test Prep Market in South Asia</p>
+                    <p className="text-[11px] text-neo opacity-80">Target Market: $4B Test Prep Market in South Asia</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowInvestorDeck(false)}
-                  className="text-[#64748B] hover:text-[#0F172A] text-xs font-bold bg-[#F1F5F9] px-2.5 py-1 rounded-lg cursor-pointer active:scale-95 transition-all"
+                  className="text-neo opacity-80 hover:text-neo text-xs font-bold bg-neo px-2.5 py-1 rounded-lg cursor-pointer active:scale-95 transition-all"
                 >
                   ✕
                 </button>
               </div>
 
-              <div className="space-y-3 text-xs text-[#0F172A] leading-relaxed">
-                <div className="bg-[#F8FAFC] border border-[#E2E8F0] p-3 rounded-2xl space-y-1">
+              <div className="space-y-3 text-xs text-neo leading-relaxed">
+                <div className="bg-neo-convex shadow-neo p-3 rounded-2xl space-y-1">
                   <span className="font-extrabold text-[#F43F5E] uppercase tracking-wider block">
                     The Problem: Expensive AI Hallucinations
                   </span>
-                  <p className="text-[#64748B]">
+                  <p className="text-neo opacity-80">
                     Standard LLMs answer fast and sound confident even when wrong. In competitive exams (JEE/NEET), losing 4 marks shifts a student's college rank by thousands.
                   </p>
                 </div>
@@ -123,23 +123,23 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
                   <span className="font-extrabold text-[#2563EB] uppercase tracking-wider block">
                     The Product Moat: Honest Dual-AI Fact-Checker
                   </span>
-                  <p className="text-[#0F172A] font-medium">
+                  <p className="text-neo font-medium">
                     We run a two-pass architecture: Solver AI derives from NCERT text, while Critic AI line-audits every step. If even 1 step is unbacked, we output a clear <span className="font-bold text-[#F43F5E]">"Do Not Trust / Ask Teacher"</span> warning.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center pt-1">
-                  <div className="bg-[#F1F5F9] p-2.5 rounded-xl">
-                    <span className="block font-black text-sm text-[#0F172A]">3.2M+</span>
-                    <span className="text-[10px] text-[#64748B]">Annual Aspirants</span>
+                  <div className="bg-neo p-2.5 rounded-xl">
+                    <span className="block font-black text-sm text-neo">3.2M+</span>
+                    <span className="text-[10px] text-neo opacity-80">Annual Aspirants</span>
                   </div>
-                  <div className="bg-[#F1F5F9] p-2.5 rounded-xl">
+                  <div className="bg-neo p-2.5 rounded-xl">
                     <span className="block font-black text-sm text-[#2563EB]">0%</span>
-                    <span className="text-[10px] text-[#64748B]">Hallucination Risk</span>
+                    <span className="text-[10px] text-neo opacity-80">Hallucination Risk</span>
                   </div>
-                  <div className="bg-[#F1F5F9] p-2.5 rounded-xl">
-                    <span className="block font-black text-sm text-[#0F172A]">100%</span>
-                    <span className="text-[10px] text-[#64748B]">NCERT Source Match</span>
+                  <div className="bg-neo p-2.5 rounded-xl">
+                    <span className="block font-black text-sm text-neo">100%</span>
+                    <span className="text-[10px] text-neo opacity-80">NCERT Source Match</span>
                   </div>
                 </div>
               </div>

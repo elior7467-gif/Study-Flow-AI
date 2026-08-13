@@ -199,7 +199,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
           setCopied(true);
           setTimeout(() => setCopied(false), 2000);
         }}
-        className="absolute top-2 right-2 bg-neo shadow-neo hover:shadow-neo-sm active:shadow-neo-inner p-1.5 rounded-lg transition-all z-10"
+        className="absolute top-2 right-2 bg-neo-convex shadow-neo hover:shadow-neo-sm active:shadow-neo-inner p-1.5 rounded-lg transition-all z-10"
       >
         {copied ? <Check className="w-3.5 h-3.5 text-[#2563EB] dark:text-[#60A5FA]" /> : <Copy className="w-3.5 h-3.5 text-neo" />}
       </button>
@@ -230,19 +230,19 @@ export const ChatView: React.FC<ChatViewProps> = ({
   };
 
   return (
-    <div className="flex h-[calc(100vh-140px)] w-full overflow-hidden bg-neo shadow-neo rounded-[24px] relative transition-all duration-300">
+    <div className="flex h-[calc(100vh-140px)] w-full overflow-hidden bg-neo-convex shadow-neo rounded-[24px] relative transition-all duration-300">
       
       {/* Mobile Sidebar Toggle */}
       <button 
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="md:hidden absolute top-4 left-4 z-50 p-2 bg-neo shadow-neo rounded-lg active:shadow-neo-inner transition-all"
+        className="md:hidden absolute top-4 left-4 z-50 p-2 bg-neo-convex shadow-neo rounded-lg active:shadow-neo-inner transition-all"
       >
         {sidebarOpen ? <X className="w-5 h-5 text-neo" /> : <Menu className="w-5 h-5 text-neo" />}
       </button>
 
       {/* Sidebar for Chat History */}
       <div className={`
-        absolute md:static inset-y-0 left-0 z-40 w-64 bg-neo shadow-neo-sm flex flex-col transition-transform duration-300 ease-in-out
+        absolute md:static inset-y-0 left-0 z-40 w-64 bg-neo-convex shadow-neo-sm flex flex-col transition-transform duration-300 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         <div className="p-4 border-b border-black/5 dark:border-white/5">
@@ -251,7 +251,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
               setActiveChatId(null);
               setSidebarOpen(false);
             }}
-            className="w-full flex items-center justify-center gap-2 bg-neo shadow-neo text-neo py-2.5 px-4 rounded-xl text-sm font-bold transition-all active:shadow-neo-inner hover:shadow-neo-sm"
+            className="w-full flex items-center justify-center gap-2 bg-neo-convex shadow-neo text-neo py-2.5 px-4 rounded-xl text-sm font-bold transition-all active:shadow-neo-inner hover:shadow-neo-sm"
           >
             <Plus className="w-4 h-4" />
             New Chat
@@ -268,7 +268,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
               }}
               className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-left transition-all text-sm ${
                 activeChatId === chat.id 
-                  ? 'bg-neo shadow-neo-inner font-bold text-neo' 
+                  ? 'bg-neo-concave shadow-neo-inner font-bold text-neo' 
                   : 'text-neo opacity-80 hover:shadow-neo-sm'
               }`}
             >
@@ -289,7 +289,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
         {/* Scrollable Chat History */}
         <div 
           ref={scrollRef}
-          className="flex-1 overflow-y-auto space-y-6 px-4 md:px-8 scrollbar-thin scrollbar-thumb-black/10 dark:scrollbar-thumb-white/10 scrollbar-track-transparent pt-16 md:pt-6 pb-4"
+          className="flex-1 overflow-y-auto space-y-6 px-4 md:px-8 scrollbar-thin scrollbar-thumb-black/10 dark:scrollbar-thumb-white/10 scrollbar-track-transparent pt-16 md:pt-6 pb-12"
         >
           <AnimatePresence mode="popLayout">
           {messages.length === 0 && (
@@ -300,10 +300,10 @@ export const ChatView: React.FC<ChatViewProps> = ({
               transition={{ type: "spring", stiffness: 200, damping: 20 }}
               className="flex justify-start items-start gap-2 mb-6"
             >
-              <div className="w-8 h-8 rounded-full bg-neo shadow-neo flex items-center justify-center text-[#2563EB] flex-shrink-0 mt-1">
+              <div className="w-8 h-8 rounded-full bg-neo-convex shadow-neo-accent flex items-center justify-center text-[#2563EB] flex-shrink-0 mt-1">
                 <Bot className="w-4 h-4" />
               </div>
-              <div className="bg-neo shadow-neo rounded-2xl rounded-tl-none px-4 py-3 max-w-[85%]">
+              <div className="bg-neo-convex shadow-neo rounded-2xl rounded-tl-none px-4 py-3 max-w-[85%]">
                 <p className="text-xs font-medium text-neo">
                   Hi! I'm the <span className="font-bold text-[#2563EB] dark:text-[#60A5FA]">StudyFlow AI</span>. 
                   Ask me any academic question and I'll explain it step-by-step.
@@ -322,20 +322,20 @@ export const ChatView: React.FC<ChatViewProps> = ({
             >
               {msg.role === 'user' ? (
                 <div className="flex justify-end items-end gap-2">
-                  <div className="bg-neo shadow-neo-inner text-neo rounded-2xl rounded-br-none px-4 py-3 max-w-[85%]">
+                  <div className="bg-neo-concave shadow-neo-inner text-neo rounded-2xl rounded-br-none px-4 py-3 max-w-[85%]">
                     <p className="text-xs font-medium leading-relaxed">{msg.content}</p>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-neo shadow-neo-sm flex items-center justify-center text-neo flex-shrink-0 mb-1">
+                  <div className="w-8 h-8 rounded-full bg-neo-convex shadow-neo-sm flex items-center justify-center text-neo flex-shrink-0 mb-1">
                     <User className="w-4 h-4" />
                   </div>
                 </div>
               ) : (
                 <div className="flex justify-start items-start gap-2">
-                  <div className="w-8 h-8 rounded-full bg-neo shadow-neo-sm flex items-center justify-center text-[#2563EB] flex-shrink-0 mt-1">
+                  <div className="w-8 h-8 rounded-full bg-neo-convex shadow-neo-sm flex items-center justify-center text-[#2563EB] flex-shrink-0 mt-1">
                     <Bot className="w-4 h-4" />
                   </div>
                   <div className="max-w-[100%] md:max-w-[85%] w-full relative">
-                    <div className="bg-neo shadow-neo rounded-2xl rounded-tl-none px-5 py-4 text-xs md:text-sm text-neo leading-relaxed prose prose-sm max-w-none prose-p:leading-relaxed overflow-x-auto">
+                    <div className="bg-neo-convex shadow-neo rounded-2xl rounded-tl-none px-5 py-4 text-xs md:text-sm text-neo leading-relaxed prose prose-sm max-w-none prose-p:leading-relaxed overflow-x-auto">
                       <CopyButton text={msg.content} />
                       <ReactMarkdown 
                         remarkPlugins={[remarkGfm, remarkMath]}
@@ -352,10 +352,10 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
           {loading && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
             <div className="flex items-end gap-2">
-              <div className="w-8 h-8 rounded-full bg-neo shadow-neo-sm flex items-center justify-center text-[#2563EB] flex-shrink-0 mb-1">
+              <div className="w-8 h-8 rounded-full bg-neo-convex shadow-neo-sm flex items-center justify-center text-[#2563EB] flex-shrink-0 mb-1">
                 <Bot className="w-4 h-4" />
               </div>
-              <div className="bg-neo shadow-neo rounded-2xl rounded-bl-none px-4 py-4 max-w-[85%] flex items-center gap-2">
+              <div className="bg-neo-convex shadow-neo rounded-2xl rounded-bl-none px-4 py-4 max-w-[85%] flex items-center gap-2">
                  <div className="w-2 h-2 rounded-full bg-[#2563EB] dark:bg-[#60A5FA] animate-bounce" style={{ animationDelay: '0ms' }} />
                  <div className="w-2 h-2 rounded-full bg-[#2563EB] dark:bg-[#60A5FA] animate-bounce" style={{ animationDelay: '150ms' }} />
                  <div className="w-2 h-2 rounded-full bg-[#2563EB] dark:bg-[#60A5FA] animate-bounce" style={{ animationDelay: '300ms' }} />
@@ -368,7 +368,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
         {/* Input Container */}
         <div className="px-4 md:px-8 pt-2 pb-4">
-          <div className="bg-neo shadow-neo rounded-[24px] p-3 space-y-2">
+          <div className="bg-neo-convex shadow-neo rounded-[24px] p-3 space-y-2">
             {/* Demo Preset Chips - only show on empty chat */}
             {!activeChatId && messages.length === 0 && (
               <motion.div 
@@ -405,7 +405,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 value={userPrompt}
                 onChange={(e) => setUserPrompt(e.target.value)}
                 placeholder="Message AI..."
-                className="flex-1 bg-neo shadow-neo-inner rounded-xl px-4 py-3 text-xs md:text-sm text-neo focus:outline-none placeholder-neo/50"
+                className="flex-1 bg-neo-concave shadow-neo-inner rounded-xl px-4 py-3 text-xs md:text-sm text-neo focus:outline-none placeholder:opacity-50"
                 disabled={loading}
               />
               
@@ -425,7 +425,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
               <button
                 type="submit"
                 disabled={loading || !userPrompt.trim()}
-                className="cursor-pointer bg-neo shadow-neo text-[#2563EB] dark:text-[#60A5FA] text-xs font-bold w-12 h-12 rounded-xl active:shadow-neo-inner flex items-center justify-center disabled:opacity-50 flex-shrink-0 transition-all"
+                className="cursor-pointer bg-neo-convex shadow-neo-accent text-[#2563EB] dark:text-[#60A5FA] text-xs font-bold w-12 h-12 rounded-xl active:shadow-neo-inner flex items-center justify-center disabled:opacity-50 flex-shrink-0 transition-all"
               >
                 {loading ? (
                   <RefreshCw className="w-5 h-5 animate-spin relative z-10" />

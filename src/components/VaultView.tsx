@@ -51,7 +51,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
     <div className="pb-28 pt-4 px-4 max-w-md md:max-w-2xl lg:max-w-4xl mx-auto space-y-6">
       {/* Problem Selector Bar */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs scrollbar-none">
-        <span className="text-[#64748B] dark:text-[#94A3B8] font-semibold flex-shrink-0">Problem Vault:</span>
+        <span className="text-neo opacity-80 font-semibold flex-shrink-0">Problem Vault:</span>
         {problems.map((p) => (
           <motion.button
             key={p.id}
@@ -60,8 +60,8 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
             onClick={() => handleSelectProblem(p)}
             className={`px-3.5 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
               p.id === activeProblem.id
-                ? 'bg-neo shadow-neo-inner text-neo'
-                : 'bg-neo shadow-neo text-neo opacity-80 hover:shadow-neo-sm'
+                ? 'bg-neo-convex shadow-neo-inner text-neo'
+                : 'bg-neo-convex shadow-neo text-neo opacity-80 hover:shadow-neo-sm'
             }`}
           >
             {p.problemNumber}
@@ -70,12 +70,12 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
       </div>
 
       {/* Breadcrumb */}
-      <div className="text-xs text-[#64748B] dark:text-[#94A3B8] font-medium flex items-center gap-1.5">
+      <div className="text-xs text-neo opacity-80 font-medium flex items-center gap-1.5">
         <span>Physics</span>
         <span>›</span>
         <span>Mechanics</span>
         <span>›</span>
-        <span className="font-bold text-[#0F172A] dark:text-[#F8FAFC]">{activeProblem.problemNumber}</span>
+        <span className="font-bold text-neo">{activeProblem.problemNumber}</span>
       </div>
 
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -88,14 +88,14 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
             setIsFlipped(!isFlipped);
           }}
           whileHover={{ scale: 1.01 }}
-          className="bg-neo shadow-neo rounded-[24px] p-5 space-y-3 cursor-pointer relative transition-all"
+          className="bg-neo-convex shadow-neo rounded-[24px] p-5 space-y-3 cursor-pointer relative transition-all"
         >
           <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-2">
             <h3 className="text-sm font-extrabold text-neo uppercase tracking-wider flex items-center gap-2">
               <Layers className="w-4 h-4 text-[#2563EB] dark:text-[#60A5FA]" />
               {isFlipped ? 'NCERT Conceptual Fact-Check' : 'Original Question (Tap to Flip Concept Card)'}
             </h3>
-            <span className="text-[10px] bg-neo shadow-neo-inner text-neo font-bold px-2 py-0.5 rounded-lg flex items-center gap-1">
+            <span className="text-[10px] bg-neo-convex shadow-neo-inner text-neo font-bold px-2 py-0.5 rounded-lg flex items-center gap-1">
               <Sparkles className="w-3 h-3 text-[#2563EB] dark:text-[#60A5FA]" /> Tap to Flip
             </span>
           </div>
@@ -121,7 +121,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
                 animate={{ opacity: 1, rotateY: 0 }}
                 exit={{ opacity: 0, rotateY: -90 }}
                 transition={{ duration: 0.2 }}
-                className="bg-neo shadow-neo-inner p-4 rounded-2xl space-y-2 text-xs"
+                className="bg-neo-convex shadow-neo-inner p-4 rounded-2xl space-y-2 text-xs"
               >
                 <div className="font-bold text-[#2563EB] dark:text-[#60A5FA] flex items-center gap-1">
                   <CheckCircle2 className="w-4 h-4" /> Core NCERT Principle:
@@ -136,13 +136,13 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
       </div>
 
       {/* References Card */}
-      <div className="bg-neo shadow-neo rounded-[24px] p-5 space-y-4">
-        <div className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider">
+      <div className="bg-neo-convex shadow-neo rounded-[24px] p-5 space-y-4">
+        <div className="text-xs font-semibold text-neo opacity-80 uppercase tracking-wider">
           References
         </div>
 
-        <div className="bg-neo shadow-neo-inner rounded-2xl p-3 flex items-start gap-3">
-          <div className="w-8 h-8 rounded-xl bg-neo shadow-neo flex items-center justify-center text-[#2563EB] dark:text-[#60A5FA] flex-shrink-0">
+        <div className="bg-neo-convex shadow-neo-inner rounded-2xl p-3 flex items-start gap-3">
+          <div className="w-8 h-8 rounded-xl bg-neo-convex shadow-neo flex items-center justify-center text-[#2563EB] dark:text-[#60A5FA] flex-shrink-0">
             <Compass className="w-4 h-4" />
           </div>
           <div className="text-xs">
@@ -162,7 +162,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
               playSound('click', soundEnabled);
               onNotify?.(`Opening textbook source reference: ${activeProblem.reference.textbook}`, 'info');
             }}
-            className="w-full bg-neo shadow-neo text-[#2563EB] dark:text-[#60A5FA] text-xs font-bold py-3 px-4 rounded-2xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full bg-neo-convex shadow-neo text-[#2563EB] dark:text-[#60A5FA] text-xs font-bold py-3 px-4 rounded-2xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <span>View Textbook Source</span>
             <ExternalLink className="w-3.5 h-3.5" />
@@ -174,7 +174,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
               playSound('warning', soundEnabled);
               onNotify?.('Issue reported to StudyFlow AI Audit Panel.', 'success');
             }}
-            className="w-full bg-neo shadow-neo text-neo text-xs font-bold py-3 px-4 rounded-2xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            className="w-full bg-neo-convex shadow-neo text-neo text-xs font-bold py-3 px-4 rounded-2xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <Flag className="w-3.5 h-3.5 text-neo opacity-80" />
             <span>Report Issue</span>
@@ -185,7 +185,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
       </div>
         <div className="space-y-6">
       {/* Interactive Physics Diagram & Vector Simulator */}
-      <div className="bg-neo shadow-neo rounded-[24px] p-5 space-y-4">
+      <div className="bg-neo-convex shadow-neo rounded-[24px] p-5 space-y-4">
         <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3">
           <div className="flex items-center gap-2">
             <Compass className="w-5 h-5 text-[#2563EB] dark:text-[#60A5FA]" />
@@ -209,7 +209,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
         </div>
 
         {/* Dynamic Physics Simulation SVG Canvas with Motion Animations */}
-        <div className="bg-neo shadow-neo-inner rounded-2xl p-4 flex flex-col items-center justify-center relative min-h-[220px] overflow-hidden">
+        <div className="bg-neo-convex shadow-neo-inner rounded-2xl p-4 flex flex-col items-center justify-center relative min-h-[220px] overflow-hidden">
           <svg className="w-full max-w-xs h-44 overflow-visible" viewBox="0 0 200 200">
             {/* Circular Track */}
             <circle
@@ -255,7 +255,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
                 height="16"
                 rx="3"
                 fill={willSkid ? '#F43F5E' : 'currentColor'}
-                className="transition-colors duration-200 text-[#0F172A] dark:text-[#F8FAFC]"
+                className="transition-colors duration-200 text-neo"
               />
               <circle cx="-7" cy="8" r="3" className="fill-[#0F172A] dark:fill-[#F8FAFC]" />
               <circle cx="7" cy="8" r="3" className="fill-[#0F172A] dark:fill-[#F8FAFC]" />
@@ -327,7 +327,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
         <div className="space-y-3 pt-2 text-xs">
           <div className="grid grid-cols-2 gap-3">
             {/* Speed Control */}
-            <div className="bg-neo shadow-neo p-3 rounded-2xl">
+            <div className="bg-neo-convex shadow-neo p-3 rounded-2xl">
               <div className="flex justify-between font-bold text-neo mb-1">
                 <span>Speed (v)</span>
                 <span className="text-[#2563EB] dark:text-[#60A5FA]">{velocity} m/s</span>
@@ -343,7 +343,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
             </div>
 
             {/* Radius Control */}
-            <div className="bg-neo shadow-neo p-3 rounded-2xl">
+            <div className="bg-neo-convex shadow-neo p-3 rounded-2xl">
               <div className="flex justify-between font-bold text-neo mb-1">
                 <span>Radius (r)</span>
                 <span className="text-[#2563EB] dark:text-[#60A5FA]">{radius} m</span>
@@ -359,7 +359,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
             </div>
 
             {/* Mass Control */}
-            <div className="bg-neo shadow-neo p-3 rounded-2xl">
+            <div className="bg-neo-convex shadow-neo p-3 rounded-2xl">
               <div className="flex justify-between font-bold text-neo mb-1">
                 <span>Mass (m)</span>
                 <span className="text-[#2563EB] dark:text-[#60A5FA]">{mass} kg</span>
@@ -376,7 +376,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
             </div>
 
             {/* Friction Control */}
-            <div className="bg-neo shadow-neo p-3 rounded-2xl">
+            <div className="bg-neo-convex shadow-neo p-3 rounded-2xl">
               <div className="flex justify-between font-bold text-neo mb-1">
                 <span>Friction (μ_s)</span>
                 <span className="text-[#2563EB] dark:text-[#60A5FA]">{mu}</span>
@@ -394,7 +394,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
           </div>
 
           {/* Mathematical Calculations Breakdown */}
-          <div className="bg-neo shadow-neo-inner rounded-2xl p-3 grid grid-cols-2 gap-2 text-center">
+          <div className="bg-neo-convex shadow-neo-inner rounded-2xl p-3 grid grid-cols-2 gap-2 text-center">
             <div>
               <span className="text-[10px] font-bold text-neo opacity-80 uppercase block">
                 Required F_c

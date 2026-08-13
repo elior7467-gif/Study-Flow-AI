@@ -55,11 +55,12 @@ export const handleChatStream = async (req: Request, res: Response, next: NextFu
       if (lastMsg.role === 'user') {
         originalUserContent = lastMsg.content;
         if (chatId) {
-          await supabase.from('messages').insert([{
+          const { error: userErr } = await supabase.from('messages').insert([{
             chat_id: chatId,
             role: 'user',
             content: originalUserContent
           }]);
+          if (userErr) console.error("Error saving user message:", userErr);
         }
       }
     }
@@ -95,11 +96,12 @@ export const handleChatStream = async (req: Request, res: Response, next: NextFu
 
     // Save assistant message to DB
     if (chatId && fullAssistantContent) {
-      await supabase.from('messages').insert([{
+      const { error: astErr } = await supabase.from('messages').insert([{
         chat_id: chatId,
         role: 'assistant',
         content: fullAssistantContent
       }]);
+      if (astErr) console.error("Error saving assistant message:", astErr);
     }
 
   } catch (err) {

@@ -6,10 +6,15 @@
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     
     /* Neomorphism Light Mode Variables */
-    --neo-bg: #e0e5ec;
-    --neo-text: #4a5568;
-    --neo-shadow-light: #ffffff;
-    --neo-shadow-dark: #a3b1c6;
+    --neo-bg: #F0F2F5;
+    --neo-text: #334155;
+    --neo-text-muted: #64748B;
+    --neo-shadow-light: #FFFFFF;
+    --neo-shadow-dark: #D1D9E6;
+    --neo-border: rgba(255, 255, 255, 0.6);
+    --neo-convex-light: #f5f7fa;
+    --neo-convex-dark: #e6e9f0;
+    --neo-accent-shadow: rgba(37, 99, 235, 0.3);
     
     background-color: var(--neo-bg);
     color: var(--neo-text);
@@ -17,10 +22,15 @@
 
   html.dark {
     /* Neomorphism Dark Mode Variables */
-    --neo-bg: #26282B;
-    --neo-text: #e2e8f0;
-    --neo-shadow-light: #32353A;
-    --neo-shadow-dark: #1A1C1E;
+    --neo-bg: #1a1d24;
+    --neo-text: #f8fafc;
+    --neo-text-muted: #94a3b8;
+    --neo-shadow-light: #222630;
+    --neo-shadow-dark: #121418;
+    --neo-border: rgba(255, 255, 255, 0.03);
+    --neo-convex-light: #1d2128;
+    --neo-convex-dark: #171a20;
+    --neo-accent-shadow: rgba(96, 165, 250, 0.2);
     
     background-color: var(--neo-bg);
     color: var(--neo-text);
@@ -32,6 +42,14 @@
   background-color: var(--neo-bg);
 }
 
+.bg-neo-convex {
+  background: linear-gradient(145deg, var(--neo-convex-light), var(--neo-convex-dark));
+}
+
+.bg-neo-concave {
+  background: linear-gradient(145deg, var(--neo-convex-dark), var(--neo-convex-light));
+}
+
 .text-neo {
   color: var(--neo-text);
 }
@@ -40,26 +58,32 @@
   box-shadow: 
     8px 8px 16px var(--neo-shadow-dark), 
     -8px -8px 16px var(--neo-shadow-light);
-  border: 1px solid rgba(255, 255, 255, 0.05); /* Subtle edge highlight */
+  border: 1px solid var(--neo-border);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-html.dark .shadow-neo {
-  border: 1px solid rgba(255, 255, 255, 0.02);
+
+.shadow-neo-accent {
+  box-shadow: 
+    8px 8px 16px var(--neo-accent-shadow), 
+    -8px -8px 16px var(--neo-shadow-light);
+  border: 1px solid var(--neo-border);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .shadow-neo-sm {
   box-shadow: 
     4px 4px 8px var(--neo-shadow-dark), 
     -4px -4px 8px var(--neo-shadow-light);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-html.dark .shadow-neo-sm {
-  border: 1px solid rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--neo-border);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .shadow-neo-inner {
   box-shadow: 
     inset 6px 6px 12px var(--neo-shadow-dark), 
     inset -6px -6px 12px var(--neo-shadow-light);
+  border: 1px solid transparent;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 /* Clean formula / code callout styling in Neomorphism */

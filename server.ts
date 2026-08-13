@@ -31,7 +31,7 @@ async function startServer() {
   // Global Error Handler (must be after routes)
   app.use(errorHandler);
 
-  app.listen(config.port, () => {
+  app.listen(config.port, '::', () => {
     console.log(`StudyFlow AI server listening on port ${config.port}`);
   });
 }

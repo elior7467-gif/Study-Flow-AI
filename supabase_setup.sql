@@ -23,3 +23,7 @@ ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 -- Note: You may want to restrict this further in production based on auth.uid()
 CREATE POLICY "Allow all access to chats" ON public.chats FOR ALL USING (true);
 CREATE POLICY "Allow all access to messages" ON public.messages FOR ALL USING (true);
+
+-- Grant privileges to the anon and authenticated roles
+GRANT ALL ON public.chats TO anon, authenticated;
+GRANT ALL ON public.messages TO anon, authenticated;

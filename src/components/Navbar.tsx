@@ -19,7 +19,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange, soundEna
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 md:bottom-6 md:left-1/2 md:-translate-x-1/2 md:w-[90%] md:max-w-md md:rounded-[32px] bg-neo shadow-neo py-2 px-4 transition-all duration-300">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 md:bottom-6 md:left-1/2 md:-translate-x-1/2 md:w-[90%] md:max-w-md md:rounded-[32px] bg-neo-convex shadow-neo py-2 px-4 transition-all duration-300">
       <div className="max-w-md md:max-w-2xl lg:max-w-4xl mx-auto flex items-center justify-around">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -38,12 +38,12 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange, soundEna
               {isActive && (
                 <motion.div
                   layoutId="activeTabPill"
-                  className="absolute inset-0 bg-neo shadow-neo-inner rounded-2xl"
+                  className="absolute inset-0 bg-neo-convex shadow-neo-inner rounded-2xl"
                   transition={{ type: 'spring', stiffness: 450, damping: 35 }}
                 />
               )}
               <div
-                className={`relative z-10 transition-colors ${isActive ? 'text-[#2563EB] dark:text-[#60A5FA] font-bold' : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC]'
+                className={`relative z-10 transition-colors ${isActive ? 'text-[#2563EB] dark:text-[#60A5FA] font-bold' : 'text-neo opacity-80 hover:text-neo dark:hover:text-[#F8FAFC]'
                   }`}
               >
                 <div className="mb-0.5 flex justify-center">{tab.icon}</div>
