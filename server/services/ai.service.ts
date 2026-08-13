@@ -71,7 +71,7 @@ export class AiService {
 
   static async streamChat(messages: any[], systemInstruction: string) {
     let primaryError: any = null;
-    const fullSystemInstruction = `${systemInstruction}\n\nIMPORTANT: Use clear Markdown formatting. Use $...$ for inline math and $$...$$ for block math.`;
+    const fullSystemInstruction = `${systemInstruction}\n\nCRITICAL MATH FORMATTING INSTRUCTIONS:\n- Use $...$ for inline math and $$...$$ for block math.\n- Do NOT use \\\\( ... \\\\) or \\\\[ ... \\\\].\n- Block math ($$) MUST start and end on their own separate lines.\n- If you write multi-line equations or use alignment (&=), you MUST explicitly wrap them in \\\\begin{aligned} ... \\\\end{aligned} inside the $$ block.\n- Do NOT output \\\\end{aligned} without a matching \\\\begin{aligned}.\n- Never put text on the same line as the closing $$.`;
 
     try {
       const primaryClient = this.getPrimaryClient();

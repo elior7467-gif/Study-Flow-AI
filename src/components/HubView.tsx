@@ -83,7 +83,7 @@ export const HubView: React.FC<HubViewProps> = ({
             <select
               value={currentUnit.id}
               onChange={(e) => onSelectUnit(e.target.value)}
-              className="bg-[#F1F5F9] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#1E293B] text-[#0F172A] dark:text-[#F8FAFC] text-xs font-semibold py-2 px-3.5 rounded-xl pr-8 cursor-pointer appearance-none hover:bg-[#E2E8F0] dark:hover:bg-[#1E293B] transition-colors"
+              className="bg-neo shadow-neo-inner text-neo text-xs font-semibold py-2 px-3.5 rounded-xl pr-8 cursor-pointer appearance-none outline-none focus:shadow-neo-sm transition-all"
               id="unit-selector"
             >
               {units.map((u) => (
@@ -103,71 +103,71 @@ export const HubView: React.FC<HubViewProps> = ({
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
-        className="bg-gradient-to-br from-[#0F172A] to-[#1E293B] dark:from-[#020617] dark:to-[#0F172A] rounded-[28px] p-6 text-white shadow-md space-y-4 relative overflow-hidden border dark:border-[#1E293B]"
+        className="bg-neo shadow-neo rounded-[28px] p-6 text-neo space-y-4 relative overflow-hidden"
       >
         <div className="flex items-center justify-between">
-          <span className="bg-[#2563EB] text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
+          <span className="bg-neo shadow-neo-inner text-[#2563EB] text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
             HACKATHON DEMO • NCERT PHYSICS CH 5
           </span>
-          <span className="text-xs text-[#E2E8F0] font-medium flex items-center gap-1">
+          <span className="text-xs text-neo opacity-80 font-medium flex items-center gap-1">
             <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" /> Dual AI Pipeline
           </span>
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-xl md:text-2xl font-serif font-bold tracking-tight text-white">
+          <h2 className="text-xl md:text-2xl font-serif font-bold tracking-tight text-neo">
             Honest AI Study Assistant for JEE & NEET
           </h2>
-          <p className="text-xs md:text-sm text-[#E2E8F0] leading-relaxed">
+          <p className="text-xs md:text-sm text-neo opacity-80 leading-relaxed">
             Standard AI chatbots give wrong physics derivations confidently. In exams where 1 mark shifts your college rank, that's dangerous.
           </p>
         </div>
 
         {/* 2-Step Dual Engine Illustration */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
-          <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3 space-y-1">
+          <div className="bg-neo shadow-neo-inner rounded-2xl p-3 space-y-1">
             <div className="font-bold text-[#2563EB] flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-full bg-[#2563EB] text-white flex items-center justify-center text-[10px]">1</span>
+              <span className="w-5 h-5 rounded-full bg-neo shadow-neo text-[#2563EB] flex items-center justify-center text-[10px]">1</span>
               <span>Solver AI</span>
             </div>
-            <p className="text-[#E2E8F0] text-[11px] leading-snug">
+            <p className="text-neo opacity-80 text-[11px] leading-snug">
               Retrieves NCERT Class 11 textbook text & drafts step-by-step math derivations.
             </p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3 space-y-1">
+          <div className="bg-neo shadow-neo-inner rounded-2xl p-3 space-y-1">
             <div className="font-bold text-[#F43F5E] flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-full bg-[#F43F5E] text-white flex items-center justify-center text-[10px]">2</span>
+              <span className="w-5 h-5 rounded-full bg-neo shadow-neo text-[#F43F5E] flex items-center justify-center text-[10px]">2</span>
               <span>Critic AI Fact-Checker</span>
             </div>
-            <p className="text-[#E2E8F0] text-[11px] leading-snug">
+            <p className="text-neo opacity-80 text-[11px] leading-snug">
               Audits each line against NCERT. If unbacked or tricky: warns <span className="font-bold text-[#F43F5E]">"Ask a teacher instead!"</span>
             </p>
           </div>
         </div>
 
         {/* Demo Quick Start Chips */}
-        <div className="pt-2 border-t border-white/15 flex flex-wrap items-center gap-2 text-xs">
-          <span className="text-[#E2E8F0] font-medium text-[11px]">Try Hackathon Scenarios:</span>
+        <div className="pt-2 flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-neo font-medium text-[11px]">Try Hackathon Scenarios:</span>
           <motion.button
             whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: 0.95, boxShadow: "var(--shadow-in)" }}
             onClick={() => {
               playSound('click', soundEnabled);
               onNavigateToChatWithQuery('A car of mass 1500 kg drives at 20 m/s on a flat circular turn of radius 50 m with μ_s = 0.6. Will it skid? Show step-by-step NCERT derivation.');
             }}
-            className="bg-[#2563EB] text-white font-bold px-3 py-1.5 rounded-xl hover:bg-[#6FA38B] transition-colors flex items-center gap-1 cursor-pointer"
+            className="bg-neo shadow-neo text-[#2563EB] font-bold px-3 py-1.5 rounded-xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center gap-1 cursor-pointer"
           >
             <ShieldCheck className="w-3.5 h-3.5" /> 1. In-Scope NCERT Question (Verified)
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: 0.95, boxShadow: "var(--shadow-in)" }}
             onClick={() => {
               playSound('click', soundEnabled);
               onNavigateToChatWithQuery('A block of 5 kg rests on a rough table with μ_s = 0.4. A horizontal force of 10 N is applied. Is static friction equal to 0.4 × 5 × 9.8 = 19.6 N?');
             }}
-            className="bg-[#F43F5E] text-white font-bold px-3 py-1.5 rounded-xl hover:bg-[#D0694E] transition-colors flex items-center gap-1 cursor-pointer"
+            className="bg-neo shadow-neo text-[#F43F5E] font-bold px-3 py-1.5 rounded-xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center gap-1 cursor-pointer"
           >
             <AlertTriangle className="w-3.5 h-3.5" /> 2. Misconception Trap (Honest Warning)
           </motion.button>
@@ -180,7 +180,7 @@ export const HubView: React.FC<HubViewProps> = ({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.2, delay: 0.05 }}
-          className="col-span-2 md:col-span-1 bg-white dark:bg-[#020617] border border-[#E2E8F0] dark:border-[#1E293B] rounded-[24px] p-5 shadow-xs flex flex-col justify-between relative overflow-hidden transition-colors duration-300"
+          className="col-span-2 md:col-span-1 bg-neo shadow-neo rounded-[24px] p-5 flex flex-col justify-between relative overflow-hidden transition-all duration-300"
         >
           <div className="flex items-center justify-between text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] tracking-wider uppercase">
             <span>Overall Mastery</span>
@@ -198,19 +198,19 @@ export const HubView: React.FC<HubViewProps> = ({
             </div>
 
             {/* Animated Progress Bar */}
-            <div className="w-full bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#1E293B] h-2.5 rounded-full overflow-hidden">
+            <div className="w-full bg-neo shadow-neo-inner h-2.5 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${currentUnit.overallMastery}%` }}
                 transition={{ duration: 0.8, ease: 'easeOut' }}
-                className="bg-[#2563EB] dark:bg-[#60A5FA] h-full rounded-full"
+                className="bg-gradient-to-r from-[#2563EB] to-[#60A5FA] h-full rounded-full"
               />
             </div>
           </div>
         </motion.div>
 
         {/* Card 2: Total Time */}
-        <div className="bg-white dark:bg-[#020617] border border-[#E2E8F0] dark:border-[#1E293B] rounded-[24px] p-5 shadow-xs flex flex-col justify-between transition-colors duration-300">
+        <div className="bg-neo shadow-neo rounded-[24px] p-5 flex flex-col justify-between transition-all duration-300">
           <div className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] tracking-wider uppercase">
             Total Time
           </div>
@@ -220,7 +220,7 @@ export const HubView: React.FC<HubViewProps> = ({
         </div>
 
         {/* Card 3: Questions */}
-        <div className="bg-white dark:bg-[#020617] border border-[#E2E8F0] dark:border-[#1E293B] rounded-[24px] p-5 shadow-xs flex flex-col justify-between transition-colors duration-300">
+        <div className="bg-neo shadow-neo rounded-[24px] p-5 flex flex-col justify-between transition-all duration-300">
           <div className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] tracking-wider uppercase">
             Questions
           </div>
@@ -254,7 +254,7 @@ export const HubView: React.FC<HubViewProps> = ({
                   setSelectedTopic(topic);
                   setTopicAuditResult(null);
                 }}
-                className="bg-white dark:bg-[#020617] border border-[#E2E8F0] dark:border-[#1E293B] rounded-[24px] p-5 shadow-xs hover:border-[#2563EB] dark:hover:border-[#60A5FA] transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                className="bg-neo shadow-neo hover:shadow-neo-sm active:shadow-neo-inner rounded-[24px] p-5 transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
               >
                 <div>
                   <h4 className="text-base font-bold text-[#0F172A] dark:text-[#F8FAFC] group-hover:text-[#2563EB] dark:group-hover:text-[#60A5FA] transition-colors">
@@ -284,8 +284,8 @@ export const HubView: React.FC<HubViewProps> = ({
 
       {/* Topic Audit Modal / Drawer */}
       {selectedTopic && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#1E293B] rounded-[32px] max-w-lg w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-neo/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-neo shadow-neo rounded-[32px] max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between border-b border-[#E2E8F0] dark:border-[#1E293B] pb-3">
               <div>
                 <span className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider">
@@ -305,10 +305,10 @@ export const HubView: React.FC<HubViewProps> = ({
 
             {/* Audit Status Banner */}
             <div
-              className={`p-4 rounded-2xl border flex items-center gap-3 ${
+              className={`p-4 rounded-2xl shadow-neo-inner flex items-center gap-3 ${
                 selectedTopic.status === 'VERIFIED'
-                  ? 'bg-[#2563EB]/15 border-[#2563EB]/40 text-[#2563EB]'
-                  : 'bg-[#F43F5E]/15 border-[#F43F5E]/40 text-[#F43F5E]'
+                  ? 'text-[#2563EB]'
+                  : 'text-[#F43F5E]'
               }`}
             >
               {selectedTopic.status === 'VERIFIED' ? (
@@ -328,7 +328,7 @@ export const HubView: React.FC<HubViewProps> = ({
 
             {/* Live Audit Data if triggered */}
             {topicAuditResult && (
-              <div className="bg-[#F8FAFC] dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-[#334155] p-4 rounded-2xl space-y-2 text-xs">
+              <div className="bg-neo shadow-neo-inner p-4 rounded-2xl space-y-2 text-xs">
                 <div className="font-bold text-[#2563EB] dark:text-[#60A5FA] flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4" /> Live Critic AI Audit
                 </div>
@@ -352,7 +352,7 @@ export const HubView: React.FC<HubViewProps> = ({
               <button
                 onClick={() => handleRunTopicAudit(selectedTopic)}
                 disabled={auditingTopicId === selectedTopic.id}
-                className="flex-1 bg-[#0F172A] text-white text-xs font-bold py-3 px-4 rounded-2xl hover:bg-[#2563EB] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer active:scale-95 transition-all"
+                className="flex-1 bg-neo shadow-neo text-[#2563EB] text-xs font-bold py-3 px-4 rounded-2xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
               >
                 {auditingTopicId === selectedTopic.id ? (
                   <>
@@ -371,7 +371,7 @@ export const HubView: React.FC<HubViewProps> = ({
                   setSelectedTopic(null);
                   onNavigateToChatWithQuery(query);
                 }}
-                className="flex-1 bg-[#F1F5F9] dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-[#334155] text-[#0F172A] dark:text-[#F8FAFC] text-xs font-bold py-3 px-4 rounded-2xl hover:bg-[#E2E8F0] dark:hover:bg-[#334155] transition-colors flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-all"
+                className="flex-1 bg-neo shadow-neo text-neo text-xs font-bold py-3 px-4 rounded-2xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <MessageSquare className="w-4 h-4" /> Ask AI Derivation
               </button>

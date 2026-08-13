@@ -48,7 +48,7 @@ export const handleChatStream = async (req: Request, res: Response, next: NextFu
       return res.status(400).json({ error: 'messages array is required' });
     }
 
-    // Save user message to DB (save original before enhancement)
+    // Save user message to DB
     let originalUserContent = '';
     if (messages.length > 0) {
       const lastMsg = messages[messages.length - 1];
@@ -61,8 +61,6 @@ export const handleChatStream = async (req: Request, res: Response, next: NextFu
             content: originalUserContent
           }]);
         }
-        // Enhance the prompt for better structured answers
-        messages[messages.length - 1].content = `User Query: "${originalUserContent}"\n\nInstructions: Please provide a clear, step-by-step academic explanation. If the query is vague, assume the most likely academic context and provide structured details including definitions, relevant formulas, and an example if applicable.`;
       }
     }
 

@@ -62,7 +62,7 @@ export default function App() {
   return (
     <>
       <SignedIn>
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#020617] text-[#0F172A] dark:text-[#F8FAFC] font-sans flex flex-col selection:bg-[#2563EB] selection:text-white transition-colors duration-300">
+        <div className="min-h-screen bg-neo text-neo font-sans flex flex-col selection:bg-[#2563EB] selection:text-white transition-colors duration-300">
           <ToastContainer toasts={toasts} />
           <SettingsModal
             isOpen={showSettings}

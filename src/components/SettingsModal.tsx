@@ -25,16 +25,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="bg-white dark:bg-[#020617] rounded-[32px] w-full max-w-md shadow-2xl border border-[#E2E8F0] dark:border-[#1E293B] overflow-hidden"
+            className="bg-neo shadow-neo rounded-[32px] w-full max-w-md overflow-hidden"
           >
-            <div className="p-5 border-b border-[#E2E8F0] dark:border-[#1E293B] flex items-center justify-between bg-[#F8FAFC] dark:bg-[#0F172A]">
+            <div className="p-5 flex items-center justify-between bg-neo shadow-neo-sm mb-1">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-[#2563EB] text-white flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-neo shadow-neo text-[#2563EB] flex items-center justify-center">
                   <Settings className="w-4 h-4" />
                 </div>
-                <h2 className="font-extrabold text-[#0F172A] dark:text-[#F8FAFC]">Settings</h2>
+                <h2 className="font-extrabold text-neo">Settings</h2>
               </div>
-              <button onClick={() => { playSound('click', soundEnabled); onClose(); }} className="cursor-pointer w-8 h-8 flex items-center justify-center bg-[#E2E8F0] dark:bg-[#1E293B] rounded-full text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC] transition-colors active:scale-95 transition-all">
+              <button onClick={() => { playSound('click', soundEnabled); onClose(); }} className="cursor-pointer w-8 h-8 flex items-center justify-center bg-neo shadow-neo hover:shadow-neo-sm active:shadow-neo-inner rounded-full text-neo transition-all">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -44,39 +44,39 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <div className="space-y-3">
                 <h3 className="text-[10px] font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-widest">Preferences</h3>
                 
-                <div className="flex items-center justify-between p-3 bg-[#F8FAFC] dark:bg-[#0F172A] rounded-2xl border border-[#E2E8F0] dark:border-[#1E293B]">
+                <div className="flex items-center justify-between p-3 bg-neo shadow-neo-inner rounded-2xl">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-white dark:bg-[#1E293B] flex items-center justify-center shadow-sm text-[#0F172A] dark:text-[#F8FAFC]">
+                    <div className="w-8 h-8 rounded-full bg-neo shadow-neo flex items-center justify-center text-neo">
                       {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
                     </div>
-                    <span className="text-sm font-bold text-[#0F172A] dark:text-[#F8FAFC]">Sound Effects</span>
+                    <span className="text-sm font-bold text-neo">Sound Effects</span>
                   </div>
                   <button 
                     onClick={() => { onToggleSound(); playSound('click', !soundEnabled); }}
-                    className={`cursor-pointer w-12 h-6 rounded-full transition-colors relative ${soundEnabled ? 'bg-[#2563EB]' : 'bg-[#E2E8F0] dark:bg-[#334155]'}`}
+                    className={`cursor-pointer w-12 h-6 rounded-full transition-all relative ${soundEnabled ? 'bg-[#2563EB] shadow-neo-inner' : 'bg-neo shadow-neo-inner'}`}
                   >
                     <motion.div 
                       layout
-                      className="w-5 h-5 bg-white rounded-full absolute top-0.5 shadow-sm cursor-pointer active:scale-95 transition-all"
+                      className={`w-5 h-5 rounded-full absolute top-0.5 shadow-sm cursor-pointer active:scale-95 transition-all ${soundEnabled ? 'bg-white' : 'bg-neo shadow-neo'}`}
                       animate={{ left: soundEnabled ? '26px' : '2px' }}
                     />
                   </button>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-[#F8FAFC] dark:bg-[#0F172A] rounded-2xl border border-[#E2E8F0] dark:border-[#1E293B]">
+                <div className="flex items-center justify-between p-3 bg-neo shadow-neo-inner rounded-2xl">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-white dark:bg-[#1E293B] flex items-center justify-center shadow-sm text-[#0F172A] dark:text-[#F8FAFC]">
+                    <div className="w-8 h-8 rounded-full bg-neo shadow-neo flex items-center justify-center text-neo">
                       <Moon className="w-4 h-4" />
                     </div>
-                    <span className="text-sm font-bold text-[#0F172A] dark:text-[#F8FAFC]">Dark Mode</span>
+                    <span className="text-sm font-bold text-neo">Dark Mode</span>
                   </div>
                   <button 
                     onClick={() => { onToggleDarkMode(); playSound('click', soundEnabled); }}
-                    className={`cursor-pointer w-12 h-6 rounded-full transition-colors relative ${isDarkMode ? 'bg-[#2563EB]' : 'bg-[#E2E8F0] dark:bg-[#334155]'}`}
+                    className={`cursor-pointer w-12 h-6 rounded-full transition-all relative ${isDarkMode ? 'bg-[#2563EB] shadow-neo-inner' : 'bg-neo shadow-neo-inner'}`}
                   >
                     <motion.div 
                       layout
-                      className="w-5 h-5 bg-white rounded-full absolute top-0.5 shadow-sm cursor-pointer active:scale-95 transition-all"
+                      className={`w-5 h-5 rounded-full absolute top-0.5 shadow-sm cursor-pointer active:scale-95 transition-all ${isDarkMode ? 'bg-white' : 'bg-neo shadow-neo'}`}
                       animate={{ left: isDarkMode ? '26px' : '2px' }}
                     />
                   </button>
@@ -89,10 +89,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 
                 <button 
                   onClick={() => { playSound('warning', soundEnabled); onClearData(); onClose(); }}
-                  className="cursor-pointer w-full flex items-center justify-between p-3 bg-white dark:bg-[#020617] hover:bg-[#F43F5E]/5 dark:hover:bg-[#F43F5E]/10 rounded-2xl border border-[#E2E8F0] dark:border-[#1E293B] hover:border-[#F43F5E]/30 dark:hover:border-[#F43F5E]/50 transition-colors text-[#F43F5E] group active:scale-95 transition-all"
+                  className="cursor-pointer w-full flex items-center justify-between p-3 bg-neo shadow-neo hover:shadow-neo-sm active:shadow-neo-inner rounded-2xl transition-all text-[#F43F5E] group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#F43F5E]/10 flex items-center justify-center group-hover:bg-[#F43F5E] group-hover:text-white transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-neo shadow-neo flex items-center justify-center transition-all group-hover:text-white group-hover:bg-[#F43F5E]">
                       <Trash2 className="w-4 h-4" />
                     </div>
                     <span className="text-sm font-bold">Clear Chat History</span>
@@ -101,10 +101,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                 <button 
                   onClick={() => { playSound('click', soundEnabled); onSignOut(); }}
-                  className="cursor-pointer w-full flex items-center justify-between p-3 bg-white dark:bg-[#020617] hover:bg-[#F8FAFC] dark:hover:bg-[#0F172A] rounded-2xl border border-[#E2E8F0] dark:border-[#1E293B] transition-colors text-[#0F172A] dark:text-[#F8FAFC] group active:scale-95 transition-all"
+                  className="cursor-pointer w-full flex items-center justify-between p-3 bg-neo shadow-neo hover:shadow-neo-sm active:shadow-neo-inner rounded-2xl transition-all text-neo group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#E2E8F0] dark:bg-[#1E293B] flex items-center justify-center group-hover:bg-[#0F172A] dark:group-hover:bg-[#334155] group-hover:text-white transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-neo shadow-neo flex items-center justify-center transition-all">
                       <LogOut className="w-4 h-4" />
                     </div>
                     <span className="text-sm font-bold">Sign Out</span>

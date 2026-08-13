@@ -19,7 +19,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange, soundEna
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 md:bottom-6 md:left-1/2 md:-translate-x-1/2 md:w-[90%] md:max-w-md md:rounded-[32px] bg-[#F8FAFC]/95 dark:bg-[#020617]/95 backdrop-blur-md border-t md:border border-[#E2E8F0] dark:border-[#1E293B] py-2 px-4 shadow-sm transition-colors duration-300">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 md:bottom-6 md:left-1/2 md:-translate-x-1/2 md:w-[90%] md:max-w-md md:rounded-[32px] bg-neo shadow-neo py-2 px-4 transition-all duration-300">
       <div className="max-w-md md:max-w-2xl lg:max-w-4xl mx-auto flex items-center justify-around">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -38,7 +38,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange, soundEna
               {isActive && (
                 <motion.div
                   layoutId="activeTabPill"
-                  className="absolute inset-0 bg-white dark:bg-[#0F172A] rounded-2xl border border-[#E2E8F0] dark:border-[#1E293B] shadow-xs"
+                  className="absolute inset-0 bg-neo shadow-neo-inner rounded-2xl"
                   transition={{ type: 'spring', stiffness: 450, damping: 35 }}
                 />
               )}
