@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { TabType, UnitOverview, SolverResult, VaultProblem, CohortMetric } from './types';
-import { MOCK_UNITS, INITIAL_CHAT_SOLUTIONS, MOCK_VAULT_PROBLEMS, MOCK_COHORTS } from './data/mockData';
+import { TabType, UnitOverview, VaultProblem, CohortMetric, ChatMessage } from './types';
+import { MOCK_UNITS, MOCK_VAULT_PROBLEMS, MOCK_COHORTS } from './data/mockData';
 import { Header } from './components/Header';
 import { Navbar } from './components/Navbar';
 import { HubView } from './components/HubView';
@@ -21,11 +21,24 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('hub');
   const [units] = useState<UnitOverview[]>(MOCK_UNITS);
   const [selectedUnitId, setSelectedUnitId] = useState<string>('unit-4');
-  const [chatSolutions, setChatSolutions] = useState<SolverResult[]>(INITIAL_CHAT_SOLUTIONS);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [vaultProblems] = useState<VaultProblem[]>(MOCK_VAULT_PROBLEMS);
   const [cohorts] = useState<CohortMetric[]>(MOCK_COHORTS);
   const [initialChatQuery, setInitialChatQuery] = useState<string>('');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem('studyflow_dark_mode');
+    return saved === 'true';
+  });
+
+  React.useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('studyflow_dark_mode', isDarkMode.toString());
+  }, [isDarkMode]);
 
   const handleNotify = (message: string, type: ToastType) => {
     const id = Math.random().toString(36).substring(7);
@@ -35,12 +48,9 @@ export default function App() {
     }, 3000);
   };
 
-  const handleAddNewSolution = (newSolution: SolverResult) => {
-    setChatSolutions((prev) => [newSolution, ...prev]);
-  };
 
   const handleClearData = () => {
-    setChatSolutions([]);
+    setChatMessages([]);
     handleNotify('Chat history cleared', 'success');
   };
 
@@ -52,13 +62,15 @@ export default function App() {
   return (
     <>
       <SignedIn>
-        <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans flex flex-col selection:bg-[#2563EB] selection:text-white">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#020617] text-[#0F172A] dark:text-[#F8FAFC] font-sans flex flex-col selection:bg-[#2563EB] selection:text-white transition-colors duration-300">
           <ToastContainer toasts={toasts} />
           <SettingsModal
             isOpen={showSettings}
             onClose={() => setShowSettings(false)}
             soundEnabled={soundEnabled}
             onToggleSound={() => setSoundEnabled(!soundEnabled)}
+            isDarkMode={isDarkMode}
+            onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
             onClearData={handleClearData}
             onSignOut={() => signOut()}
           />
@@ -73,7 +85,7 @@ export default function App() {
           />
 
       {/* Main View Container with Animated View Transitions */}
-      <main className="flex-1 max-w-md md:max-w-2xl lg:max-w-4xl w-full mx-auto relative overflow-hidden">
+      <main className={`flex-1 w-full mx-auto relative overflow-hidden px-4 md:px-6 lg:px-8 ${activeTab === 'chat' ? 'max-w-[1600px]' : 'max-w-md md:max-w-2xl lg:max-w-4xl'}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -81,7 +93,7 @@ export default function App() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12, scale: 0.99 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="w-full"
+            className="w-full h-full"
           >
             {activeTab === 'hub' && (
               <HubView
@@ -96,8 +108,8 @@ export default function App() {
 
             {activeTab === 'chat' && (
               <ChatView
-                solutions={chatSolutions}
-                onAddNewSolution={handleAddNewSolution}
+                messages={chatMessages}
+                setMessages={setChatMessages}
                 initialQuery={initialChatQuery}
                 soundEnabled={soundEnabled}
                 onNotify={handleNotify}

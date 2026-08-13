@@ -4,13 +4,15 @@ import { TrendingUp, ShieldCheck, AlertTriangle, ChevronDown, Sparkles, RefreshC
 import { motion, AnimatePresence } from 'motion/react';
 import { playSound } from '../utils/sound';
 
+import { ToastType } from './Toast';
+
 interface HubViewProps {
   units: UnitOverview[];
   selectedUnitId: string;
   onSelectUnit: (unitId: string) => void;
   onNavigateToChatWithQuery: (query: string) => void;
   soundEnabled?: boolean;
-  onNotify: (msg: string, type: "success" | "warning" | "error") => void;
+  onNotify: (msg: string, type: ToastType) => void;
 }
 
 export const HubView: React.FC<HubViewProps> = ({
@@ -61,7 +63,7 @@ export const HubView: React.FC<HubViewProps> = ({
       playSound('success', soundEnabled);
     } catch (err) {
       console.error('Audit failed:', err);
-      onNotify(err.message || "Failed to connect to AI server", "error");
+      onNotify(err.message || 'Audit failed', 'warning');
       playSound('warning', soundEnabled);
     } finally {
       setAuditingTopicId(null);
@@ -73,7 +75,7 @@ export const HubView: React.FC<HubViewProps> = ({
       {/* Unit Selector Header */}
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#0F172A] tracking-tight">
+          <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight">
             {currentUnit.name}
           </h2>
 
@@ -81,7 +83,7 @@ export const HubView: React.FC<HubViewProps> = ({
             <select
               value={currentUnit.id}
               onChange={(e) => onSelectUnit(e.target.value)}
-              className="bg-[#F1F5F9] border border-[#E2E8F0] text-[#0F172A] text-xs font-semibold py-2 px-3.5 rounded-xl pr-8 cursor-pointer appearance-none hover:bg-[#E2E8F0] transition-colors"
+              className="bg-[#F1F5F9] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#1E293B] text-[#0F172A] dark:text-[#F8FAFC] text-xs font-semibold py-2 px-3.5 rounded-xl pr-8 cursor-pointer appearance-none hover:bg-[#E2E8F0] dark:hover:bg-[#1E293B] transition-colors"
               id="unit-selector"
             >
               {units.map((u) => (
@@ -90,10 +92,10 @@ export const HubView: React.FC<HubViewProps> = ({
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-4 h-4 text-[#64748B] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-[#64748B] dark:text-[#94A3B8] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
-        <p className="text-sm font-medium text-[#64748B]">{currentUnit.course}</p>
+        <p className="text-sm font-medium text-[#64748B] dark:text-[#94A3B8]">{currentUnit.course}</p>
       </div>
 
       {/* Pitch & Value Proposition Hero Card */}
@@ -101,7 +103,7 @@ export const HubView: React.FC<HubViewProps> = ({
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
-        className="bg-gradient-to-br from-[#0F172A] to-[#1E293B] rounded-[28px] p-6 text-white shadow-md space-y-4 relative overflow-hidden"
+        className="bg-gradient-to-br from-[#0F172A] to-[#1E293B] dark:from-[#020617] dark:to-[#0F172A] rounded-[28px] p-6 text-white shadow-md space-y-4 relative overflow-hidden border dark:border-[#1E293B]"
       >
         <div className="flex items-center justify-between">
           <span className="bg-[#2563EB] text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
@@ -178,53 +180,53 @@ export const HubView: React.FC<HubViewProps> = ({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.2, delay: 0.05 }}
-          className="col-span-2 md:col-span-1 bg-white border border-[#E2E8F0] rounded-[24px] p-5 shadow-xs flex flex-col justify-between relative overflow-hidden"
+          className="col-span-2 md:col-span-1 bg-white dark:bg-[#020617] border border-[#E2E8F0] dark:border-[#1E293B] rounded-[24px] p-5 shadow-xs flex flex-col justify-between relative overflow-hidden transition-colors duration-300"
         >
-          <div className="flex items-center justify-between text-xs font-semibold text-[#64748B] tracking-wider uppercase">
+          <div className="flex items-center justify-between text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] tracking-wider uppercase">
             <span>Overall Mastery</span>
-            <TrendingUp className="w-4 h-4 text-[#2563EB]" />
+            <TrendingUp className="w-4 h-4 text-[#2563EB] dark:text-[#60A5FA]" />
           </div>
 
           <div className="mt-3 space-y-2">
             <div className="flex items-baseline gap-3">
-              <span className="text-4xl md:text-5xl font-extrabold text-[#0F172A] tracking-tight">
+              <span className="text-4xl md:text-5xl font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight">
                 {currentUnit.overallMastery}%
               </span>
-              <span className="text-xs font-bold text-[#2563EB] bg-[#2563EB]/15 px-2.5 py-1 rounded-full flex items-center gap-1">
+              <span className="text-xs font-bold text-[#2563EB] dark:text-[#60A5FA] bg-[#2563EB]/15 dark:bg-[#2563EB]/20 px-2.5 py-1 rounded-full flex items-center gap-1">
                 +{currentUnit.masteryDelta}% this week
               </span>
             </div>
 
             {/* Animated Progress Bar */}
-            <div className="w-full bg-[#F8FAFC] border border-[#E2E8F0] h-2.5 rounded-full overflow-hidden">
+            <div className="w-full bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#1E293B] h-2.5 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${currentUnit.overallMastery}%` }}
                 transition={{ duration: 0.8, ease: 'easeOut' }}
-                className="bg-[#2563EB] h-full rounded-full"
+                className="bg-[#2563EB] dark:bg-[#60A5FA] h-full rounded-full"
               />
             </div>
           </div>
         </motion.div>
 
         {/* Card 2: Total Time */}
-        <div className="bg-white border border-[#E2E8F0] rounded-[24px] p-5 shadow-xs flex flex-col justify-between">
-          <div className="text-xs font-semibold text-[#64748B] tracking-wider uppercase">
+        <div className="bg-white dark:bg-[#020617] border border-[#E2E8F0] dark:border-[#1E293B] rounded-[24px] p-5 shadow-xs flex flex-col justify-between transition-colors duration-300">
+          <div className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] tracking-wider uppercase">
             Total Time
           </div>
-          <div className="mt-3 text-2xl md:text-3xl font-extrabold text-[#0F172A] tracking-tight">
+          <div className="mt-3 text-2xl md:text-3xl font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight">
             {currentUnit.totalTimeHours}h {currentUnit.totalTimeMinutes}m
           </div>
         </div>
 
         {/* Card 3: Questions */}
-        <div className="bg-white border border-[#E2E8F0] rounded-[24px] p-5 shadow-xs flex flex-col justify-between">
-          <div className="text-xs font-semibold text-[#64748B] tracking-wider uppercase">
+        <div className="bg-white dark:bg-[#020617] border border-[#E2E8F0] dark:border-[#1E293B] rounded-[24px] p-5 shadow-xs flex flex-col justify-between transition-colors duration-300">
+          <div className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] tracking-wider uppercase">
             Questions
           </div>
-          <div className="mt-3 flex items-baseline gap-1 text-2xl md:text-3xl font-extrabold text-[#0F172A] tracking-tight">
+          <div className="mt-3 flex items-baseline gap-1 text-2xl md:text-3xl font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight">
             <span>{currentUnit.questionsCompleted}</span>
-            <span className="text-sm font-normal text-[#64748B]">
+            <span className="text-sm font-normal text-[#64748B] dark:text-[#94A3B8]">
               /{currentUnit.questionsTotal}
             </span>
           </div>
@@ -234,10 +236,10 @@ export const HubView: React.FC<HubViewProps> = ({
       {/* Conceptual Mastery Section */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold text-[#0F172A] tracking-tight">
+          <h3 className="text-xl font-bold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight">
             Conceptual Mastery
           </h3>
-          <span className="text-xs font-medium text-[#64748B]">
+          <span className="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">
             Solver-Critic Audit Log
           </span>
         </div>
@@ -252,13 +254,13 @@ export const HubView: React.FC<HubViewProps> = ({
                   setSelectedTopic(topic);
                   setTopicAuditResult(null);
                 }}
-                className="bg-white border border-[#E2E8F0] rounded-[24px] p-5 shadow-xs hover:border-[#2563EB] transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                className="bg-white dark:bg-[#020617] border border-[#E2E8F0] dark:border-[#1E293B] rounded-[24px] p-5 shadow-xs hover:border-[#2563EB] dark:hover:border-[#60A5FA] transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
               >
                 <div>
-                  <h4 className="text-base font-bold text-[#0F172A] group-hover:text-[#2563EB] transition-colors">
+                  <h4 className="text-base font-bold text-[#0F172A] dark:text-[#F8FAFC] group-hover:text-[#2563EB] dark:group-hover:text-[#60A5FA] transition-colors">
                     {topic.title}
                   </h4>
-                  <p className="text-xs text-[#64748B] mt-0.5">{topic.subtitle}</p>
+                  <p className="text-xs text-[#64748B] dark:text-[#94A3B8] mt-0.5">{topic.subtitle}</p>
                 </div>
 
                 <div className="flex items-center gap-2 self-start sm:self-auto">
@@ -283,19 +285,19 @@ export const HubView: React.FC<HubViewProps> = ({
       {/* Topic Audit Modal / Drawer */}
       {selectedTopic && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-[#E2E8F0] rounded-[32px] max-w-lg w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-start justify-between border-b border-[#E2E8F0] pb-3">
+          <div className="bg-white dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#1E293B] rounded-[32px] max-w-lg w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between border-b border-[#E2E8F0] dark:border-[#1E293B] pb-3">
               <div>
-                <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">
+                <span className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider">
                   Conceptual Audit • {currentUnit.name}
                 </span>
-                <h3 className="text-xl font-bold text-[#0F172A]">{selectedTopic.title}</h3>
-                <p className="text-xs text-[#64748B]">{selectedTopic.subtitle}</p>
+                <h3 className="text-xl font-bold text-[#0F172A] dark:text-[#F8FAFC]">{selectedTopic.title}</h3>
+                <p className="text-xs text-[#64748B] dark:text-[#94A3B8]">{selectedTopic.subtitle}</p>
               </div>
 
               <button
                 onClick={() => setSelectedTopic(null)}
-                className="text-[#64748B] hover:text-[#0F172A] p-1 text-lg font-bold cursor-pointer active:scale-95 transition-all"
+                className="text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC] p-1 text-lg font-bold cursor-pointer active:scale-95 transition-all"
               >
                 ✕
               </button>
@@ -326,16 +328,16 @@ export const HubView: React.FC<HubViewProps> = ({
 
             {/* Live Audit Data if triggered */}
             {topicAuditResult && (
-              <div className="bg-[#F8FAFC] border border-[#E2E8F0] p-4 rounded-2xl space-y-2 text-xs">
-                <div className="font-bold text-[#2563EB] flex items-center gap-1.5">
+              <div className="bg-[#F8FAFC] dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-[#334155] p-4 rounded-2xl space-y-2 text-xs">
+                <div className="font-bold text-[#2563EB] dark:text-[#60A5FA] flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4" /> Live Critic AI Audit
                 </div>
-                <p className="text-[#0F172A] font-medium">{topicAuditResult.auditDetails}</p>
+                <p className="text-[#0F172A] dark:text-[#F8FAFC] font-medium">{topicAuditResult.auditDetails}</p>
 
                 {topicAuditResult.insights && (
                   <div className="space-y-1 pt-1">
-                    <span className="font-semibold text-[#64748B]">Key Insights:</span>
-                    <ul className="list-disc list-inside space-y-0.5 text-[#64748B]">
+                    <span className="font-semibold text-[#64748B] dark:text-[#94A3B8]">Key Insights:</span>
+                    <ul className="list-disc list-inside space-y-0.5 text-[#64748B] dark:text-[#94A3B8]">
                       {topicAuditResult.insights.map((ins: string, idx: number) => (
                         <li key={idx}>{ins}</li>
                       ))}
@@ -369,7 +371,7 @@ export const HubView: React.FC<HubViewProps> = ({
                   setSelectedTopic(null);
                   onNavigateToChatWithQuery(query);
                 }}
-                className="flex-1 bg-[#F1F5F9] border border-[#E2E8F0] text-[#0F172A] text-xs font-bold py-3 px-4 rounded-2xl hover:bg-[#E2E8F0] transition-colors flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-all"
+                className="flex-1 bg-[#F1F5F9] dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-[#334155] text-[#0F172A] dark:text-[#F8FAFC] text-xs font-bold py-3 px-4 rounded-2xl hover:bg-[#E2E8F0] dark:hover:bg-[#334155] transition-colors flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-all"
               >
                 <MessageSquare className="w-4 h-4" /> Ask AI Derivation
               </button>

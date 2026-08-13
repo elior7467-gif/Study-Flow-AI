@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Sparkles, BookOpen, CheckCircle2, Zap, Info, TrendingUp, Cpu, Volume2, VolumeX } from 'lucide-react';
+import { ShieldCheck, Sparkles, BookOpen, CheckCircle2, Zap, Info, TrendingUp, Cpu, Volume2, VolumeX, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { playSound } from '../utils/sound';
 import { UserButton } from '@clerk/clerk-react';
@@ -18,7 +18,7 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
   const [showInvestorDeck, setShowInvestorDeck] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 bg-[#F8FAFC]/95 backdrop-blur-md border-b border-[#E2E8F0] px-4 py-2.5">
+    <header className="sticky top-0 z-30 bg-[#F8FAFC]/95 dark:bg-[#020617]/95 backdrop-blur-md border-b border-[#E2E8F0] dark:border-[#1E293B] px-4 py-2.5 transition-colors duration-300">
       <div className="max-w-md md:max-w-2xl lg:max-w-4xl mx-auto flex items-center justify-between">
         {/* Left Icon & Branding */}
         <div className="flex items-center gap-2.5">
@@ -31,14 +31,14 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
           </motion.div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-base md:text-lg font-extrabold tracking-tight text-[#0F172A]">
+              <h1 className="text-base md:text-lg font-extrabold tracking-tight text-[#0F172A] dark:text-[#F8FAFC]">
                 StudyFlow AI
               </h1>
-              <span className="hidden sm:inline-flex items-center gap-1 bg-[#2563EB]/15 text-[#2563EB] border border-[#2563EB]/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="hidden sm:inline-flex items-center gap-1 bg-[#2563EB]/15 text-[#2563EB] dark:bg-[#2563EB]/20 dark:text-[#60A5FA] border border-[#2563EB]/30 dark:border-[#2563EB]/40 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                 <CheckCircle2 className="w-3 h-3" /> Dual-AI Engine Active
               </span>
             </div>
-            <p className="text-[11px] text-[#64748B] font-medium hidden xs:block">
+            <p className="text-[11px] text-[#64748B] dark:text-[#94A3B8] font-medium hidden xs:block">
               Zero-Hallucination Physics Assistant for JEE & NEET
             </p>
           </div>
@@ -54,14 +54,25 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
               playSound('click', soundEnabled);
               setShowInvestorDeck(true);
             }}
-            className="hidden md:flex items-center gap-1.5 bg-[#0F172A] text-white hover:bg-[#1E293B] text-xs font-bold px-3 py-1.5 rounded-xl transition-colors shadow-xs"
+            className="hidden md:flex items-center gap-1.5 bg-[#0F172A] dark:bg-white text-white dark:text-[#0F172A] hover:bg-[#1E293B] dark:hover:bg-[#F1F5F9] text-xs font-bold px-3 py-1.5 rounded-xl transition-colors shadow-xs"
           >
             <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
             <span>SaaS Vision</span>
           </motion.button>
+          
+          {/* Settings Button */}
+          <button
+            onClick={() => {
+              playSound('click', soundEnabled);
+              onOpenSettings?.();
+            }}
+            className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#F1F5F9] dark:bg-[#0F172A] text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC] border border-[#E2E8F0] dark:border-[#1E293B] hover:bg-[#E2E8F0] dark:hover:bg-[#1E293B] transition-colors active:scale-95 ml-2"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
 
           {/* User Profile Button */}
-          <div className="relative flex items-center justify-center bg-[#F1F5F9] border border-[#E2E8F0] rounded-xl w-9 h-9 p-0.5 ml-2 hover:bg-[#E2E8F0] transition-colors cursor-pointer">
+          <div className="relative flex items-center justify-center bg-[#F1F5F9] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#1E293B] rounded-xl w-9 h-9 p-0.5 ml-1 hover:bg-[#E2E8F0] dark:hover:bg-[#1E293B] transition-colors cursor-pointer">
             <UserButton afterSignOutUrl="/" />
           </div>
         </div>

@@ -1,5 +1,7 @@
 import OpenAI from 'openai';
 import { config } from '../config/env';
+import { appCache } from '../utils/cache';
+
 
 export class AiService {
   private static getPrimaryClient() {
@@ -67,26 +69,65 @@ export class AiService {
     throw new Error(`AI Engine Failure. Primary Error: ${primaryError?.message}. Secondary Error: ${secondaryError?.message}`);
   }
 
+  static async streamChat(messages: any[], systemInstruction: string) {
+    let primaryError: any = null;
+    const fullSystemInstruction = `${systemInstruction}\n\nIMPORTANT: Use clear Markdown formatting. Use $...$ for inline math and $$...$$ for block math.`;
+
+    try {
+      const primaryClient = this.getPrimaryClient();
+      console.log(`[AI Engine] Attempting stream with Primary API (${config.primaryAiModel})...`);
+      const stream = await primaryClient.chat.completions.create({
+        model: config.primaryAiModel,
+        messages: [
+          { role: 'system', content: fullSystemInstruction },
+          ...messages
+        ],
+        stream: true,
+      });
+      return stream;
+    } catch (error) {
+      console.warn(`[AI Engine] Primary API stream failed:`, error);
+      primaryError = error;
+    }
+
+    try {
+      const secondaryClient = this.getSecondaryClient();
+      console.log(`[AI Engine] Attempting stream with Secondary API (${config.secondaryAiModel})...`);
+      const stream = await secondaryClient.chat.completions.create({
+        model: config.secondaryAiModel,
+        messages: [
+          { role: 'system', content: fullSystemInstruction },
+          ...messages
+        ],
+        stream: true,
+      });
+      return stream;
+    } catch (error) {
+      console.error(`[AI Engine] Secondary API stream also failed:`, error);
+      throw new Error(`AI Engine Stream Failure. Primary Error: ${primaryError?.message}. Secondary Error: ${error?.message}`);
+    }
+  }
+
   static async generateSolverCritic(query: string, subject: string) {
-    const prompt = `You are the StudyFlow AI Dual-Engine system for JEE/NEET physics students:
-1. "Solver AI": Solve the following question strictly using NCERT Class 11 Physics Chapter 5 ("Laws of Motion") principles.
-2. "Critic AI": Fact-check the Solver AI's derivation line-by-line against NCERT Class 11 physics curriculum.
+    const prompt = `You are the StudyFlow AI Dual-Engine system for students:
+1. "Solver AI": Solve the following question strictly using principles relevant to the subject.
+2. "Critic AI": Fact-check the Solver AI's derivation line-by-line against standard academic curriculum.
 
 Question: "${query}"
 Course Context: "${subject}"
 
 CRITICAL RULE FOR HONESTY:
-- If the question is in NCERT Class 11 Laws of Motion scope and physically correct:
+- If the question is within academic scope and conceptually correct:
   * Set criticAuditStatus = "VERIFIED"
   * Set isOutOfScope = false
-  * Provide NCERT chapter & page citations.
-- If the question contains a trick assumption, asks for out-of-scope advanced physics (e.g., relativistic mechanics, non-inertial quantum tensors), or includes a common student/AI hallucination trap:
+  * Provide relevant textbook or curriculum citations if possible.
+- If the question contains a trick assumption, asks for out-of-scope advanced concepts, or includes a common student/AI hallucination trap:
   * Set criticAuditStatus = "FLAGGED"
   * Set isOutOfScope = true
-  * Set criticAuditNotes = "HONEST WARNING: This question contains out-of-scope concepts or potential AI hallucination risks for JEE/NEET. Do not trust or memorize this derivation! Please consult your physics teacher."
-  * Mark unverified steps clearly with verified = false and criticFeedback = "Critic AI Alert: Unbacked by NCERT Class 11 Ch 5 text."`;
+  * Set criticAuditNotes = "HONEST WARNING: This question contains out-of-scope concepts or potential AI hallucination risks. Do not trust or memorize this derivation! Please consult your teacher."
+  * Mark unverified steps clearly with verified = false and criticFeedback = "Critic AI Alert: Unbacked by standard curriculum text."`;
 
-    const systemInstruction = 'You are StudyFlow AI, an honest JEE & NEET physics study assistant with a built-in Critic AI fact-checker. You prefer to say "I am not confident / Out of NCERT scope — ask a teacher" over providing a misleading or unbacked answer.';
+    const systemInstruction = 'You are StudyFlow AI, an honest and intelligent study assistant with a built-in Critic AI fact-checker. You prefer to say "I am not confident / Out of scope — ask a teacher" over providing a misleading or unbacked answer.';
     
     const schemaDescription = `{
       "title": "string",
@@ -119,7 +160,15 @@ CRITICAL RULE FOR HONESTY:
       }
     }`;
 
-    return this.executeWithFallback(prompt, systemInstruction, schemaDescription);
+    const cacheKey = `solverCritic_${Buffer.from(query + subject).toString('base64')}`;
+    const cachedResponse = appCache.get<any>(cacheKey);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
+    const response = await this.executeWithFallback(prompt, systemInstruction, schemaDescription);
+    appCache.set(cacheKey, response, 3600 * 24); // Cache for 24 hours
+    return response;
   }
 
   static async generateTopicAudit(topicTitle: string, subtitle: string, unit: string) {
@@ -134,6 +183,14 @@ CRITICAL RULE FOR HONESTY:
       "recommendedMasteryScore": 0 // integer
     }`;
 
-    return this.executeWithFallback(prompt, systemInstruction, schemaDescription);
+    const cacheKey = `topicAudit_${Buffer.from(topicTitle + subtitle + unit).toString('base64')}`;
+    const cachedResponse = appCache.get<any>(cacheKey);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
+    const response = await this.executeWithFallback(prompt, systemInstruction, schemaDescription);
+    appCache.set(cacheKey, response, 3600 * 24); // Cache for 24 hours
+    return response;
   }
 }

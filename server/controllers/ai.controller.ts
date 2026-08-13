@@ -1,9 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { AiService } from '../services/ai.service';
+import { supabase } from '../lib/supabase';
+import { appCache } from '../utils/cache';
 
 export const handleSolverCritic = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { query, subject = 'JEE/NEET Physics • Laws of Motion (NCERT Ch 5)' } = req.body;
+    const { query, subject = 'General Academic Query' } = req.body;
     
     if (!query) {
       return res.status(400).json({ error: 'Query is required' });
@@ -35,5 +37,79 @@ export const handleAuditTopic = async (req: Request, res: Response, next: NextFu
     res.json(resultData);
   } catch (err) {
     next(err);
+  }
+};
+
+export const handleChatStream = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { messages, chatId } = req.body;
+
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: 'messages array is required' });
+    }
+
+    // Save user message to DB (save original before enhancement)
+    let originalUserContent = '';
+    if (messages.length > 0) {
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg.role === 'user') {
+        originalUserContent = lastMsg.content;
+        if (chatId) {
+          await supabase.from('messages').insert([{
+            chat_id: chatId,
+            role: 'user',
+            content: originalUserContent
+          }]);
+        }
+        // Enhance the prompt for better structured answers
+        messages[messages.length - 1].content = `User Query: "${originalUserContent}"\n\nInstructions: Please provide a clear, step-by-step academic explanation. If the query is vague, assume the most likely academic context and provide structured details including definitions, relevant formulas, and an example if applicable.`;
+      }
+    }
+
+    const systemInstruction = "You are StudyFlow AI, an intelligent and helpful academic study assistant. Provide clear, step-by-step explanations for the user's queries across various subjects.";
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    const cacheKey = 'chat_' + Buffer.from(JSON.stringify(messages)).toString('base64');
+    const cachedResponse = appCache.get<string>(cacheKey);
+
+    let fullAssistantContent = '';
+
+    if (cachedResponse) {
+      fullAssistantContent = cachedResponse;
+      res.write(`data: ${JSON.stringify({ content: cachedResponse })}\n\n`);
+    } else {
+      const stream = await AiService.streamChat(messages, systemInstruction);
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || '';
+        if (content) {
+          fullAssistantContent += content;
+          res.write(`data: ${JSON.stringify({ content })}\n\n`);
+        }
+      }
+      appCache.set(cacheKey, fullAssistantContent, 3600 * 24); // Cache for 24 hours
+    }
+
+    res.write('data: [DONE]\n\n');
+    res.end();
+
+    // Save assistant message to DB
+    if (chatId && fullAssistantContent) {
+      await supabase.from('messages').insert([{
+        chat_id: chatId,
+        role: 'assistant',
+        content: fullAssistantContent
+      }]);
+    }
+
+  } catch (err) {
+    if (res.headersSent) {
+      res.write(`data: ${JSON.stringify({ error: err.message || 'Stream error' })}\n\n`);
+      res.end();
+    } else {
+      next(err);
+    }
   }
 };
