@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.61.9",
-    "@google/genai": "^2.4.0",
     "@supabase/supabase-js": "^2.112.3",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
@@ -21,9 +20,11 @@
     "katex": "^0.18.4",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
+    "openai": "^7.4.0",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
-    "vite": "^6.2.3"
+    "vite": "^6.2.3",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",

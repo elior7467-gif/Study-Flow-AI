@@ -328,7 +328,7 @@ export const HubView: React.FC<HubViewProps> = ({
             {topicAuditResult && (
               <div className="bg-[#F8FAFC] border border-[#E2E8F0] p-4 rounded-2xl space-y-2 text-xs">
                 <div className="font-bold text-[#2563EB] flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4" /> Live Gemini Critic Audit
+                  <Sparkles className="w-4 h-4" /> Live Critic AI Audit
                 </div>
                 <p className="text-[#0F172A] font-medium">{topicAuditResult.auditDetails}</p>
 
@@ -358,7 +358,7 @@ export const HubView: React.FC<HubViewProps> = ({
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4" /> Run Live Gemini AI Audit
+                    <Sparkles className="w-4 h-4" /> Run Live Critic AI Audit
                   </>
                 )}
               </button>

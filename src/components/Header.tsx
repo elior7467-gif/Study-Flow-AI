@@ -104,7 +104,7 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
                     The Problem: Expensive AI Hallucinations
                   </span>
                   <p className="text-[#64748B]">
-                    Standard LLMs (ChatGPT, Gemini) answer fast and sound confident even when wrong. In competitive exams (JEE/NEET), losing 4 marks shifts a student's college rank by thousands.
+                    Standard LLMs answer fast and sound confident even when wrong. In competitive exams (JEE/NEET), losing 4 marks shifts a student's college rank by thousands.
                   </p>
                 </div>
 

@@ -22,9 +22,10 @@ StudyFlow AI is a zero-hallucination physics assistant tailored for JEE & NEET a
    ```
 
 2. Configure environment variables:
-   Create a `.env` file based on `.env.example`, or just use the generated `.env` file, and insert your Gemini API Key.
+   Create a `.env` file based on `.env.example`, or just use the generated `.env` file, and insert your Primary and Secondary AI API Keys.
    ```bash
-   GEMINI_API_KEY="YOUR_GEMINI_API_KEY_HERE"
+   PRIMARY_AI_API_KEY="YOUR_PRIMARY_API_KEY_HERE"
+   SECONDARY_AI_API_KEY="YOUR_SECONDARY_API_KEY_HERE"
    ```
 
 3. Run the development server:
