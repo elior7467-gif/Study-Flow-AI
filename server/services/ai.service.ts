@@ -1,6 +1,10 @@
 import OpenAI from 'openai';
 import { config } from '../config/env';
 import { appCache } from '../utils/cache';
+import fs from 'fs';
+import path from 'path';
+import { pipeline } from '@xenova/transformers';
+import { supabase } from '../lib/supabase';
 
 
 export class AiService {
@@ -69,9 +73,39 @@ export class AiService {
     throw new Error(`AI Engine Failure. Primary Error: ${primaryError?.message}. Secondary Error: ${secondaryError?.message}`);
   }
 
+  static async retrieveContext(query: string) {
+    try {
+      const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+      const output = await extractor(query, { pooling: 'mean', normalize: true });
+      const query_embedding = Array.from(output.data);
+
+      const { data, error } = await supabase.rpc('match_documents', {
+        query_embedding,
+        match_threshold: 0.3,
+        match_count: 3
+      });
+
+      if (error) throw error;
+      return data?.map((d: any) => d.content).join('\n\n') || 'No external context available.';
+    } catch (err) {
+      console.error('Retrieval error:', err);
+      return 'No external context available.';
+    }
+  }
+
   static async streamChat(messages: any[], systemInstruction: string) {
     let primaryError: any = null;
-    const fullSystemInstruction = `${systemInstruction}\n\nCRITICAL MATH FORMATTING INSTRUCTIONS:\n- Use $...$ for inline math and $$...$$ for block math.\n- Do NOT use \\\\( ... \\\\) or \\\\[ ... \\\\].\n- Block math ($$) MUST start and end on their own separate lines.\n- If you write multi-line equations or use alignment (&=), you MUST explicitly wrap them in \\\\begin{aligned} ... \\\\end{aligned} inside the $$ block.\n- Do NOT output \\\\end{aligned} without a matching \\\\begin{aligned}.\n- Never put text on the same line as the closing $$.`;
+    
+    // Step 1: Extract the latest user query
+    const latestQuery = messages[messages.length - 1]?.content || '';
+    
+    // Step 2: Retrieve Context
+    const retrievedContext = await this.retrieveContext(latestQuery);
+
+    // Step 3: Run the Critic pipeline in the background before streaming
+    const pipelineSystemInstruction = `${systemInstruction}\n\nYou are a dual-engine AI. \n=== GROUND TRUTH ===\n${retrievedContext}\n====================\n\nEnsure your answer strictly aligns with the Ground Truth. If you rely on the Ground Truth, cite it.`;
+
+    const fullSystemInstruction = `${pipelineSystemInstruction}\n\nCRITICAL MATH FORMATTING INSTRUCTIONS:\n- Use $...$ for inline math and $$...$$ for block math.\n- Do NOT use \\\\( ... \\\\) or \\\\[ ... \\\\].\n- Block math ($$) MUST start and end on their own separate lines.\n- If you write multi-line equations or use alignment (&=), you MUST explicitly wrap them in \\\\begin{aligned} ... \\\\end{aligned} inside the $$ block.\n- Do NOT output \\\\end{aligned} without a matching \\\\begin{aligned}.\n- Never put text on the same line as the closing $$.`;
 
     try {
       const primaryClient = this.getPrimaryClient();
@@ -109,6 +143,14 @@ export class AiService {
   }
 
   static async generateSolverCritic(query: string, subject: string) {
+    const ncertDataPath = path.join(process.cwd(), 'server', 'data', 'ncert_physics_ch5.md');
+    let ncertContext = 'No external context available.';
+    try {
+      ncertContext = fs.readFileSync(ncertDataPath, 'utf8');
+    } catch (err) {
+      console.error('Failed to load NCERT data:', err);
+    }
+
     const prompt = `You are the StudyFlow AI Dual-Engine system for students:
 1. "Solver AI": Solve the following question strictly using principles relevant to the subject.
 2. "Critic AI": Fact-check the Solver AI's derivation line-by-line against standard academic curriculum.
@@ -116,12 +158,18 @@ export class AiService {
 Question: "${query}"
 Course Context: "${subject}"
 
+=== NCERT GROUND TRUTH KNOWLEDGE BASE ===
+${ncertContext}
+=========================================
+
 CRITICAL RULE FOR HONESTY:
+- The Solver AI MUST ONLY use formulas and concepts found in the Ground Truth Knowledge Base above.
+- The Critic AI MUST verify every step against the Ground Truth.
 - If the question is within academic scope and conceptually correct:
   * Set criticAuditStatus = "VERIFIED"
   * Set isOutOfScope = false
-  * Provide relevant textbook or curriculum citations if possible.
-- If the question contains a trick assumption, asks for out-of-scope advanced concepts, or includes a common student/AI hallucination trap:
+  * Provide relevant textbook or curriculum citations (e.g. "NCERT Class 11 Physics Chapter 5, Section X.Y").
+- If the question contains a trick assumption (e.g., assuming static friction always equals mu_s * N instead of matching applied force), asks for out-of-scope concepts, or includes a common student/AI hallucination trap:
   * Set criticAuditStatus = "FLAGGED"
   * Set isOutOfScope = true
   * Set criticAuditNotes = "HONEST WARNING: This question contains out-of-scope concepts or potential AI hallucination risks. Do not trust or memorize this derivation! Please consult your teacher."

@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import { DualAiResponseView } from './DualAiResponseView';
 import 'katex/dist/katex.min.css';
 import { useUser } from '@clerk/clerk-react';
 
@@ -132,11 +133,12 @@ export const ChatView: React.FC<ChatViewProps> = ({
     setMessages(newMessages);
 
     try {
-      const response = await fetch('/api/chat-stream', {
+      const response = await fetch('/api/solver-critic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: newMessages.map(m => ({ role: m.role, content: m.content })),
+          query: queryToUse,
+          subject: 'NCERT Class 11 Physics',
           chatId: currentChatId
         }),
       });
@@ -145,40 +147,15 @@ export const ChatView: React.FC<ChatViewProps> = ({
         throw new Error('Failed to connect to AI server');
       }
 
-      if (!response.body) throw new Error('ReadableStream not supported');
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder('utf-8');
+      const data = await response.json();
       
       const assistantMessageId = (Date.now() + 1).toString();
-      let assistantContent = '';
+      setMessages(prev => [...prev, { 
+        id: assistantMessageId, 
+        role: 'assistant', 
+        content: JSON.stringify(data) 
+      }]);
       
-      setMessages(prev => [...prev, { id: assistantMessageId, role: 'assistant', content: '' }]);
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        
-        const chunkStr = decoder.decode(value, { stream: true });
-        const lines = chunkStr.split('\n');
-        
-        for (const line of lines) {
-          if (line.startsWith('data: ') && !line.includes('[DONE]')) {
-            try {
-              const data = JSON.parse(line.substring(6));
-              if (data.error) throw new Error(data.error);
-              if (data.content) {
-                assistantContent += data.content;
-                setMessages(prev => prev.map(msg => 
-                  msg.id === assistantMessageId ? { ...msg, content: assistantContent } : msg
-                ));
-              }
-            } catch (err) {
-              console.error('Error parsing SSE chunk:', err, line);
-            }
-          }
-        }
-      }
       
       playSound('success', soundEnabled);
     } catch (err) {
@@ -227,6 +204,29 @@ export const ChatView: React.FC<ChatViewProps> = ({
     });
 
     return processed;
+  };
+
+  const renderAssistantMessage = (content: string) => {
+    try {
+      const parsed = JSON.parse(content);
+      if (parsed.criticAuditStatus) {
+        return <DualAiResponseView data={parsed} preprocessMath={preprocessMath} />;
+      }
+    } catch (e) {
+      // Fallback for non-JSON or older string messages
+    }
+    
+    return (
+      <div className="bg-neo-convex shadow-neo rounded-2xl rounded-tl-none px-5 py-4 text-xs md:text-sm text-neo leading-relaxed prose prose-sm max-w-none prose-p:leading-relaxed overflow-x-auto">
+        <CopyButton text={content} />
+        <ReactMarkdown 
+          remarkPlugins={[remarkGfm, remarkMath]}
+          rehypePlugins={[[rehypeKatex, { strict: false }]]}
+        >
+          {preprocessMath(content)}
+        </ReactMarkdown>
+      </div>
+    );
   };
 
   return (
@@ -334,16 +334,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
                   <div className="w-8 h-8 rounded-full bg-neo-convex shadow-neo-sm flex items-center justify-center text-[#2563EB] flex-shrink-0 mt-1">
                     <Bot className="w-4 h-4" />
                   </div>
-                  <div className="max-w-[100%] md:max-w-[85%] w-full relative">
-                    <div className="bg-neo-convex shadow-neo rounded-2xl rounded-tl-none px-5 py-4 text-xs md:text-sm text-neo leading-relaxed prose prose-sm max-w-none prose-p:leading-relaxed overflow-x-auto">
-                      <CopyButton text={msg.content} />
-                      <ReactMarkdown 
-                        remarkPlugins={[remarkGfm, remarkMath]}
-                        rehypePlugins={[[rehypeKatex, { strict: false }]]}
-                      >
-                        {preprocessMath(msg.content)}
-                      </ReactMarkdown>
-                    </div>
+                  <div className="max-w-[100%] md:max-w-[90%] w-full relative">
+                    {renderAssistantMessage(msg.content)}
                   </div>
                 </div>
               )}
@@ -359,7 +351,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                  <div className="w-2 h-2 rounded-full bg-[#2563EB] dark:bg-[#60A5FA] animate-bounce" style={{ animationDelay: '0ms' }} />
                  <div className="w-2 h-2 rounded-full bg-[#2563EB] dark:bg-[#60A5FA] animate-bounce" style={{ animationDelay: '150ms' }} />
                  <div className="w-2 h-2 rounded-full bg-[#2563EB] dark:bg-[#60A5FA] animate-bounce" style={{ animationDelay: '300ms' }} />
-                 <span className="text-[10px] text-neo opacity-70 font-bold ml-2 uppercase tracking-widest">Thinking...</span>
+                 <span className="text-[10px] text-neo opacity-70 font-bold ml-2 uppercase tracking-widest">Dual-Engine Processing (Solver & Critic)...</span>
               </div>
             </div>
           )}

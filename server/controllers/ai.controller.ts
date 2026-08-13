@@ -5,21 +5,43 @@ import { appCache } from '../utils/cache';
 
 export const handleSolverCritic = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { query, subject = 'General Academic Query' } = req.body;
+    const { query, subject = 'NCERT Class 11 Physics', chatId } = req.body;
     
     if (!query) {
       return res.status(400).json({ error: 'Query is required' });
     }
 
+    // Save user message to DB
+    if (chatId) {
+      const { error: userErr } = await supabase.from('messages').insert([{
+        chat_id: chatId,
+        role: 'user',
+        content: query
+      }]);
+      if (userErr) console.error("Error saving user message:", userErr);
+    }
+
     const resultData = await AiService.generateSolverCritic(query, subject);
     
-    res.json({
+    const finalResponse = {
       id: 'sol-' + Date.now(),
       query,
       subject,
       ...resultData,
       timestamp: new Date().toISOString(),
-    });
+    };
+
+    // Save assistant message to DB (stringified JSON)
+    if (chatId) {
+      const { error: astErr } = await supabase.from('messages').insert([{
+        chat_id: chatId,
+        role: 'assistant',
+        content: JSON.stringify(finalResponse)
+      }]);
+      if (astErr) console.error("Error saving assistant message:", astErr);
+    }
+
+    res.json(finalResponse);
   } catch (err) {
     next(err);
   }

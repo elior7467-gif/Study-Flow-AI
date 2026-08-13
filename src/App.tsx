@@ -135,7 +135,7 @@ export default function App() {
     </div>
       </SignedIn>
       <SignedOut>
-        <LoginView soundEnabled={soundEnabled} />
+        <LoginView soundEnabled={soundEnabled} isDarkMode={isDarkMode} />
       </SignedOut>
     </>
   );

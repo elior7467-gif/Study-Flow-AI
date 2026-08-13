@@ -5,32 +5,34 @@
   :root {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     
-    /* Neomorphism Light Mode Variables */
-    --neo-bg: #F0F2F5;
-    --neo-text: #334155;
-    --neo-text-muted: #64748B;
+    /* Neomorphism Light Mode Variables - Enhanced */
+    --neo-bg: #EAF0F6;
+    --neo-text: #2d3748;
+    --neo-text-muted: #718096;
     --neo-shadow-light: #FFFFFF;
-    --neo-shadow-dark: #D1D9E6;
-    --neo-border: rgba(255, 255, 255, 0.6);
-    --neo-convex-light: #f5f7fa;
-    --neo-convex-dark: #e6e9f0;
-    --neo-accent-shadow: rgba(37, 99, 235, 0.3);
+    --neo-shadow-dark: #C8D5E1;
+    --neo-border: rgba(255, 255, 255, 0.7);
+    --neo-convex-light: #F2F7FB;
+    --neo-convex-dark: #DFE8F1;
+    --neo-accent-shadow: rgba(37, 99, 235, 0.4);
+    --neo-glow: rgba(37, 99, 235, 0.15);
     
     background-color: var(--neo-bg);
     color: var(--neo-text);
   }
 
   html.dark {
-    /* Neomorphism Dark Mode Variables */
-    --neo-bg: #1a1d24;
-    --neo-text: #f8fafc;
-    --neo-text-muted: #94a3b8;
-    --neo-shadow-light: #222630;
-    --neo-shadow-dark: #121418;
-    --neo-border: rgba(255, 255, 255, 0.03);
-    --neo-convex-light: #1d2128;
-    --neo-convex-dark: #171a20;
-    --neo-accent-shadow: rgba(96, 165, 250, 0.2);
+    /* Neomorphism Dark Mode Variables - Enhanced */
+    --neo-bg: #15181E;
+    --neo-text: #F8FAFC;
+    --neo-text-muted: #94A3B8;
+    --neo-shadow-light: #20242D;
+    --neo-shadow-dark: #0A0C0F;
+    --neo-border: rgba(255, 255, 255, 0.04);
+    --neo-convex-light: #1A1D24;
+    --neo-convex-dark: #12141A;
+    --neo-accent-shadow: rgba(96, 165, 250, 0.3);
+    --neo-glow: rgba(96, 165, 250, 0.15);
     
     background-color: var(--neo-bg);
     color: var(--neo-text);
@@ -65,7 +67,8 @@
 .shadow-neo-accent {
   box-shadow: 
     8px 8px 16px var(--neo-accent-shadow), 
-    -8px -8px 16px var(--neo-shadow-light);
+    -8px -8px 16px var(--neo-shadow-light),
+    0 0 20px var(--neo-glow);
   border: 1px solid var(--neo-border);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
@@ -84,6 +87,29 @@
     inset -6px -6px 12px var(--neo-shadow-light);
   border: 1px solid transparent;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% { transform: translateX(-150%); }
+  100% { transform: translateX(150%); }
+}
+
+.shimmer-effect {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer-effect::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: translateX(-150%);
+  animation: shimmer 3s infinite;
+  pointer-events: none;
+}
+html.dark .shimmer-effect::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
 }
 
 /* Clean formula / code callout styling in Neomorphism */
