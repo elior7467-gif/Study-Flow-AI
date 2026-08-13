@@ -1,0 +1,33 @@
+import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { CheckCircle2, AlertTriangle, Info } from 'lucide-react';
+
+export type ToastType = 'success' | 'warning' | 'info';
+export interface ToastMessage { id: string; message: string; type: ToastType; }
+
+export const ToastContainer: React.FC<{ toasts: ToastMessage[] }> = ({ toasts }) => {
+  return (
+    <div className="fixed top-6 left-0 right-0 z-[100] flex flex-col items-center gap-3 pointer-events-none px-4">
+      <AnimatePresence>
+        {toasts.map(toast => (
+          <motion.div
+            key={toast.id}
+            initial={{ opacity: 0, y: -20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.9 }}
+            className={`pointer-events-auto shadow-2xl rounded-full px-5 py-3 flex items-center gap-3 text-sm font-bold border backdrop-blur-md max-w-sm w-full
+              ${toast.type === 'success' ? 'bg-[#2563EB]/95 text-white border-[#2563EB]' : ''}
+              ${toast.type === 'warning' ? 'bg-[#F43F5E]/95 text-white border-[#F43F5E]' : ''}
+              ${toast.type === 'info' ? 'bg-[#0F172A]/95 text-white border-[#0F172A]' : ''}
+            `}
+          >
+            {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 flex-shrink-0" />}
+            {toast.type === 'warning' && <AlertTriangle className="w-5 h-5 flex-shrink-0" />}
+            {toast.type === 'info' && <Info className="w-5 h-5 flex-shrink-0" />}
+            <span className="flex-1 text-center">{toast.message}</span>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}

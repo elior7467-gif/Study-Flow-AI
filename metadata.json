@@ -1,0 +1,8 @@
+{
+  "name": "StudyFlow AI",
+  "description": "Dual-AI verified physics problem solver with zero hallucinations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

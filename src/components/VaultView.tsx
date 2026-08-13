@@ -1,0 +1,421 @@
+import React, { useState } from 'react';
+import { VaultProblem } from '../types';
+import { ExternalLink, Flag, Compass, CheckCircle2, AlertOctagon, RotateCcw, HelpCircle, Layers, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { playSound } from '../utils/sound';
+
+import { ToastType } from './Toast';
+
+interface VaultViewProps {
+  problems: VaultProblem[];
+  onSelectProblem?: (problem: VaultProblem) => void;
+  soundEnabled?: boolean;
+  onNotify?: (msg: string, type: ToastType) => void;
+}
+
+export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = true, onNotify }) => {
+  const [selectedProblemId, setSelectedProblemId] = useState<string>(
+    problems[0]?.id || 'problem-402'
+  );
+
+  const activeProblem =
+    problems.find((p) => p.id === selectedProblemId) || problems[0];
+
+  // Interactive Physics Simulator Parameters
+  const [mass, setMass] = useState(activeProblem.params.mass);
+  const [velocity, setVelocity] = useState(activeProblem.params.velocity);
+  const [radius, setRadius] = useState(activeProblem.params.radius);
+  const [mu, setMu] = useState(activeProblem.params.mu);
+
+  // Flashcard Flip State
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  // Sync state when switching problems
+  const handleSelectProblem = (p: VaultProblem) => {
+    playSound('click', soundEnabled);
+    setSelectedProblemId(p.id);
+    setMass(p.params.mass);
+    setVelocity(p.params.velocity);
+    setRadius(p.params.radius);
+    setMu(p.params.mu);
+    setIsFlipped(false);
+  };
+
+  // Calculations: g = 9.8 m/s^2
+  const g = 9.8;
+  const fc = (mass * Math.pow(velocity, 2)) / radius; // Centripetal Force (N)
+  const fMax = mu * mass * g; // Max Static Friction (N)
+  const willSkid = fc > fMax;
+
+  return (
+    <div className="pb-28 pt-4 px-4 max-w-md md:max-w-2xl lg:max-w-4xl mx-auto space-y-6">
+      {/* Problem Selector Bar */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs scrollbar-none">
+        <span className="text-[#64748B] font-semibold flex-shrink-0">Problem Vault:</span>
+        {problems.map((p) => (
+          <motion.button
+            key={p.id}
+            whileTap={{ scale: 0.94 }}
+            whileHover={{ scale: 1.04 }}
+            onClick={() => handleSelectProblem(p)}
+            className={`px-3.5 py-1.5 rounded-xl font-bold transition-colors whitespace-nowrap cursor-pointer ${
+              p.id === activeProblem.id
+                ? 'bg-[#0F172A] text-white shadow-xs'
+                : 'bg-[#F1F5F9] text-[#0F172A] hover:bg-[#E2E8F0]'
+            }`}
+          >
+            {p.problemNumber}
+          </motion.button>
+        ))}
+      </div>
+
+      {/* Breadcrumb */}
+      <div className="text-xs text-[#64748B] font-medium flex items-center gap-1.5">
+        <span>Physics</span>
+        <span>›</span>
+        <span>Mechanics</span>
+        <span>›</span>
+        <span className="font-bold text-[#0F172A]">{activeProblem.problemNumber}</span>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-6">
+      {/* Interactive 3D Flip Flashcard / Question Card */}
+      <div className="perspective-1000">
+        <motion.div
+          onClick={() => {
+            playSound('click', soundEnabled);
+            setIsFlipped(!isFlipped);
+          }}
+          whileHover={{ scale: 1.01 }}
+          className="bg-white border border-[#E2E8F0] rounded-[24px] p-5 shadow-xs space-y-3 cursor-pointer relative transition-all"
+        >
+          <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
+            <h3 className="text-sm font-extrabold text-[#0F172A] uppercase tracking-wider flex items-center gap-2">
+              <Layers className="w-4 h-4 text-[#2563EB]" />
+              {isFlipped ? 'NCERT Conceptual Fact-Check' : 'Original Question (Tap to Flip Concept Card)'}
+            </h3>
+            <span className="text-[10px] bg-[#F1F5F9] text-[#64748B] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-[#2563EB]" /> Tap to Flip
+            </span>
+          </div>
+
+          <AnimatePresence mode="wait">
+            {!isFlipped ? (
+              <motion.div
+                key="front"
+                initial={{ opacity: 0, rotateY: -90 }}
+                animate={{ opacity: 1, rotateY: 0 }}
+                exit={{ opacity: 0, rotateY: 90 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-2"
+              >
+                <p className="text-xs md:text-sm text-[#0F172A] leading-relaxed font-medium">
+                  {activeProblem.question}
+                </p>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="back"
+                initial={{ opacity: 0, rotateY: 90 }}
+                animate={{ opacity: 1, rotateY: 0 }}
+                exit={{ opacity: 0, rotateY: -90 }}
+                transition={{ duration: 0.2 }}
+                className="bg-[#F8FAFC] border border-[#E2E8F0] p-4 rounded-2xl space-y-2 text-xs"
+              >
+                <div className="font-bold text-[#2563EB] flex items-center gap-1">
+                  <CheckCircle2 className="w-4 h-4" /> Core NCERT Principle:
+                </div>
+                <p className="text-[#0F172A] leading-relaxed font-medium">
+                  Centripetal force on a level road is provided purely by static friction: f_s = m v² / r. The maximum speed before skidding depends only on v_max = √(μ_s r g) and is independent of mass m.
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
+
+      {/* References Card */}
+      <div className="bg-white border border-[#E2E8F0] rounded-[24px] p-5 shadow-xs space-y-4">
+        <div className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">
+          References
+        </div>
+
+        <div className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-2xl p-3 flex items-start gap-3">
+          <div className="w-8 h-8 rounded-xl bg-[#2563EB]/20 flex items-center justify-center text-[#2563EB] flex-shrink-0">
+            <Compass className="w-4 h-4" />
+          </div>
+          <div className="text-xs">
+            <div className="font-bold text-[#0F172A]">
+              {activeProblem.reference.textbook}
+            </div>
+            <div className="text-[#64748B]">
+              {activeProblem.reference.chapter}, {activeProblem.reference.page}
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <motion.button
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              playSound('click', soundEnabled);
+              onNotify?.(`Opening textbook source reference: ${activeProblem.reference.textbook}`);
+            }}
+            className="w-full bg-[#0F172A] text-white text-xs font-bold py-3 px-4 rounded-2xl hover:bg-[#2563EB] transition-colors flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>View Textbook Source</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </motion.button>
+
+          <motion.button
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              playSound('warning', soundEnabled);
+              onNotify?.('Issue reported to StudyFlow AI Audit Panel.', 'success');
+            }}
+            className="w-full bg-white border border-[#E2E8F0] text-[#0F172A] text-xs font-bold py-3 px-4 rounded-2xl hover:bg-[#F8FAFC] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <Flag className="w-3.5 h-3.5 text-[#64748B]" />
+            <span>Report Issue</span>
+          </motion.button>
+        </div>
+      </div>
+
+      </div>
+        <div className="space-y-6">
+      {/* Interactive Physics Diagram & Vector Simulator */}
+      <div className="bg-white border border-[#E2E8F0] rounded-[24px] p-5 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+          <div className="flex items-center gap-2">
+            <Compass className="w-5 h-5 text-[#2563EB]" />
+            <span className="text-xs font-bold uppercase tracking-wider text-[#0F172A]">
+              Interactive Force Vector Diagram
+            </span>
+          </div>
+
+          <button
+            onClick={() => {
+              playSound('click', soundEnabled);
+              setMass(activeProblem.params.mass);
+              setVelocity(activeProblem.params.velocity);
+              setRadius(activeProblem.params.radius);
+              setMu(activeProblem.params.mu);
+            }}
+            className="text-[11px] font-semibold text-[#64748B] hover:text-[#0F172A] flex items-center gap-1 cursor-pointer active:scale-95 transition-all"
+          >
+            <RotateCcw className="w-3 h-3" /> Reset Defaults
+          </button>
+        </div>
+
+        {/* Dynamic Physics Simulation SVG Canvas with Motion Animations */}
+        <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-4 flex flex-col items-center justify-center relative min-h-[220px] overflow-hidden">
+          <svg className="w-full max-w-xs h-44 overflow-visible" viewBox="0 0 200 200">
+            {/* Circular Track */}
+            <circle
+              cx="100"
+              cy="100"
+              r="65"
+              fill="none"
+              stroke="#E2E8F0"
+              strokeWidth="12"
+              strokeDasharray="4 4"
+            />
+            <circle cx="100" cy="100" r="65" fill="none" stroke="#F1F5F9" strokeWidth="10" />
+
+            {/* Radius Line */}
+            <line
+              x1="100"
+              y1="100"
+              x2="165"
+              y2="100"
+              stroke="#64748B"
+              strokeWidth="1.5"
+              strokeDasharray="2 2"
+            />
+            <text x="125" y="95" className="text-[10px] fill-[#64748B] font-bold">
+              r = {radius}m
+            </text>
+
+            {/* Car Position & Animated Vector Elements */}
+            <g transform="translate(165, 100)">
+              {/* Skidding Dust Smoke FX if Skidding */}
+              {willSkid && (
+                <g>
+                  <circle cx="5" cy="-5" r="4" fill="#F43F5E" opacity="0.4" className="animate-ping" />
+                  <circle cx="12" cy="5" r="3" fill="#F43F5E" opacity="0.3" className="animate-ping" />
+                </g>
+              )}
+
+              {/* Car Body */}
+              <rect
+                x="-12"
+                y="-8"
+                width="24"
+                height="16"
+                rx="3"
+                fill={willSkid ? '#F43F5E' : '#0F172A'}
+                className="transition-colors duration-200"
+              />
+              <circle cx="-7" cy="8" r="3" fill="#0F172A" />
+              <circle cx="7" cy="8" r="3" fill="#0F172A" />
+
+              {/* Centripetal Force Vector (Inward) */}
+              <motion.line
+                x1="0"
+                y1="0"
+                animate={{ x2: -Math.min(50, fc / 100) }}
+                y2="0"
+                stroke="#0F172A"
+                strokeWidth="2.5"
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              />
+              <text x="-45" y="-12" className="text-[9px] fill-[#0F172A] font-extrabold">
+                F_c ({Math.round(fc)}N)
+              </text>
+
+              {/* Velocity Vector (Tangential) */}
+              <motion.line
+                x1="0"
+                y1="0"
+                x2="0"
+                animate={{ y2: -Math.min(45, velocity * 1.5) }}
+                stroke="#2563EB"
+                strokeWidth="2.5"
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              />
+              <text x="5" y="-20" className="text-[9px] fill-[#2563EB] font-bold">
+                v={velocity}m/s
+              </text>
+            </g>
+
+            {/* Center Axis */}
+            <circle cx="100" cy="100" r="4" fill="#2563EB" />
+          </svg>
+
+          {/* Skidding Status Indicator Badge */}
+          <div className="mt-3">
+            <AnimatePresence mode="wait">
+              {willSkid ? (
+                <motion.div
+                  key="skid"
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  className="bg-[#F43F5E]/15 text-[#F43F5E] border border-[#F43F5E]/40 text-xs font-extrabold px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 tracking-wider uppercase shadow-xs"
+                >
+                  <AlertOctagon className="w-4 h-4 text-[#F43F5E] animate-bounce" />
+                  TRAJECTORY UNSTABLE: CAR WILL SKID!
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="safe"
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  className="bg-[#2563EB]/15 text-[#2563EB] border border-[#2563EB]/40 text-xs font-extrabold px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 tracking-wider uppercase shadow-xs"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-[#2563EB]" />
+                  SAFE TRAJECTORY: FRICTION HOLDS
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Live Controls Sliders */}
+        <div className="space-y-3 pt-2 text-xs">
+          <div className="grid grid-cols-2 gap-3">
+            {/* Speed Control */}
+            <div className="bg-[#F8FAFC] p-3 rounded-2xl border border-[#E2E8F0]">
+              <div className="flex justify-between font-bold text-[#0F172A] mb-1">
+                <span>Speed (v)</span>
+                <span className="text-[#2563EB]">{velocity} m/s</span>
+              </div>
+              <input
+                type="range"
+                min="5"
+                max="40"
+                value={velocity}
+                onChange={(e) => setVelocity(Number(e.target.value))}
+                className="w-full accent-[#2563EB]"
+              />
+            </div>
+
+            {/* Radius Control */}
+            <div className="bg-[#F8FAFC] p-3 rounded-2xl border border-[#E2E8F0]">
+              <div className="flex justify-between font-bold text-[#0F172A] mb-1">
+                <span>Radius (r)</span>
+                <span className="text-[#2563EB]">{radius} m</span>
+              </div>
+              <input
+                type="range"
+                min="20"
+                max="150"
+                value={radius}
+                onChange={(e) => setRadius(Number(e.target.value))}
+                className="w-full accent-[#2563EB]"
+              />
+            </div>
+
+            {/* Mass Control */}
+            <div className="bg-[#F8FAFC] p-3 rounded-2xl border border-[#E2E8F0]">
+              <div className="flex justify-between font-bold text-[#0F172A] mb-1">
+                <span>Mass (m)</span>
+                <span className="text-[#2563EB]">{mass} kg</span>
+              </div>
+              <input
+                type="range"
+                min="500"
+                max="3000"
+                step="100"
+                value={mass}
+                onChange={(e) => setMass(Number(e.target.value))}
+                className="w-full accent-[#2563EB]"
+              />
+            </div>
+
+            {/* Friction Control */}
+            <div className="bg-[#F8FAFC] p-3 rounded-2xl border border-[#E2E8F0]">
+              <div className="flex justify-between font-bold text-[#0F172A] mb-1">
+                <span>Friction (μ_s)</span>
+                <span className="text-[#2563EB]">{mu}</span>
+              </div>
+              <input
+                type="range"
+                min="0.1"
+                max="1.2"
+                step="0.05"
+                value={mu}
+                onChange={(e) => setMu(Number(e.target.value))}
+                className="w-full accent-[#2563EB]"
+              />
+            </div>
+          </div>
+
+          {/* Mathematical Calculations Breakdown */}
+          <div className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-2xl p-3 grid grid-cols-2 gap-2 text-center">
+            <div>
+              <span className="text-[10px] font-bold text-[#64748B] uppercase block">
+                Required F_c
+              </span>
+              <span className="font-extrabold text-[#0F172A] text-sm">
+                {Math.round(fc).toLocaleString()} N
+              </span>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-[#64748B] uppercase block">
+                Max Static Friction f_max
+              </span>
+              <span className="font-extrabold text-[#2563EB] text-sm">
+                {Math.round(fMax).toLocaleString()} N
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+    </div>
+  );
+};
