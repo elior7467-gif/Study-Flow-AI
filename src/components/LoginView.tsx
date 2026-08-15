@@ -30,7 +30,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode }
       transition: {
         duration: 4,
         repeat: Infinity,
-        ease: "easeInOut"
+        ease: "easeInOut" as const
       }
     }
   };
@@ -42,7 +42,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode }
       transition: {
         duration: 5,
         repeat: Infinity,
-        ease: "easeInOut"
+        ease: "easeInOut" as const
       }
     }
   };

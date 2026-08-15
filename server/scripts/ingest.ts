@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { pipeline } from '@xenova/transformers';
+import { getExtractor } from '../utils/pipeline';
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
 dotenv.config();
@@ -11,7 +11,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function ingestDocument(filePath: string, subject: string, chapter: string) {
   console.log("Loading embedding model...");
-  const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+  const extractor = await getExtractor();
 
   const text = await fs.promises.readFile(filePath, 'utf8');
 

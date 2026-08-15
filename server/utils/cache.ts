@@ -5,6 +5,17 @@ interface CacheItem<T> {
 
 export class MemoryCache {
   private cache: Map<string, CacheItem<any>> = new Map();
+  private sweepInterval: NodeJS.Timeout | null = null;
+
+  constructor(sweepIntervalMs: number = 5 * 60 * 1000) {
+    if (sweepIntervalMs > 0) {
+      this.sweepInterval = setInterval(() => this.sweep(), sweepIntervalMs);
+      // Ensure the interval doesn't prevent the Node process from exiting
+      if (this.sweepInterval.unref) {
+        this.sweepInterval.unref();
+      }
+    }
+  }
 
   get<T>(key: string): T | null {
     const item = this.cache.get(key);
@@ -29,6 +40,23 @@ export class MemoryCache {
 
   clear(): void {
     this.cache.clear();
+  }
+
+  private sweep(): void {
+    const now = Date.now();
+    for (const [key, item] of this.cache.entries()) {
+      if (now > item.expiry) {
+        this.cache.delete(key);
+      }
+    }
+  }
+
+  destroy(): void {
+    if (this.sweepInterval) {
+      clearInterval(this.sweepInterval);
+      this.sweepInterval = null;
+    }
+    this.clear();
   }
 }
 

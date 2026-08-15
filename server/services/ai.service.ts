@@ -3,9 +3,8 @@ import { config } from '../config/env';
 import { appCache } from '../utils/cache';
 import fs from 'fs';
 import path from 'path';
-import { pipeline } from '@xenova/transformers';
+import { getExtractor } from '../utils/pipeline';
 import { supabase } from '../lib/supabase';
-
 
 export class AiService {
   private static getPrimaryClient() {
@@ -101,7 +100,7 @@ export class AiService {
 
   static async retrieveContext(query: string, filter?: { subject?: string; chapter?: string }) {
     try {
-      const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+      const extractor = await getExtractor();
       const output = await extractor(query, { pooling: 'mean', normalize: true });
       const query_embedding = Array.from(output.data);
 

@@ -3,6 +3,8 @@ import multer from 'multer';
 import { ingestDocument } from '../scripts/ingest';
 import fs from 'fs';
 
+import path from 'path';
+
 const router = Router();
 
 // Configure multer for file uploads
@@ -16,8 +18,9 @@ const adminAuth = (req: Request, res: Response, next: any) => {
   }
   next();
 };
+import { adminLimiter } from '../middlewares/rateLimiter';
 
-router.post('/ingest', adminAuth, upload.single('file'), async (req: Request, res: Response) => {
+router.post('/ingest', adminLimiter, adminAuth, upload.single('file'), async (req: Request, res: Response) => {
   try {
     const { subject, chapter } = req.body;
     const file = req.file;
@@ -29,19 +32,24 @@ router.post('/ingest', adminAuth, upload.single('file'), async (req: Request, re
       return res.status(400).json({ error: 'subject and chapter are required fields' });
     }
 
+    const safePath = path.resolve('server/data', path.basename(file.path));
+
     // Await ingestion
-    await ingestDocument(file.path, subject, chapter);
+    await ingestDocument(safePath, subject, chapter);
 
     res.json({ success: true, message: 'Document ingested successfully' });
   } catch (error: any) {
     console.error('Ingestion error:', error);
     res.status(500).json({ error: 'Ingestion failed', details: error.message });
   } finally {
-    if (req.file && fs.existsSync(req.file.path)) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (e) {
-        console.error('Failed to cleanup file:', e);
+    if (req.file) {
+      const safePath = path.resolve('server/data', path.basename(req.file.path));
+      if (fs.existsSync(safePath)) {
+        try {
+          fs.unlinkSync(safePath);
+        } catch (e) {
+          console.error('Failed to cleanup file:', e);
+        }
       }
     }
   }

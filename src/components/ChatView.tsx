@@ -192,7 +192,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
         headers: { 
           'Content-Type': 'application/json', 
           'Accept': 'text/event-stream',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          'Authorization': `Bearer ${token}`
         },
         signal: abortControllerRef.current.signal,
         body: JSON.stringify({

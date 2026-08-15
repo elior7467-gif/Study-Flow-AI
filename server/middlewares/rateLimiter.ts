@@ -25,6 +25,18 @@ export const solverCriticRateLimiter = rateLimit({
   keyGenerator: (req, res) => {
     // Use userId from body if authenticated, otherwise fallback to standard IP
     if (req.body.userId) return req.body.userId;
-    return ipKeyGenerator(req, res);
+    return req.ip || 'unknown';
+  }
+});
+
+// Admin endpoints Rate Limiter: 50 requests per hour
+export const adminLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'Rate limit exceeded',
+    message: 'Too many admin requests. Please try again later.'
   }
 });
