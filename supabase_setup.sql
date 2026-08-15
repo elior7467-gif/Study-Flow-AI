@@ -21,11 +21,25 @@ ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
 -- Allow read/write access to authenticated users (and anon for development if needed)
 -- Note: You may want to restrict this further in production based on auth.uid()
+-- Setup Clerk-Supabase JWT integration:
+-- 1. In Clerk Dashboard: Go to JWT Templates, create a new template named 'supabase', and add the default claims.
+-- 2. In Supabase Dashboard: Go to Project Settings -> API -> JWT Settings and set the JWT secret to your Clerk signing key (or use JWKS).
+
 DROP POLICY IF EXISTS "Allow all access to chats" ON public.chats;
-CREATE POLICY "Allow all access to chats" ON public.chats FOR ALL USING (true);
+DROP POLICY IF EXISTS "Allow users to access own chats" ON public.chats;
+CREATE POLICY "Allow users to access own chats" ON public.chats
+FOR ALL USING (auth.uid()::text = user_id);
 
 DROP POLICY IF EXISTS "Allow all access to messages" ON public.messages;
-CREATE POLICY "Allow all access to messages" ON public.messages FOR ALL USING (true);
+DROP POLICY IF EXISTS "Allow users to access own messages" ON public.messages;
+CREATE POLICY "Allow users to access own messages" ON public.messages
+FOR ALL USING (
+  EXISTS (
+    SELECT 1 FROM public.chats
+    WHERE chats.id = messages.chat_id
+    AND auth.uid()::text = chats.user_id
+  )
+);
 
 -- Grant privileges to the anon and authenticated roles
 GRANT ALL ON public.chats TO anon, authenticated;
@@ -75,4 +89,73 @@ AS $$
   WHERE 1 - (documents.embedding <=> query_embedding) > match_threshold
   ORDER BY documents.embedding <=> query_embedding
   LIMIT match_count;
+$$;
+
+-- Topic Mastery Tracking
+CREATE TABLE IF NOT EXISTS public.user_topic_mastery (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    topic_id TEXT NOT NULL,
+    topic_title TEXT,
+    verified_count INTEGER DEFAULT 0,
+    flagged_count INTEGER DEFAULT 0,
+    last_updated TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(user_id, topic_id)
+);
+
+ALTER TABLE public.user_topic_mastery ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can only read their own mastery" ON public.user_topic_mastery;
+CREATE POLICY "Users can only read their own mastery"
+    ON public.user_topic_mastery
+    FOR SELECT
+    USING (auth.uid()::text = user_id);
+
+-- RPC for securely incrementing topic mastery
+CREATE OR REPLACE FUNCTION public.upsert_topic_mastery(
+    p_user_id TEXT,
+    p_topic_id TEXT,
+    p_topic_title TEXT,
+    p_is_verified BOOLEAN
+) RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    INSERT INTO public.user_topic_mastery (user_id, topic_id, topic_title, verified_count, flagged_count)
+    VALUES (
+        p_user_id, 
+        p_topic_id, 
+        p_topic_title,
+        CASE WHEN p_is_verified THEN 1 ELSE 0 END, 
+        CASE WHEN NOT p_is_verified THEN 1 ELSE 0 END
+    )
+    ON CONFLICT (user_id, topic_id) DO UPDATE SET
+        topic_title = EXCLUDED.topic_title,
+        verified_count = user_topic_mastery.verified_count + CASE WHEN p_is_verified THEN 1 ELSE 0 END,
+        flagged_count = user_topic_mastery.flagged_count + CASE WHEN NOT p_is_verified THEN 1 ELSE 0 END,
+        last_updated = now();
+END;
+$$;
+
+-- RPC to get global cohort analytics securely
+CREATE OR REPLACE FUNCTION get_cohort_analytics()
+RETURNS TABLE(cohort_id TEXT, mean_score NUMERIC, participation BIGINT)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        topic_id AS cohort_id,
+        AVG(
+            CASE 
+                WHEN (verified_count + flagged_count) = 0 THEN 0.0
+                ELSE (verified_count::NUMERIC / (verified_count + flagged_count)::NUMERIC) * 100.0
+            END
+        ) AS mean_score,
+        COUNT(DISTINCT user_id) AS participation
+    FROM public.user_topic_mastery
+    GROUP BY topic_id;
+END;
 $$;

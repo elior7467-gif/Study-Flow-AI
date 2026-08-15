@@ -48,6 +48,12 @@ export interface DualAiPipelineLog {
   criticWarnings?: string[];
 }
 
+export interface StepVerdict {
+  stepNumber: number;
+  verified: boolean;
+  criticFeedback?: string;
+}
+
 export interface SolverResult {
   id: string;
   query: string;
@@ -60,6 +66,8 @@ export interface SolverResult {
   timestamp: string;
   criticAuditStatus: 'VERIFIED' | 'FLAGGED';
   criticAuditNotes?: string;
+  confidenceScore?: number;
+  stepVerdicts?: StepVerdict[];
   pipelineLog?: DualAiPipelineLog;
   isOutOfScope?: boolean;
 }

@@ -143,17 +143,10 @@ export class AiService {
   }
 
   static async generateSolverCritic(query: string, subject: string) {
-    const ncertDataPath = path.join(process.cwd(), 'server', 'data', 'ncert_physics_ch5.md');
-    let ncertContext = 'No external context available.';
-    try {
-      ncertContext = fs.readFileSync(ncertDataPath, 'utf8');
-    } catch (err) {
-      console.error('Failed to load NCERT data:', err);
-    }
+    const ncertContext = await this.retrieveContext(query);
 
-    const prompt = `You are the StudyFlow AI Dual-Engine system for students:
-1. "Solver AI": Solve the following question strictly using principles relevant to the subject.
-2. "Critic AI": Fact-check the Solver AI's derivation line-by-line against standard academic curriculum.
+    const solverPrompt = `You are the StudyFlow AI "Solver AI".
+Solve the following question strictly using principles relevant to the subject.
 
 Question: "${query}"
 Course Context: "${subject}"
@@ -163,32 +156,19 @@ ${ncertContext}
 =========================================
 
 CRITICAL RULE FOR HONESTY:
-- The Solver AI MUST ONLY use formulas and concepts found in the Ground Truth Knowledge Base above.
-- The Critic AI MUST verify every step against the Ground Truth.
-- If the question is within academic scope and conceptually correct:
-  * Set criticAuditStatus = "VERIFIED"
-  * Set isOutOfScope = false
-  * Provide relevant textbook or curriculum citations (e.g. "NCERT Class 11 Physics Chapter 5, Section X.Y").
-- If the question contains a trick assumption (e.g., assuming static friction always equals mu_s * N instead of matching applied force), asks for out-of-scope concepts, or includes a common student/AI hallucination trap:
-  * Set criticAuditStatus = "FLAGGED"
-  * Set isOutOfScope = true
-  * Set criticAuditNotes = "HONEST WARNING: This question contains out-of-scope concepts or potential AI hallucination risks. Do not trust or memorize this derivation! Please consult your teacher."
-  * Mark unverified steps clearly with verified = false and criticFeedback = "Critic AI Alert: Unbacked by standard curriculum text."`;
+- You MUST ONLY use formulas and concepts found in the Ground Truth Knowledge Base above.`;
 
-    const systemInstruction = 'You are StudyFlow AI, an honest and intelligent study assistant with a built-in Critic AI fact-checker. You prefer to say "I am not confident / Out of scope — ask a teacher" over providing a misleading or unbacked answer.';
+    const solverSystemInstruction = 'You are StudyFlow AI, an intelligent study assistant. Provide a step-by-step derivation without verifying your own work.';
     
-    const schemaDescription = `{
+    const solverSchema = `{
       "title": "string",
       "summary": "string",
-      "isOutOfScope": true or false,
       "steps": [
         {
           "stepNumber": 1,
           "title": "string",
           "description": "string",
-          "verified": true or false,
-          "mathBlock": "string (optional)",
-          "criticFeedback": "string (optional)"
+          "mathBlock": "string (optional)"
         }
       ],
       "finalEquation": "string",
@@ -198,13 +178,9 @@ CRITICAL RULE FOR HONESTY:
         "notes": "string",
         "ncertPage": "string (optional)"
       },
-      "criticAuditStatus": "string",
-      "criticAuditNotes": "string",
       "pipelineLog": {
         "solverDraftSummary": "string",
-        "criticVerificationPassed": true or false,
-        "ncertSourceMatch": "string",
-        "criticWarnings": ["string"]
+        "ncertSourceMatch": "string"
       }
     }`;
 
@@ -214,9 +190,86 @@ CRITICAL RULE FOR HONESTY:
       return cachedResponse;
     }
 
-    const response = await this.executeWithFallback(prompt, systemInstruction, schemaDescription);
-    appCache.set(cacheKey, response, 3600 * 24); // Cache for 24 hours
-    return response;
+    const solverData = await this.executeWithFallback(solverPrompt, solverSystemInstruction, solverSchema);
+
+    const criticPrompt = `You are the StudyFlow AI "Critic AI". Fact-check the following Solver AI's derivation line-by-line against standard academic curriculum and the ground truth.
+
+Question: "${query}"
+
+Solver Derivation:
+${JSON.stringify(solverData.steps, null, 2)}
+
+=== NCERT GROUND TRUTH KNOWLEDGE BASE ===
+${ncertContext}
+=========================================
+
+CRITICAL RULE FOR HONESTY:
+- Verify every step against the Ground Truth.
+- If the question is within academic scope and conceptually correct, set criticAuditStatus = "VERIFIED" and isOutOfScope = false.
+- If the question contains a trick assumption, asks for out-of-scope concepts, or includes a common student/AI hallucination trap, set criticAuditStatus = "FLAGGED", isOutOfScope = true, and provide criticAuditNotes.
+- Provide a confidenceScore (0-100).
+- Mark unverified steps clearly with verified = false and provide criticFeedback.`;
+
+    const criticSystemInstruction = 'You are the StudyFlow AI Critic Auditor. You have NEVER seen this derivation before and must audit it skeptically step by step.';
+    
+    const criticSchema = `{
+      "criticAuditStatus": "VERIFIED" | "FLAGGED",
+      "isOutOfScope": true, // boolean
+      "criticAuditNotes": "string",
+      "confidenceScore": 0, // integer 0-100
+      "stepVerdicts": [
+        {
+          "stepNumber": 1,
+          "verified": true, // boolean
+          "criticFeedback": "string (optional)"
+        }
+      ],
+      "pipelineLog": {
+        "criticVerificationPassed": true, // boolean
+        "criticWarnings": ["string"]
+      }
+    }`;
+
+    const criticData = await this.executeWithFallback(criticPrompt, criticSystemInstruction, criticSchema);
+
+    const stepVerdictsMap = new Map();
+    if (criticData.stepVerdicts && Array.isArray(criticData.stepVerdicts)) {
+      for (const v of criticData.stepVerdicts) {
+        stepVerdictsMap.set(v.stepNumber, v);
+      }
+    }
+
+    if (solverData.steps && Array.isArray(solverData.steps)) {
+      solverData.steps = solverData.steps.map((step: any) => {
+        const verdict = stepVerdictsMap.get(step.stepNumber) || { verified: true, criticFeedback: '' };
+        return {
+          ...step,
+          verified: verdict.verified,
+          criticFeedback: verdict.criticFeedback
+        };
+      });
+    }
+
+    let finalStatus = 'FLAGGED';
+    if (criticData.criticAuditStatus === 'VERIFIED' && typeof criticData.confidenceScore === 'number' && criticData.confidenceScore >= 75) {
+      finalStatus = 'VERIFIED';
+    }
+
+    const finalResponse = {
+      ...solverData,
+      criticAuditStatus: finalStatus,
+      isOutOfScope: criticData.isOutOfScope,
+      criticAuditNotes: criticData.criticAuditNotes,
+      confidenceScore: criticData.confidenceScore,
+      stepVerdicts: criticData.stepVerdicts,
+      pipelineLog: {
+        ...(solverData.pipelineLog || {}),
+        ...(criticData.pipelineLog || {})
+      }
+    };
+
+    appCache.set(cacheKey, finalResponse, 3600 * 24);
+    return finalResponse;
   }
 
   static async generateTopicAudit(topicTitle: string, subtitle: string, unit: string) {

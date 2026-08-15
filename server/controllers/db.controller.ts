@@ -1,5 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import { supabase } from '../lib/supabase';
+import { supabase, getAuthSupabase } from '../lib/supabase';
+
+const getClient = (req: Request) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  return token ? getAuthSupabase(token) : supabase;
+};
 
 export const getUserChats = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -8,7 +13,8 @@ export const getUserChats = async (req: Request, res: Response, next: NextFuncti
       return res.status(400).json({ error: 'User ID is required' });
     }
 
-    const { data, error } = await supabase
+    const client = getClient(req);
+    const { data, error } = await client
       .from('chats')
       .select('*')
       .eq('user_id', userId)
@@ -28,7 +34,8 @@ export const createChat = async (req: Request, res: Response, next: NextFunction
       return res.status(400).json({ error: 'userId and title are required' });
     }
 
-    const { data, error } = await supabase
+    const client = getClient(req);
+    const { data, error } = await client
       .from('chats')
       .insert([{ user_id: userId, title }])
       .select()
@@ -48,12 +55,44 @@ export const getChatMessages = async (req: Request, res: Response, next: NextFun
       return res.status(400).json({ error: 'Chat ID is required' });
     }
 
-    const { data, error } = await supabase
+    const client = getClient(req);
+    const { data, error } = await client
       .from('messages')
       .select('*')
       .eq('chat_id', chatId)
       .order('created_at', { ascending: true });
 
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getUserMastery = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { userId } = req.params;
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    const client = getClient(req);
+    const { data, error } = await client
+      .from('user_topic_mastery')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getCohortAnalytics = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Analytics is global across all users, using service-level RPC
+    const { data, error } = await supabase.rpc('get_cohort_analytics');
     if (error) throw error;
     res.json(data);
   } catch (err) {

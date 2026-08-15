@@ -5,7 +5,7 @@ import { appCache } from '../utils/cache';
 
 export const handleSolverCritic = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { query, subject = 'NCERT Class 11 Physics', chatId } = req.body;
+    const { query, subject = 'NCERT Class 11 Physics', chatId, userId } = req.body;
     
     if (!query) {
       return res.status(400).json({ error: 'Query is required' });
@@ -39,6 +39,20 @@ export const handleSolverCritic = async (req: Request, res: Response, next: Next
         content: JSON.stringify(finalResponse)
       }]);
       if (astErr) console.error("Error saving assistant message:", astErr);
+    }
+
+    // Upsert mastery
+    if (userId) {
+      const topicTitle = resultData.citation?.chapter || 'Unknown Topic';
+      const topicId = topicTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const isVerified = resultData.criticAuditStatus === 'VERIFIED';
+      const { error: masteryErr } = await supabase.rpc('upsert_topic_mastery', {
+        p_user_id: userId,
+        p_topic_id: topicId,
+        p_topic_title: topicTitle,
+        p_is_verified: isVerified
+      });
+      if (masteryErr) console.error("Error upserting mastery:", masteryErr);
     }
 
     res.json(finalResponse);

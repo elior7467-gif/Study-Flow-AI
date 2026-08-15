@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UnitOverview, TopicMastery } from '../types';
 import { TrendingUp, ShieldCheck, AlertTriangle, ChevronDown, Sparkles, RefreshCw, MessageSquare, CheckCircle2, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { playSound } from '../utils/sound';
+import { useAuth, useUser } from '@clerk/clerk-react';
 
 import { ToastType } from './Toast';
 
 interface HubViewProps {
-  units: UnitOverview[];
   selectedUnitId: string;
   onSelectUnit: (unitId: string) => void;
   onNavigateToChatWithQuery: (query: string) => void;
@@ -16,13 +16,90 @@ interface HubViewProps {
 }
 
 export const HubView: React.FC<HubViewProps> = ({
-  units,
   selectedUnitId,
   onSelectUnit,
   onNavigateToChatWithQuery,
   soundEnabled = true,
   onNotify,
 }) => {
+  const { getToken } = useAuth();
+  const { user } = useUser();
+  const userId = user?.id;
+
+  const [units, setUnits] = useState<UnitOverview[]>([{
+    id: 'unit-active',
+    name: 'Active Studies',
+    course: 'Recent AI Verification Topics',
+    overallMastery: 0,
+    masteryDelta: 0,
+    totalTimeHours: 0,
+    totalTimeMinutes: 0,
+    questionsCompleted: 0,
+    questionsTotal: 0,
+    topics: []
+  }]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMastery = async () => {
+      if (!userId) return;
+      try {
+        const token = await getToken({ template: 'supabase' });
+        const res = await fetch(`/api/db/mastery/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          let totalVerified = 0;
+          let totalFlagged = 0;
+          
+          const topics: TopicMastery[] = data.map((row: any) => {
+            const vCount = row.verified_count || 0;
+            const fCount = row.flagged_count || 0;
+            const total = vCount + fCount;
+            totalVerified += vCount;
+            totalFlagged += fCount;
+            
+            const score = total > 0 ? Math.round((vCount / total) * 100) : 0;
+            const statusText = total === 0 ? 'PENDING' : (score >= 75 ? 'VERIFIED' : 'FLAGGED');
+            const subtitleText = total === 0 ? 'Not attempted' : `${vCount} verified | ${fCount} flagged`;
+            
+            return {
+              id: row.topic_id,
+              unit: 'unit-active',
+              title: row.topic_title || row.topic_id,
+              subtitle: subtitleText,
+              status: statusText,
+              auditDetails: total === 0 ? 'Start solving problems to earn mastery.' : 'Based on your recent problem solving history.',
+              masteryScore: score
+            };
+          });
+
+          const totalQuestions = totalVerified + totalFlagged;
+          const overallScore = totalQuestions > 0 ? Math.round((totalVerified / totalQuestions) * 100) : 0;
+
+          setUnits([{
+            id: 'unit-active',
+            name: 'Active Studies',
+            course: 'Recent AI Verification Topics',
+            overallMastery: overallScore,
+            masteryDelta: 0,
+            totalTimeHours: 0,
+            totalTimeMinutes: 0,
+            questionsCompleted: totalQuestions,
+            questionsTotal: totalQuestions,
+            topics: topics
+          }]);
+        }
+      } catch (err) {
+        console.error('Failed to load mastery data', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMastery();
+  }, [userId, getToken]);
+
   const currentUnit = units.find((u) => u.id === selectedUnitId) || units[0];
   const [selectedTopic, setSelectedTopic] = useState<TopicMastery | null>(null);
   const [auditingTopicId, setAuditingTopicId] = useState<string | null>(null);

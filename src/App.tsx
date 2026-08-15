@@ -19,11 +19,9 @@ export default function App() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const [activeTab, setActiveTab] = useState<TabType>('hub');
-  const [units] = useState<UnitOverview[]>(MOCK_UNITS);
-  const [selectedUnitId, setSelectedUnitId] = useState<string>('unit-4');
+  const [selectedUnitId, setSelectedUnitId] = useState<string>('unit-active');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [vaultProblems] = useState<VaultProblem[]>(MOCK_VAULT_PROBLEMS);
-  const [cohorts] = useState<CohortMetric[]>(MOCK_COHORTS);
   const [initialChatQuery, setInitialChatQuery] = useState<string>('');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -60,10 +58,26 @@ export default function App() {
   };
 
   return (
-    <>
+    <div className="flex flex-col h-[100dvh] w-full bg-neo-base dark:bg-slate-900 transition-colors duration-300 relative">
+      
+      {/* Toast Notifications container */}
+      <ToastContainer toasts={toasts} />
       <SignedIn>
-        <div className="min-h-screen bg-neo text-neo font-sans flex flex-col selection:bg-[#2563EB] selection:text-white transition-colors duration-300">
-          <ToastContainer toasts={toasts} />
+        <div className="flex flex-col h-full w-full">
+          <Header 
+            currentUnit={selectedUnitId}
+            onSelectUnit={(unitId) => setSelectedUnitId(unitId)}
+            soundEnabled={soundEnabled}
+            onToggleSound={() => setSoundEnabled(!soundEnabled)}
+            onOpenSettings={() => setShowSettings(true)}
+          />
+
+          <Navbar 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab} 
+            soundEnabled={soundEnabled}
+          />
+
           <SettingsModal
             isOpen={showSettings}
             onClose={() => setShowSettings(false)}
@@ -73,15 +87,6 @@ export default function App() {
             onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
             onClearData={handleClearData}
             onSignOut={() => signOut()}
-          />
-
-          {/* Top Bar */}
-          <Header
-            currentUnit={selectedUnitId}
-            onSelectUnit={(unitId) => setSelectedUnitId(unitId)}
-            soundEnabled={soundEnabled}
-            onToggleSound={() => setSoundEnabled(!soundEnabled)}
-            onOpenSettings={() => setShowSettings(true)}
           />
 
       {/* Main View Container with Animated View Transitions */}
@@ -97,7 +102,6 @@ export default function App() {
           >
             {activeTab === 'hub' && (
               <HubView
-                units={units}
                 selectedUnitId={selectedUnitId}
                 onSelectUnit={setSelectedUnitId}
                 onNavigateToChatWithQuery={handleNavigateToChatWithQuery}
@@ -117,15 +121,15 @@ export default function App() {
             )}
 
             {activeTab === 'vault' && (
-              <VaultView
-                problems={vaultProblems}
+              <VaultView 
+                problems={vaultProblems} 
                 onSelectProblem={(prob) => console.log('Selected problem:', prob.id)}
                 soundEnabled={soundEnabled}
                 onNotify={handleNotify}
               />
             )}
 
-            {activeTab === 'analytics' && <AnalyticsView cohorts={cohorts} />}
+            {activeTab === 'analytics' && <AnalyticsView />}
           </motion.div>
         </AnimatePresence>
       </main>
@@ -137,7 +141,7 @@ export default function App() {
       <SignedOut>
         <LoginView soundEnabled={soundEnabled} isDarkMode={isDarkMode} />
       </SignedOut>
-    </>
+    </div>
   );
 }
 

@@ -19,3 +19,22 @@ export const supabase = createClient(
     }
   }
 );
+
+// Create an authenticated Supabase client using a user's Clerk JWT
+export const getAuthSupabase = (token: string) => {
+  return createClient(
+    supabaseUrl,
+    supabaseKey,
+    {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      },
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  );
+};

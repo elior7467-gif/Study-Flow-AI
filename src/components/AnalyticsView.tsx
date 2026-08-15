@@ -1,15 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CohortMetric } from '../types';
-import { Globe, ShieldCheck, TrendingUp, ChevronUp } from 'lucide-react';
+import { Globe, ShieldCheck, TrendingUp, ChevronUp, RefreshCw } from 'lucide-react';
+import { useAuth } from '@clerk/clerk-react';
 
-interface AnalyticsViewProps {
-  cohorts: CohortMetric[];
-}
-
-export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ cohorts }) => {
+export const AnalyticsView: React.FC = () => {
+  const [cohorts, setCohorts] = useState<CohortMetric[]>([]);
+  const [loading, setLoading] = useState(true);
   const [sortField, setSortField] = useState<'meanScore' | 'participation'>('meanScore');
+  const { getToken } = useAuth();
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const token = await getToken({ template: 'supabase' });
+        const res = await fetch('/api/db/analytics/cohorts', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setCohorts(data);
+        }
+      } catch (err) {
+        console.error('Failed to load analytics', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAnalytics();
+  }, [getToken]);
 
   const sortedCohorts = [...cohorts].sort((a, b) => b[sortField] - a[sortField]);
+
+  if (loading) {
+    return <div className="flex justify-center p-12"><RefreshCw className="w-6 h-6 animate-spin text-neo" /></div>;
+  }
 
   return (
     <div className="h-full overflow-y-auto scrollbar-none pb-28 pt-4 px-4 max-w-md md:max-w-2xl lg:max-w-4xl mx-auto space-y-6">

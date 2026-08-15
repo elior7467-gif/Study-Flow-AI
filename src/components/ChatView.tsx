@@ -9,7 +9,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import { DualAiResponseView } from './DualAiResponseView';
 import 'katex/dist/katex.min.css';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 
 import { ToastType } from './Toast';
 
@@ -29,6 +29,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
   onNotify,
 }) => {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const userId = user?.id;
 
   const [userPrompt, setUserPrompt] = useState(initialQuery);
@@ -54,7 +55,10 @@ export const ChatView: React.FC<ChatViewProps> = ({
     const fetchChats = async () => {
       if (!userId) return;
       try {
-        const res = await fetch(`/api/db/chats/user/${userId}`);
+        const token = await getToken({ template: 'supabase' });
+        const res = await fetch(`/api/db/chats/user/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         if (res.ok) {
           const data = await res.json();
           setChats(data);
@@ -74,7 +78,10 @@ export const ChatView: React.FC<ChatViewProps> = ({
         return;
       }
       try {
-        const res = await fetch(`/api/db/chats/${activeChatId}/messages`);
+        const token = await getToken({ template: 'supabase' });
+        const res = await fetch(`/api/db/chats/${activeChatId}/messages`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         if (res.ok) {
           const data = await res.json();
           setMessages(data);
@@ -112,9 +119,13 @@ export const ChatView: React.FC<ChatViewProps> = ({
     if (!currentChatId) {
       try {
         const title = queryToUse.length > 30 ? queryToUse.substring(0, 30) + '...' : queryToUse;
+        const token = await getToken({ template: 'supabase' });
         const res = await fetch('/api/db/chats', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify({ userId, title }),
         });
         if (res.ok) {
@@ -139,7 +150,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
         body: JSON.stringify({
           query: queryToUse,
           subject: 'NCERT Class 11 Physics',
-          chatId: currentChatId
+          chatId: currentChatId,
+          userId: userId
         }),
       });
 
