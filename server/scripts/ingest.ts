@@ -13,7 +13,7 @@ export async function ingestDocument(filePath: string, subject: string, chapter:
   console.log("Loading embedding model...");
   const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
 
-  const text = fs.readFileSync(filePath, 'utf8');
+  const text = await fs.promises.readFile(filePath, 'utf8');
 
   // Simple chunking by paragraph/section
   const chunks = text.split(/\n\s*\n/).filter(c => c.trim().length > 20);

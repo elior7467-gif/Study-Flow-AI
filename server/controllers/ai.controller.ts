@@ -96,8 +96,12 @@ export const handleSolverCritic = async (req: Request, res: Response, next: Next
 
   } catch (err) {
     if (res.headersSent) {
-      res.write(`event: error\ndata: ${JSON.stringify({ error: err.message || 'Stream error' })}\n\n`);
-      res.end();
+      if (!res.writableEnded) {
+        res.write(`event: error\ndata: ${JSON.stringify({ error: err.message || 'Stream error' })}\n\n`);
+        res.end();
+      } else {
+        console.error('Error after stream ended:', err);
+      }
     } else {
       next(err);
     }
@@ -123,8 +127,8 @@ export const handleChatStream = async (req: Request, res: Response, next: NextFu
   try {
     const { messages, chatId } = req.body;
 
-    if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: 'messages array is required' });
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: 'messages array cannot be empty' });
     }
 
     // Save user message to DB
@@ -185,8 +189,12 @@ export const handleChatStream = async (req: Request, res: Response, next: NextFu
 
   } catch (err) {
     if (res.headersSent) {
-      res.write(`data: ${JSON.stringify({ error: err.message || 'Stream error' })}\n\n`);
-      res.end();
+      if (!res.writableEnded) {
+        res.write(`data: ${JSON.stringify({ error: err.message || 'Stream error' })}\n\n`);
+        res.end();
+      } else {
+        console.error('Error after chat stream ended:', err);
+      }
     } else {
       next(err);
     }

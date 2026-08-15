@@ -2,6 +2,20 @@ import { Request, Response, NextFunction } from 'express';
 
 const rateLimitMap = new Map<string, number[]>();
 
+// Cleanup stale entries every hour to prevent memory leaks
+setInterval(() => {
+  const now = Date.now();
+  const windowMs = 60 * 60 * 1000;
+  for (const [key, timestamps] of rateLimitMap.entries()) {
+    const validTimestamps = timestamps.filter(t => now - t < windowMs);
+    if (validTimestamps.length === 0) {
+      rateLimitMap.delete(key);
+    } else {
+      rateLimitMap.set(key, validTimestamps);
+    }
+  }
+}, 60 * 60 * 1000);
+
 export const solverCriticRateLimiter = (req: Request, res: Response, next: NextFunction) => {
   // Use userId from body if authenticated, otherwise fallback to IP
   const userId = req.body.userId || req.ip;

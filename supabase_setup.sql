@@ -12,12 +12,16 @@ CREATE TABLE IF NOT EXISTS public.messages (
     chat_id UUID REFERENCES public.chats(id) ON DELETE CASCADE,
     role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
     content TEXT NOT NULL,
+    is_pinned BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 -- Optional: Set up Row Level Security (RLS) if you haven't already
 ALTER TABLE public.chats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+
+-- Safely add is_pinned column if table already exists
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS is_pinned BOOLEAN DEFAULT false;
 
 -- Allow read/write access to authenticated users (and anon for development if needed)
 -- Note: You may want to restrict this further in production based on auth.uid()

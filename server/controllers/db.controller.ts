@@ -159,3 +159,62 @@ export const flagForReview = async (req: Request, res: Response, next: NextFunct
     next(err);
   }
 };
+
+export const deleteChat = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { chatId } = req.params;
+    if (!chatId) return res.status(400).json({ error: 'Chat ID is required' });
+
+    const client = getClient(req);
+    const { error } = await client.from('chats').delete().eq('id', chatId);
+
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const renameChat = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { chatId } = req.params;
+    const { title } = req.body;
+    if (!chatId || !title) return res.status(400).json({ error: 'Chat ID and title are required' });
+
+    const client = getClient(req);
+    const { data, error } = await client
+      .from('chats')
+      .update({ title })
+      .eq('id', chatId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const toggleMessagePin = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { messageId } = req.params;
+    const { is_pinned } = req.body;
+    if (!messageId || typeof is_pinned !== 'boolean') {
+      return res.status(400).json({ error: 'Message ID and is_pinned boolean are required' });
+    }
+
+    const client = getClient(req);
+    const { data, error } = await client
+      .from('messages')
+      .update({ is_pinned })
+      .eq('id', messageId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};

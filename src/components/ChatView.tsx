@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChatMessage, ChatSession } from '../types';
-import { Bot, User, Send, RefreshCw, Copy, Check, MessageSquare, Plus, Menu, X, Sparkles } from 'lucide-react';
+import { Bot, User, Send, RefreshCw, Copy, Check, MessageSquare, Plus, Menu, X, Sparkles, Trash2, Edit2, Pin, PinOff, Search } from 'lucide-react';
 import { playSound } from '../utils/sound';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -26,6 +26,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
   setMessages,
   initialQuery = '',
   soundEnabled = true,
+  soundEnabled: propSoundEnabled = true,
   onNotify,
 }) => {
   const { user } = useUser();
@@ -34,12 +35,16 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
   const [userPrompt, setUserPrompt] = useState(initialQuery);
   const [loading, setLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const [chats, setChats] = useState<ChatSession[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [chats, setChats] = useState<ChatSession[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState(localStorage.getItem('preferred_language') || 'en');
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [soundEnabled, setSoundEnabled] = useState(propSoundEnabled);
+  
+  const [chatSearchQuery, setChatSearchQuery] = useState('');
+  const [editingChatId, setEditingChatId] = useState<string | null>(null);
+  const [editChatTitle, setEditChatTitle] = useState('');
 
   useEffect(() => {
     try {
@@ -256,7 +261,67 @@ export const ChatView: React.FC<ChatViewProps> = ({
     );
   };
 
-  // Pre-process AI markdown to fix common LaTeX formatting issues before rendering
+  const handleRenameChat = async (chatId: string) => {
+    if (!editChatTitle.trim()) {
+      setEditingChatId(null);
+      return;
+    }
+    try {
+      const token = await getToken({ template: 'supabase' });
+      const res = await fetch(`/api/db/chats/${chatId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ title: editChatTitle.trim() })
+      });
+      if (res.ok) {
+        setChats(prev => prev.map(c => c.id === chatId ? { ...c, title: editChatTitle.trim() } : c));
+        onNotify('Chat renamed', 'success');
+      }
+    } catch (err) {
+      onNotify('Failed to rename chat', 'error');
+    } finally {
+      setEditingChatId(null);
+    }
+  };
+
+  const handleDeleteChat = async (chatId: string) => {
+    try {
+      const token = await getToken({ template: 'supabase' });
+      const res = await fetch(`/api/db/chats/${chatId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setChats(prev => prev.filter(c => c.id !== chatId));
+        if (activeChatId === chatId) {
+          setActiveChatId(null);
+          setMessages([]);
+        }
+        onNotify('Chat deleted', 'success');
+      }
+    } catch (err) {
+      onNotify('Failed to delete chat', 'error');
+    }
+  };
+
+  const handleTogglePin = async (messageId: string, currentPinStatus: boolean = false) => {
+    try {
+      const token = await getToken({ template: 'supabase' });
+      const res = await fetch(`/api/db/messages/${messageId}/pin`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ is_pinned: !currentPinStatus })
+      });
+      if (res.ok) {
+        setMessages(prev => prev.map(m => m.id === messageId ? { ...m, is_pinned: !currentPinStatus } : m));
+        onNotify(!currentPinStatus ? 'Message pinned' : 'Message unpinned', 'success');
+      }
+    } catch (err) {
+      onNotify('Failed to update pin status', 'error');
+    }
+  };
+
+  // Pre-process math to handle cases where block math is not on its own lineX formatting issues before rendering
   const preprocessMath = (content: string) => {
     if (!content) return '';
     let processed = content;
@@ -279,32 +344,51 @@ export const ChatView: React.FC<ChatViewProps> = ({
     return processed;
   };
 
-  const renderAssistantMessage = (content: string, messageId: string) => {
-    let textToRender = content;
+  const renderAssistantMessage = (msg: ChatMessage) => {
+    let textToRender = msg.content;
     try {
-      const parsed = JSON.parse(content);
+      const parsed = JSON.parse(msg.content);
       if (parsed.criticAuditStatus) {
         return (
-          <DualAiResponseView 
-            data={parsed} 
-            preprocessMath={preprocessMath} 
-            userId={userId}
-            chatId={activeChatId}
-            messageId={messageId}
-            onNotify={onNotify}
-          />
+          <div className="relative">
+            <button
+              onClick={() => handleTogglePin(msg.id, msg.is_pinned)}
+              className="absolute -top-3 -right-2 z-10 p-1.5 bg-neo-convex shadow-neo rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              title={msg.is_pinned ? "Unpin message" : "Pin message"}
+            >
+              {msg.is_pinned ? <PinOff className="w-3.5 h-3.5 text-amber-500" /> : <Pin className="w-3.5 h-3.5 text-neo opacity-50" />}
+            </button>
+            <DualAiResponseView 
+              data={parsed} 
+              preprocessMath={preprocessMath} 
+              userId={userId}
+              chatId={activeChatId}
+              messageId={msg.id}
+              onNotify={onNotify}
+            />
+          </div>
         );
       }
       if (parsed.isConversation || parsed.content) {
-        textToRender = parsed.content || content;
+        textToRender = parsed.content || msg.content;
       }
     } catch (e) {
       // Fallback for non-JSON or older string messages
     }
     
     return (
-      <div className="bg-neo-convex shadow-neo rounded-2xl rounded-tl-none px-5 py-4 text-xs md:text-sm text-neo leading-relaxed prose prose-sm max-w-none prose-p:leading-relaxed overflow-x-auto">
-        <CopyButton text={textToRender} />
+    return (
+      <div className={`bg-neo-convex shadow-neo rounded-2xl rounded-tl-none px-5 py-4 text-xs md:text-sm text-neo leading-relaxed prose prose-sm max-w-none prose-p:leading-relaxed overflow-x-auto relative ${msg.is_pinned ? 'ring-2 ring-amber-400 dark:ring-amber-500/50' : ''}`}>
+        <div className="absolute top-2 right-2 flex items-center gap-1">
+          <CopyButton text={textToRender} />
+          <button
+            onClick={() => handleTogglePin(msg.id, msg.is_pinned)}
+            className="p-1.5 text-neo opacity-50 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-all"
+            title={msg.is_pinned ? "Unpin message" : "Pin message"}
+          >
+            {msg.is_pinned ? <PinOff className="w-3.5 h-3.5 text-amber-500" /> : <Pin className="w-3.5 h-3.5" />}
+          </button>
+        </div>
         <ReactMarkdown 
           remarkPlugins={[remarkGfm, remarkMath]}
           rehypePlugins={[[rehypeKatex, { strict: false }]]}
@@ -331,7 +415,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
         absolute md:static inset-y-0 left-0 z-40 w-64 bg-neo-convex shadow-neo-sm flex flex-col transition-transform duration-300 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
-        <div className="p-4 border-b border-black/5 dark:border-white/5">
+        <div className="p-4 border-b border-black/5 dark:border-white/5 space-y-3">
           <button 
             onClick={() => {
               setActiveChatId(null);
@@ -342,29 +426,81 @@ export const ChatView: React.FC<ChatViewProps> = ({
             <Plus className="w-4 h-4" />
             New Chat
           </button>
+          
+          {/* Chat Search */}
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neo opacity-50" />
+            <input 
+              type="text"
+              placeholder="Search history..."
+              value={chatSearchQuery}
+              onChange={(e) => setChatSearchQuery(e.target.value)}
+              className="w-full bg-neo-concave shadow-neo-inner text-neo text-xs rounded-xl pl-9 pr-3 py-2.5 focus:outline-none placeholder:opacity-50"
+            />
+          </div>
         </div>
         
         <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[#E2E8F0] dark:scrollbar-thumb-[#1E293B] p-3 space-y-1">
-          {chats.map(chat => (
-            <button
+          {chats.filter(c => c.title.toLowerCase().includes(chatSearchQuery.toLowerCase())).map(chat => (
+            <div
               key={chat.id}
-              onClick={() => {
-                setActiveChatId(chat.id);
-                setSidebarOpen(false);
-              }}
-              className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-left transition-all text-sm ${
+              className={`group w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl transition-all text-sm ${
                 activeChatId === chat.id 
                   ? 'bg-neo-concave shadow-neo-inner font-bold text-neo' 
-                  : 'text-neo opacity-80 hover:shadow-neo-sm'
+                  : 'text-neo hover:shadow-neo-sm'
               }`}
             >
-              <MessageSquare className={`w-4 h-4 flex-shrink-0 ${activeChatId === chat.id ? 'text-[#2563EB] dark:text-[#60A5FA]' : 'text-neo opacity-70'}`} />
-              <span className="truncate">{chat.title}</span>
-            </button>
+              {editingChatId === chat.id ? (
+                <input
+                  type="text"
+                  value={editChatTitle}
+                  onChange={(e) => setEditChatTitle(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleRenameChat(chat.id)}
+                  autoFocus
+                  onBlur={() => handleRenameChat(chat.id)}
+                  className="bg-transparent border-b border-black/20 dark:border-white/20 text-xs focus:outline-none flex-1 truncate py-1"
+                />
+              ) : (
+                <button
+                  onClick={() => {
+                    setActiveChatId(chat.id);
+                    setSidebarOpen(false);
+                  }}
+                  className="flex items-center gap-2 flex-1 text-left truncate opacity-80"
+                >
+                  <MessageSquare className={`w-4 h-4 flex-shrink-0 ${activeChatId === chat.id ? 'text-[#2563EB] dark:text-[#60A5FA]' : 'text-neo opacity-70'}`} />
+                  <span className="truncate">{chat.title}</span>
+                </button>
+              )}
+              
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {editingChatId !== chat.id && (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setEditChatTitle(chat.title); setEditingChatId(chat.id); }}
+                    className="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-md text-neo opacity-60 hover:opacity-100"
+                    title="Rename"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleDeleteChat(chat.id); }}
+                  className="p-1 hover:bg-red-500/10 rounded-md text-red-500 opacity-60 hover:opacity-100"
+                  title="Delete"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
           ))}
-          {chats.length === 0 && (
+          {chats.length === 0 && !chatSearchQuery && (
             <div className="text-center text-xs font-medium text-[#94A3B8] p-4">
               No chat history yet
+            </div>
+          )}
+          {chats.length > 0 && chatSearchQuery && chats.filter(c => c.title.toLowerCase().includes(chatSearchQuery.toLowerCase())).length === 0 && (
+            <div className="text-center text-xs font-medium text-[#94A3B8] p-4">
+              No results found
             </div>
           )}
         </div>
@@ -407,11 +543,18 @@ export const ChatView: React.FC<ChatViewProps> = ({
               className="space-y-6"
             >
               {msg.role === 'user' ? (
-                <div className="flex justify-end items-end gap-2">
-                  <div className="bg-neo-concave shadow-neo-inner text-neo rounded-2xl rounded-br-none px-4 py-3 max-w-[85%]">
+                <div className="flex justify-end items-end gap-2 relative group/user-msg">
+                  <div className={`bg-neo-concave shadow-neo-inner text-neo rounded-2xl rounded-br-none px-4 py-3 max-w-[85%] ${msg.is_pinned ? 'ring-2 ring-amber-400 dark:ring-amber-500/50' : ''}`}>
                     <p className="text-xs font-medium leading-relaxed">{msg.content}</p>
+                    <button
+                      onClick={() => handleTogglePin(msg.id, msg.is_pinned)}
+                      className="absolute top-1 -left-8 p-1.5 text-neo opacity-0 group-hover/user-msg:opacity-50 hover:!opacity-100 bg-neo-convex shadow-neo rounded-full transition-all"
+                      title={msg.is_pinned ? "Unpin message" : "Pin message"}
+                    >
+                      {msg.is_pinned ? <PinOff className="w-3 h-3 text-amber-500" /> : <Pin className="w-3 h-3" />}
+                    </button>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-neo-convex shadow-neo-sm flex items-center justify-center text-neo flex-shrink-0 mb-1">
+                  <div className="w-8 h-8 rounded-full bg-neo-convex shadow-neo-sm flex items-center justify-center text-neo flex-shrink-0 mb-1 z-10">
                     <User className="w-4 h-4" />
                   </div>
                 </div>
@@ -421,7 +564,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                     <Bot className="w-4 h-4" />
                   </div>
                   <div className="max-w-[100%] md:max-w-[90%] w-full relative">
-                    {renderAssistantMessage(msg.content, msg.id)}
+                    {renderAssistantMessage(msg)}
                   </div>
                 </div>
               )}
