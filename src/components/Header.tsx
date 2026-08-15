@@ -25,9 +25,9 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95, boxShadow: "var(--shadow-in)" }}
-            className="w-9 h-9 rounded-xl bg-neo-convex shadow-neo flex items-center justify-center text-[#2563EB] dark:text-[#60A5FA] flex-shrink-0 cursor-pointer transition-shadow"
+            className="w-9 h-9 rounded-xl bg-neo-convex shadow-neo flex items-center justify-center text-[#2563EB] dark:text-[#60A5FA] flex-shrink-0 cursor-pointer transition-shadow overflow-hidden p-0.5"
           >
-            <ShieldCheck className="w-5 h-5" />
+            <img src="/logo.jpg" alt="StudyFlow AI Logo" className="w-full h-full object-cover rounded-[10px]" />
           </motion.div>
           <div>
             <div className="flex items-center gap-2">
