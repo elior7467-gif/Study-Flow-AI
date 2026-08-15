@@ -160,7 +160,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
           subject: 'NCERT Class 11 Physics',
           chatId: currentChatId,
           userId: userId,
-          language
+          language,
+          messages: newMessages
         }),
       });
 
@@ -174,6 +175,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
       const decoder = new TextDecoder('utf-8');
       const assistantMessageId = (Date.now() + 1).toString();
       let buffer = '';
+      let accumulatedConversationText = '';
 
       while (true) {
         const { value, done } = await reader.read();
@@ -208,6 +210,14 @@ export const ChatView: React.FC<ChatViewProps> = ({
                   const exists = prev.some(m => m.id === assistantMessageId);
                   if (exists) return prev.map(m => m.id === assistantMessageId ? { ...m, content: JSON.stringify(parsed) } : m);
                   return [...prev, { id: assistantMessageId, role: 'assistant', content: JSON.stringify(parsed) }];
+                });
+              } else if (currentEvent === 'conversation_chunk') {
+                accumulatedConversationText += parsed.content;
+                const newContent = JSON.stringify({ isConversation: true, content: accumulatedConversationText });
+                setMessages(prev => {
+                  const exists = prev.some(m => m.id === assistantMessageId);
+                  if (exists) return prev.map(m => m.id === assistantMessageId ? { ...m, content: newContent } : m);
+                  return [...prev, { id: assistantMessageId, role: 'assistant', content: newContent }];
                 });
               } else if (currentEvent === 'error') {
                 throw new Error(parsed.error);
@@ -269,12 +279,21 @@ export const ChatView: React.FC<ChatViewProps> = ({
     return processed;
   };
 
-  const renderAssistantMessage = (content: string) => {
+  const renderAssistantMessage = (content: string, messageId: string) => {
     let textToRender = content;
     try {
       const parsed = JSON.parse(content);
       if (parsed.criticAuditStatus) {
-        return <DualAiResponseView data={parsed} preprocessMath={preprocessMath} />;
+        return (
+          <DualAiResponseView 
+            data={parsed} 
+            preprocessMath={preprocessMath} 
+            userId={userId}
+            chatId={activeChatId}
+            messageId={messageId}
+            onNotify={onNotify}
+          />
+        );
       }
       if (parsed.isConversation || parsed.content) {
         textToRender = parsed.content || content;
@@ -402,7 +421,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                     <Bot className="w-4 h-4" />
                   </div>
                   <div className="max-w-[100%] md:max-w-[90%] w-full relative">
-                    {renderAssistantMessage(msg.content)}
+                    {renderAssistantMessage(msg.content, msg.id)}
                   </div>
                 </div>
               )}

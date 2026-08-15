@@ -5,7 +5,7 @@ import { appCache } from '../utils/cache';
 
 export const handleSolverCritic = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { query, subject = 'NCERT Class 11 Physics', chatId, userId, language = 'en' } = req.body;
+    const { query, subject = 'NCERT Class 11 Physics', chatId, userId, language = 'en', messages = [] } = req.body;
     
     if (!query) {
       return res.status(400).json({ error: 'Query is required' });
@@ -30,18 +30,22 @@ export const handleSolverCritic = async (req: Request, res: Response, next: Next
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
 
-      const onSolverDraft = (draft: any) => {
-        const partialResponse = {
-          id: 'sol-' + Date.now(),
-          query,
-          subject,
-          ...draft,
-          timestamp: new Date().toISOString(),
-        };
-        res.write(`event: solver_draft\ndata: ${JSON.stringify(partialResponse)}\n\n`);
+      const onEvent = (eventData: any) => {
+        if (eventData.type === 'solver_draft') {
+          const partialResponse = {
+            id: 'sol-' + Date.now(),
+            query,
+            subject,
+            ...eventData.data,
+            timestamp: new Date().toISOString(),
+          };
+          res.write(`event: solver_draft\ndata: ${JSON.stringify(partialResponse)}\n\n`);
+        } else if (eventData.type === 'conversation_chunk') {
+          res.write(`event: conversation_chunk\ndata: ${JSON.stringify(eventData.data)}\n\n`);
+        }
       };
 
-      const resultData = await AiService.generateSolverCritic(query, subject, language, onSolverDraft);
+      const resultData = await AiService.generateSolverCritic(query, subject, language, messages, onEvent, userId);
       
       finalResponse = {
         id: 'sol-' + Date.now(),
@@ -54,7 +58,7 @@ export const handleSolverCritic = async (req: Request, res: Response, next: Next
       res.write(`event: critic_verdict\ndata: ${JSON.stringify(finalResponse)}\n\n`);
       res.end();
     } else {
-      const resultData = await AiService.generateSolverCritic(query, subject, language);
+      const resultData = await AiService.generateSolverCritic(query, subject, language, messages, undefined, userId);
       
       finalResponse = {
         id: 'sol-' + Date.now(),
@@ -108,7 +112,7 @@ export const handleAuditTopic = async (req: Request, res: Response, next: NextFu
       return res.status(400).json({ error: 'topicTitle and unit are required' });
     }
 
-    const resultData = await AiService.generateTopicAudit(topicTitle, subtitle || '', unit);
+    const resultData = await AiService.generateTopicAudit(topicTitle, subtitle || '', unit, req.body.userId);
     res.json(resultData);
   } catch (err) {
     next(err);

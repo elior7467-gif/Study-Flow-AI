@@ -95,6 +95,25 @@ AS $$
   LIMIT match_count;
 $$;
 
+-- ==========================================
+-- Teacher Review Queue Setup
+-- ==========================================
+CREATE TABLE IF NOT EXISTS public.review_queue (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    chat_id UUID REFERENCES public.chats(id) ON DELETE CASCADE,
+    message_id TEXT NOT NULL,
+    question TEXT NOT NULL,
+    critic_notes TEXT,
+    status TEXT DEFAULT 'pending',
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE public.review_queue ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all access to review_queue" ON public.review_queue;
+CREATE POLICY "Allow all access to review_queue" ON public.review_queue FOR ALL USING (true);
+GRANT ALL ON public.review_queue TO anon, authenticated;
+
 -- Topic Mastery Tracking
 CREATE TABLE IF NOT EXISTS public.user_topic_mastery (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -163,3 +182,30 @@ BEGIN
     GROUP BY topic_id;
 END;
 $$;
+
+-- ==========================================
+-- Usage Tracking
+-- ==========================================
+
+CREATE TABLE IF NOT EXISTS public.usage_log (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id TEXT,
+    endpoint TEXT NOT NULL,
+    tokens_used INTEGER NOT NULL,
+    cost_estimate NUMERIC(10, 5) DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE public.usage_log ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can only read their own usage" ON public.usage_log;
+CREATE POLICY "Users can only read their own usage"
+    ON public.usage_log
+    FOR SELECT
+    USING (auth.uid()::text = user_id);
+
+DROP POLICY IF EXISTS "Service role can insert usage" ON public.usage_log;
+CREATE POLICY "Service role can insert usage"
+    ON public.usage_log
+    FOR INSERT
+    WITH CHECK (true);

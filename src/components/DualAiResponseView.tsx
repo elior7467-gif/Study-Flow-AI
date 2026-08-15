@@ -1,19 +1,64 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SolverResult } from '../types';
 import { ShieldCheck, AlertTriangle, BookOpen, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import { useAuth } from '@clerk/clerk-react';
 
 interface Props {
   data: SolverResult & { criticAuditStatus?: 'VERIFIED' | 'FLAGGED' | 'VERIFYING' };
   preprocessMath: (s: string) => string;
+  userId?: string;
+  chatId?: string | null;
+  messageId?: string;
+  onNotify?: (msg: string, type: 'success' | 'warning' | 'error' | 'info') => void;
 }
 
-export const DualAiResponseView: React.FC<Props> = ({ data, preprocessMath }) => {
+export const DualAiResponseView: React.FC<Props> = ({ data, preprocessMath, userId, chatId, messageId, onNotify }) => {
   const isVerified = data.criticAuditStatus === 'VERIFIED';
   const isVerifying = data.criticAuditStatus === 'VERIFYING';
+  
+  const [isFlagging, setIsFlagging] = useState(false);
+  const [isFlagged, setIsFlagged] = useState(false);
+  const { getToken } = useAuth();
+
+  const handleFlagForReview = async () => {
+    if (!userId || !chatId || !messageId) {
+      onNotify?.("Missing chat context to flag message.", "error");
+      return;
+    }
+    
+    setIsFlagging(true);
+    try {
+      const token = await getToken({ template: 'supabase' });
+      const response = await fetch('/api/db/flag-for-review', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          userId,
+          chatId,
+          messageId,
+          question: data.query,
+          criticNotes: data.criticAuditNotes
+        })
+      });
+      
+      if (!response.ok) throw new Error('Failed to flag message');
+      
+      setIsFlagged(true);
+      onNotify?.("Flagged for Teacher Review successfully!", "success");
+    } catch (err) {
+      console.error(err);
+      onNotify?.("Failed to flag. Please try again.", "error");
+    } finally {
+      setIsFlagging(false);
+    }
+  };
   
   return (
     <div className="space-y-4 w-full">
@@ -53,6 +98,26 @@ export const DualAiResponseView: React.FC<Props> = ({ data, preprocessMath }) =>
                 ? 'This derivation has been line-by-line verified against standard NCERT curriculum.' 
                 : data.criticAuditNotes || 'This question involves out-of-scope concepts or tricky assumptions. Do not trust the derivation completely.'}
           </p>
+          {!isVerified && !isVerifying && onNotify && userId && (
+            <button 
+              onClick={handleFlagForReview}
+              disabled={isFlagging || isFlagged}
+              className={`mt-3 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                isFlagged 
+                  ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 opacity-70 cursor-not-allowed' 
+                  : 'bg-amber-500 text-white shadow-sm hover:bg-amber-600 active:scale-95'
+              }`}
+            >
+              {isFlagging ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : isFlagged ? (
+                <ShieldCheck className="w-3.5 h-3.5" />
+              ) : (
+                <AlertTriangle className="w-3.5 h-3.5" />
+              )}
+              {isFlagged ? 'Flagged for Teacher' : 'Flag for Teacher Review'}
+            </button>
+          )}
         </div>
       </div>
 

@@ -131,3 +131,31 @@ export const getRecommendations = async (req: Request, res: Response, next: Next
     next(err);
   }
 };
+
+export const flagForReview = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { userId, chatId, messageId, question, criticNotes } = req.body;
+    
+    if (!userId || !question) {
+      return res.status(400).json({ error: 'userId and question are required' });
+    }
+
+    const client = getClient(req);
+    const { data, error } = await client
+      .from('review_queue')
+      .insert([{
+        user_id: userId,
+        chat_id: chatId,
+        message_id: messageId,
+        question: question,
+        critic_notes: criticNotes
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
