@@ -70,7 +70,9 @@ GRANT ALL ON public.documents TO anon, authenticated;
 CREATE OR REPLACE FUNCTION match_documents (
   query_embedding vector(384),
   match_threshold float,
-  match_count int
+  match_count int,
+  filter_subject text DEFAULT NULL,
+  filter_chapter text DEFAULT NULL
 )
 RETURNS TABLE (
   id uuid,
@@ -87,6 +89,8 @@ AS $$
     1 - (documents.embedding <=> query_embedding) AS similarity
   FROM documents
   WHERE 1 - (documents.embedding <=> query_embedding) > match_threshold
+    AND (filter_subject IS NULL OR (documents.metadata->>'subject') = filter_subject)
+    AND (filter_chapter IS NULL OR (documents.metadata->>'chapter') = filter_chapter)
   ORDER BY documents.embedding <=> query_embedding
   LIMIT match_count;
 $$;

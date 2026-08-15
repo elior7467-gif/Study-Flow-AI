@@ -39,9 +39,10 @@ export const HubView: React.FC<HubViewProps> = ({
     topics: []
   }]);
   const [loading, setLoading] = useState(true);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchMastery = async () => {
+    const fetchData = async () => {
       if (!userId) return;
       try {
         const token = await getToken({ template: 'supabase' });
@@ -91,13 +92,22 @@ export const HubView: React.FC<HubViewProps> = ({
             topics: topics
           }]);
         }
+
+        // Fetch Recommendations
+        const recRes = await fetch(`/api/db/recommendations/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (recRes.ok) {
+          const recData = await recRes.json();
+          setRecommendations(recData);
+        }
       } catch (err) {
-        console.error('Failed to load mastery data', err);
+        console.error('Failed to load hub data', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchMastery();
+    fetchData();
   }, [userId, getToken]);
 
   const currentUnit = units.find((u) => u.id === selectedUnitId) || units[0];
@@ -309,6 +319,49 @@ export const HubView: React.FC<HubViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Focus On This Recommendations */}
+      {recommendations.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-bold text-neo tracking-tight flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+              Focus On This
+            </h3>
+            <span className="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-md">
+              Weakest topics
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {recommendations.map((rec, index) => (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, delay: index * 0.1 }}
+                key={rec.topic_id} 
+                className="bg-amber-500/5 border border-amber-500/20 shadow-neo rounded-[20px] p-4 flex flex-col justify-between"
+              >
+                <div>
+                  <h4 className="text-sm font-bold text-neo line-clamp-2">{rec.topic_title || rec.topic_id}</h4>
+                  <p className="text-xs text-neo opacity-80 mt-1">
+                    Mastery: <span className="font-bold text-amber-600 dark:text-amber-400">{rec.masteryScore}%</span>
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    playSound('click', soundEnabled);
+                    onNavigateToChatWithQuery(`Give me a practice question on ${rec.topic_title || rec.topic_id} similar to common JEE/NEET traps.`);
+                  }}
+                  className="mt-3 bg-amber-500/10 hover:bg-amber-500/20 active:bg-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-bold py-2.5 px-3 rounded-xl transition-colors cursor-pointer w-full flex items-center justify-center gap-1.5"
+                >
+                  <Sparkles className="w-3.5 h-3.5" /> Practice Now
+                </button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Conceptual Mastery Section */}
       <div className="space-y-3">

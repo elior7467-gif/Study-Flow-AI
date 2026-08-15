@@ -5,7 +5,7 @@ import { appCache } from '../utils/cache';
 
 export const handleSolverCritic = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { query, subject = 'NCERT Class 11 Physics', chatId, userId } = req.body;
+    const { query, subject = 'NCERT Class 11 Physics', chatId, userId, language = 'en' } = req.body;
     
     if (!query) {
       return res.status(400).json({ error: 'Query is required' });
@@ -21,18 +21,53 @@ export const handleSolverCritic = async (req: Request, res: Response, next: Next
       if (userErr) console.error("Error saving user message:", userErr);
     }
 
-    const resultData = await AiService.generateSolverCritic(query, subject);
-    
-    const finalResponse = {
-      id: 'sol-' + Date.now(),
-      query,
-      subject,
-      ...resultData,
-      timestamp: new Date().toISOString(),
-    };
+    const isStream = req.query.stream === 'true' || req.headers.accept === 'text/event-stream';
+
+    let finalResponse: any;
+
+    if (isStream) {
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+
+      const onSolverDraft = (draft: any) => {
+        const partialResponse = {
+          id: 'sol-' + Date.now(),
+          query,
+          subject,
+          ...draft,
+          timestamp: new Date().toISOString(),
+        };
+        res.write(`event: solver_draft\ndata: ${JSON.stringify(partialResponse)}\n\n`);
+      };
+
+      const resultData = await AiService.generateSolverCritic(query, subject, language, onSolverDraft);
+      
+      finalResponse = {
+        id: 'sol-' + Date.now(),
+        query,
+        subject,
+        ...resultData,
+        timestamp: new Date().toISOString(),
+      };
+
+      res.write(`event: critic_verdict\ndata: ${JSON.stringify(finalResponse)}\n\n`);
+      res.end();
+    } else {
+      const resultData = await AiService.generateSolverCritic(query, subject, language);
+      
+      finalResponse = {
+        id: 'sol-' + Date.now(),
+        query,
+        subject,
+        ...resultData,
+        timestamp: new Date().toISOString(),
+      };
+      res.json(finalResponse);
+    }
 
     // Save assistant message to DB (stringified JSON)
-    if (chatId) {
+    if (chatId && finalResponse) {
       const { error: astErr } = await supabase.from('messages').insert([{
         chat_id: chatId,
         role: 'assistant',
@@ -42,10 +77,10 @@ export const handleSolverCritic = async (req: Request, res: Response, next: Next
     }
 
     // Upsert mastery
-    if (userId) {
-      const topicTitle = resultData.citation?.chapter || 'Unknown Topic';
+    if (userId && finalResponse) {
+      const topicTitle = finalResponse.citation?.chapter || 'Unknown Topic';
       const topicId = topicTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      const isVerified = resultData.criticAuditStatus === 'VERIFIED';
+      const isVerified = finalResponse.criticAuditStatus === 'VERIFIED';
       const { error: masteryErr } = await supabase.rpc('upsert_topic_mastery', {
         p_user_id: userId,
         p_topic_id: topicId,
@@ -55,9 +90,13 @@ export const handleSolverCritic = async (req: Request, res: Response, next: Next
       if (masteryErr) console.error("Error upserting mastery:", masteryErr);
     }
 
-    res.json(finalResponse);
   } catch (err) {
-    next(err);
+    if (res.headersSent) {
+      res.write(`event: error\ndata: ${JSON.stringify({ error: err.message || 'Stream error' })}\n\n`);
+      res.end();
+    } else {
+      next(err);
+    }
   }
 };
 

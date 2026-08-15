@@ -39,6 +39,14 @@ export const ChatView: React.FC<ChatViewProps> = ({
   const [chats, setChats] = useState<ChatSession[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [language, setLanguage] = useState('en');
+
+  useEffect(() => {
+    try {
+      const savedLang = localStorage.getItem('preferred_language');
+      if (savedLang) setLanguage(savedLang);
+    } catch (e) {}
+  }, []);
 
   useEffect(() => {
     if (initialQuery) setUserPrompt(initialQuery);
@@ -144,14 +152,15 @@ export const ChatView: React.FC<ChatViewProps> = ({
     setMessages(newMessages);
 
     try {
-      const response = await fetch('/api/solver-critic', {
+      const response = await fetch('/api/solver-critic?stream=true', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'text/event-stream' },
         body: JSON.stringify({
           query: queryToUse,
           subject: 'NCERT Class 11 Physics',
           chatId: currentChatId,
-          userId: userId
+          userId: userId,
+          language
         }),
       });
 
@@ -159,15 +168,57 @@ export const ChatView: React.FC<ChatViewProps> = ({
         throw new Error('Failed to connect to AI server');
       }
 
-      const data = await response.json();
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No stream available');
       
+      const decoder = new TextDecoder('utf-8');
       const assistantMessageId = (Date.now() + 1).toString();
-      setMessages(prev => [...prev, { 
-        id: assistantMessageId, 
-        role: 'assistant', 
-        content: JSON.stringify(data) 
-      }]);
-      
+      let buffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split('\n\n');
+        
+        for (let i = 0; i < parts.length - 1; i++) {
+          const eventText = parts[i];
+          const lines = eventText.split('\n');
+          let currentEvent = 'message';
+          let dataStr = '';
+          
+          for (const line of lines) {
+            if (line.startsWith('event:')) currentEvent = line.slice(6).trim();
+            else if (line.startsWith('data:')) dataStr = line.slice(5).trim();
+          }
+
+          if (dataStr && dataStr !== '[DONE]') {
+            try {
+              const parsed = JSON.parse(dataStr);
+              if (currentEvent === 'solver_draft') {
+                parsed.criticAuditStatus = 'VERIFYING';
+                setMessages(prev => {
+                  const exists = prev.some(m => m.id === assistantMessageId);
+                  if (exists) return prev.map(m => m.id === assistantMessageId ? { ...m, content: JSON.stringify(parsed) } : m);
+                  return [...prev, { id: assistantMessageId, role: 'assistant', content: JSON.stringify(parsed) }];
+                });
+              } else if (currentEvent === 'critic_verdict') {
+                setMessages(prev => {
+                  const exists = prev.some(m => m.id === assistantMessageId);
+                  if (exists) return prev.map(m => m.id === assistantMessageId ? { ...m, content: JSON.stringify(parsed) } : m);
+                  return [...prev, { id: assistantMessageId, role: 'assistant', content: JSON.stringify(parsed) }];
+                });
+              } else if (currentEvent === 'error') {
+                throw new Error(parsed.error);
+              }
+            } catch (e) {
+              console.error("Error parsing stream data:", e);
+            }
+          }
+        }
+        buffer = parts[parts.length - 1];
+      }
       
       playSound('success', soundEnabled);
     } catch (err) {
@@ -219,10 +270,14 @@ export const ChatView: React.FC<ChatViewProps> = ({
   };
 
   const renderAssistantMessage = (content: string) => {
+    let textToRender = content;
     try {
       const parsed = JSON.parse(content);
       if (parsed.criticAuditStatus) {
         return <DualAiResponseView data={parsed} preprocessMath={preprocessMath} />;
+      }
+      if (parsed.isConversation || parsed.content) {
+        textToRender = parsed.content || content;
       }
     } catch (e) {
       // Fallback for non-JSON or older string messages
@@ -230,12 +285,12 @@ export const ChatView: React.FC<ChatViewProps> = ({
     
     return (
       <div className="bg-neo-convex shadow-neo rounded-2xl rounded-tl-none px-5 py-4 text-xs md:text-sm text-neo leading-relaxed prose prose-sm max-w-none prose-p:leading-relaxed overflow-x-auto">
-        <CopyButton text={content} />
+        <CopyButton text={textToRender} />
         <ReactMarkdown 
           remarkPlugins={[remarkGfm, remarkMath]}
           rehypePlugins={[[rehypeKatex, { strict: false }]]}
         >
-          {preprocessMath(content)}
+          {preprocessMath(textToRender)}
         </ReactMarkdown>
       </div>
     );
@@ -404,6 +459,19 @@ export const ChatView: React.FC<ChatViewProps> = ({
             )}
 
             <form onSubmit={(e) => handleSubmit(e)} className="flex items-center gap-2 relative">
+              <select
+                value={language}
+                onChange={(e) => {
+                  const newLang = e.target.value;
+                  setLanguage(newLang);
+                  try { localStorage.setItem('preferred_language', newLang); } catch (err) {}
+                }}
+                className="bg-neo-concave shadow-neo-inner rounded-xl px-2 py-3 text-xs md:text-sm text-neo focus:outline-none cursor-pointer flex-shrink-0"
+              >
+                <option value="en">English</option>
+                <option value="bn">বাংলা</option>
+                <option value="hi">हिन्दी</option>
+              </select>
               <input
                 type="text"
                 value={userPrompt}

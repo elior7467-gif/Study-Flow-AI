@@ -99,3 +99,35 @@ export const getCohortAnalytics = async (req: Request, res: Response, next: Next
     next(err);
   }
 };
+
+export const getRecommendations = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { userId } = req.params;
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    const client = getClient(req);
+    const { data, error } = await client
+      .from('user_topic_mastery')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (error) throw error;
+
+    // Filter to at least 1 attempt, sort by masteryScore ascending, take top 3
+    const recommendations = (data || [])
+      .filter(t => (t.verified_count + t.flagged_count) > 0)
+      .map(t => {
+        const total = t.verified_count + t.flagged_count;
+        const score = Math.round((t.verified_count / total) * 100);
+        return { ...t, masteryScore: score, totalAttempts: total };
+      })
+      .sort((a, b) => a.masteryScore - b.masteryScore)
+      .slice(0, 3);
+
+    res.json(recommendations);
+  } catch (err) {
+    next(err);
+  }
+};

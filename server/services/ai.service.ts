@@ -73,7 +73,7 @@ export class AiService {
     throw new Error(`AI Engine Failure. Primary Error: ${primaryError?.message}. Secondary Error: ${secondaryError?.message}`);
   }
 
-  static async retrieveContext(query: string) {
+  static async retrieveContext(query: string, filter?: { subject?: string; chapter?: string }) {
     try {
       const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
       const output = await extractor(query, { pooling: 'mean', normalize: true });
@@ -82,7 +82,9 @@ export class AiService {
       const { data, error } = await supabase.rpc('match_documents', {
         query_embedding,
         match_threshold: 0.3,
-        match_count: 3
+        match_count: 3,
+        filter_subject: filter?.subject || null,
+        filter_chapter: filter?.chapter || null
       });
 
       if (error) throw error;
@@ -142,8 +144,37 @@ export class AiService {
     }
   }
 
-  static async generateSolverCritic(query: string, subject: string) {
-    const ncertContext = await this.retrieveContext(query);
+  static async generateSolverCritic(query: string, subject: string, language: string = 'en', onSolverDraft?: (draft: any) => void) {
+    try {
+      if (query.length < 100) {
+        const primaryClient = this.getPrimaryClient();
+        const intentRes = await primaryClient.chat.completions.create({
+          model: config.primaryAiModel,
+          messages: [
+            { role: 'system', content: 'You are an intent classifier. Respond with ONLY the word "CONVERSATION" if the user input is a casual greeting, small talk, or simple acknowledgement without any academic/math/physics query. Otherwise, respond with "ACADEMIC".' },
+            { role: 'user', content: query }
+          ],
+          max_tokens: 10
+        });
+        const intent = intentRes.choices[0].message.content?.trim().toUpperCase() || 'ACADEMIC';
+
+        if (intent.includes('CONVERSATION')) {
+          const convRes = await primaryClient.chat.completions.create({
+            model: config.primaryAiModel,
+            messages: [
+              { role: 'system', content: `You are StudyFlow AI, a helpful and friendly study assistant. Respond in ${language}. Keep it brief, conversational, and invite the user to ask a study-related question.` },
+              { role: 'user', content: query }
+            ]
+          });
+          const content = convRes.choices[0].message.content || 'Hello! How can I help you with your studies today?';
+          return { isConversation: true, content };
+        }
+      }
+    } catch (err) {
+      console.warn('[AI Engine] Intent check failed, falling back:', err);
+    }
+
+    const ncertContext = await this.retrieveContext(query, { subject });
 
     const solverPrompt = `You are the StudyFlow AI "Solver AI".
 Solve the following question strictly using principles relevant to the subject.
@@ -158,7 +189,8 @@ ${ncertContext}
 CRITICAL RULE FOR HONESTY:
 - You MUST ONLY use formulas and concepts found in the Ground Truth Knowledge Base above.`;
 
-    const solverSystemInstruction = 'You are StudyFlow AI, an intelligent study assistant. Provide a step-by-step derivation without verifying your own work.';
+    const languageInstruction = `Respond entirely in ${language}, including step descriptions and citation notes, but keep mathematical notation and variable names in English/standard math notation.`;
+    const solverSystemInstruction = `You are StudyFlow AI, an intelligent study assistant. Provide a step-by-step derivation without verifying your own work. ${languageInstruction}`;
     
     const solverSchema = `{
       "title": "string",
@@ -184,13 +216,16 @@ CRITICAL RULE FOR HONESTY:
       }
     }`;
 
-    const cacheKey = `solverCritic_${Buffer.from(query + subject).toString('base64')}`;
+    const cacheKey = `solverCritic_${Buffer.from(query + subject + language).toString('base64')}`;
     const cachedResponse = appCache.get<any>(cacheKey);
     if (cachedResponse) {
       return cachedResponse;
     }
 
     const solverData = await this.executeWithFallback(solverPrompt, solverSystemInstruction, solverSchema);
+    if (onSolverDraft) {
+      onSolverDraft(solverData);
+    }
 
     const criticPrompt = `You are the StudyFlow AI "Critic AI". Fact-check the following Solver AI's derivation line-by-line against standard academic curriculum and the ground truth.
 
@@ -210,7 +245,7 @@ CRITICAL RULE FOR HONESTY:
 - Provide a confidenceScore (0-100).
 - Mark unverified steps clearly with verified = false and provide criticFeedback.`;
 
-    const criticSystemInstruction = 'You are the StudyFlow AI Critic Auditor. You have NEVER seen this derivation before and must audit it skeptically step by step.';
+    const criticSystemInstruction = `You are the StudyFlow AI Critic Auditor. You have NEVER seen this derivation before and must audit it skeptically step by step. ${languageInstruction}`;
     
     const criticSchema = `{
       "criticAuditStatus": "VERIFIED" | "FLAGGED",
