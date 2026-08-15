@@ -18,7 +18,7 @@ export const ToastContainer: React.FC<{ toasts: ToastMessage[] }> = ({ toasts })
             className={`pointer-events-auto shadow-2xl rounded-full px-5 py-3 flex items-center gap-3 text-sm font-bold border backdrop-blur-md max-w-sm w-full
               ${toast.type === 'success' ? 'bg-[#2563EB]/95 text-white border-[#2563EB]' : ''}
               ${toast.type === 'warning' ? 'bg-[#F43F5E]/95 text-white border-[#F43F5E]' : ''}
-              ${toast.type === 'info' ? 'bg-[#0F172A]/95 text-white border-[#0F172A]' : ''}
+              ${toast.type === 'info' ? 'bg-neo-convex text-neo border-[var(--neo-border)]' : ''}
             `}
           >
             {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 flex-shrink-0" />}

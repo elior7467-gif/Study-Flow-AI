@@ -3,12 +3,13 @@ import { config } from '../config/env';
 
 const supabaseUrl = config.supabaseUrl || 'https://placeholder.supabase.co';
 const supabaseKey = config.supabaseAnonKey || 'placeholder';
+const supabaseAdminKey = config.supabaseServiceRoleKey;
 
 if (!config.supabaseUrl || !config.supabaseAnonKey) {
   console.warn("⚠️ Warning: Missing Supabase credentials in environment variables. Database features will not work.");
 }
 
-// Create a Supabase client using the anon key (respects RLS)
+// Create a Supabase client using the anon key
 export const supabase = createClient(
   supabaseUrl,
   supabaseKey,
@@ -20,8 +21,18 @@ export const supabase = createClient(
   }
 );
 
-// Create an authenticated Supabase client using a user's Clerk JWT
+// If we have a service role key, use it to bypass RLS in the trusted backend environment.
+// Otherwise, fall back to using the user's Clerk JWT (which requires proper RLS policies in Supabase).
 export const getAuthSupabase = (token: string) => {
+  if (supabaseAdminKey) {
+    return createClient(supabaseUrl, supabaseAdminKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+  }
+
   return createClient(
     supabaseUrl,
     supabaseKey,

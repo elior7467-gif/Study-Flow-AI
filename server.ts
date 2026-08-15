@@ -24,7 +24,8 @@ async function startServer() {
         connectSrc: ["'self'", "ws:", "wss:", "https://*.clerk.accounts.dev", "https://*.clerk.com"],
         imgSrc: ["'self'", "data:", "blob:", "https://*.clerk.com", "https://img.clerk.com"],
         workerSrc: ["'self'", "blob:"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
         frameSrc: ["'self'", "https://*.clerk.accounts.dev", "https://*.clerk.com"]
       },
     },
@@ -34,17 +35,14 @@ async function startServer() {
   // Enable CORS
   app.use(cors());
 
-  // Global Rate Limiting
-  app.use(globalLimiter);
-
   // Body parser
   app.use(express.json({ limit: '10kb' }));
 
   // Protect against HTTP Parameter Pollution
   app.use(hpp());
 
-  // Mount API Routes
-  app.use('/api', apiRoutes);
+  // Mount API Routes with Rate Limiting
+  app.use('/api', globalLimiter, apiRoutes);
 
   // Vite middleware in dev mode
   if (config.nodeEnv !== 'production') {

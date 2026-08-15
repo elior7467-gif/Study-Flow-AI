@@ -81,7 +81,7 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
       {/* Silicon Valley Investor Pitch & Product Moat Modal */}
       <AnimatePresence>
         {showInvestorDeck && (
-          <div className="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 bg-[var(--neo-text)]/20 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -147,7 +147,7 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
               <div className="pt-2 flex justify-end">
                 <button
                   onClick={() => setShowInvestorDeck(false)}
-                  className="bg-[#0F172A] text-white font-bold text-xs px-4 py-2 rounded-xl hover:bg-[#2563EB] transition-colors cursor-pointer active:scale-95 transition-all"
+                  className="bg-neo-convex shadow-neo hover:shadow-neo-sm text-neo font-bold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer active:scale-95"
                 >
                   Close Executive Summary
                 </button>

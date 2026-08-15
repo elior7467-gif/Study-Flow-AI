@@ -67,7 +67,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] w-full bg-neo-base dark:bg-slate-900 transition-colors duration-300 relative">
+    <div className="flex flex-col h-[100dvh] w-full bg-neo transition-colors duration-300 relative">
       
       {/* Toast Notifications container */}
       <ToastContainer toasts={toasts} />

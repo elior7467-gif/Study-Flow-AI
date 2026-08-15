@@ -269,8 +269,8 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
                 fill={willSkid ? '#F43F5E' : 'currentColor'}
                 className="transition-colors duration-200 text-neo"
               />
-              <circle cx="-7" cy="8" r="3" className="fill-[#0F172A] dark:fill-[#F8FAFC]" />
-              <circle cx="7" cy="8" r="3" className="fill-[#0F172A] dark:fill-[#F8FAFC]" />
+              <circle cx="-7" cy="8" r="3" className="fill-[var(--neo-text)]" />
+              <circle cx="7" cy="8" r="3" className="fill-[var(--neo-text)]" />
 
               {/* Centripetal Force Vector (Inward) */}
               <motion.line
@@ -278,11 +278,11 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
                 y1="0"
                 animate={{ x2: -Math.min(50, fc / 100) }}
                 y2="0"
-                className="stroke-[#0F172A] dark:stroke-[#F8FAFC]"
+                className="stroke-[var(--neo-text)]"
                 strokeWidth="2.5"
                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
               />
-              <text x="-45" y="-12" className="text-[9px] fill-[#0F172A] dark:fill-[#F8FAFC] font-extrabold">
+              <text x="-45" y="-12" className="text-[9px] fill-[var(--neo-text)] font-extrabold">
                 F_c ({Math.round(fc)}N)
               </text>
 

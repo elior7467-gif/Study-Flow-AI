@@ -25,7 +25,7 @@ export const solverCriticRateLimiter = rateLimit({
   keyGenerator: (req, res) => {
     // Use userId from body if authenticated, otherwise fallback to standard IP
     if (req.body.userId) return req.body.userId;
-    return req.ip || 'unknown';
+    return ipKeyGenerator(req, res);
   }
 });
 
