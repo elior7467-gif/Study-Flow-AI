@@ -186,9 +186,14 @@ export const ChatView: React.FC<ChatViewProps> = ({
     abortControllerRef.current = new AbortController();
 
     try {
+      const token = await getToken({ template: 'supabase' });
       const response = await fetch('/api/solver-critic?stream=true', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'text/event-stream' },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Accept': 'text/event-stream',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         signal: abortControllerRef.current.signal,
         body: JSON.stringify({
           query: queryToUse,

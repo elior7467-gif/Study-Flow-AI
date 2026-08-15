@@ -1,7 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { AiService } from '../services/ai.service';
-import { supabase } from '../lib/supabase';
+import { supabase, getAuthSupabase } from '../lib/supabase';
 import { appCache } from '../utils/cache';
+
+const getClient = (req: Request) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  return token ? getAuthSupabase(token) : supabase;
+};
 
 export const handleSolverCritic = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -13,7 +18,7 @@ export const handleSolverCritic = async (req: Request, res: Response, next: Next
 
     // Save user message to DB
     if (chatId) {
-      const { error: userErr } = await supabase.from('messages').insert([{
+      const { error: userErr } = await getClient(req).from('messages').insert([{
         chat_id: chatId,
         role: 'user',
         content: query
@@ -72,7 +77,7 @@ export const handleSolverCritic = async (req: Request, res: Response, next: Next
 
     // Save assistant message to DB (stringified JSON)
     if (chatId && finalResponse) {
-      const { error: astErr } = await supabase.from('messages').insert([{
+      const { error: astErr } = await getClient(req).from('messages').insert([{
         chat_id: chatId,
         role: 'assistant',
         content: JSON.stringify(finalResponse)
@@ -85,7 +90,7 @@ export const handleSolverCritic = async (req: Request, res: Response, next: Next
       const topicTitle = finalResponse.citation?.chapter || 'Unknown Topic';
       const topicId = topicTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       const isVerified = finalResponse.criticAuditStatus === 'VERIFIED';
-      const { error: masteryErr } = await supabase.rpc('upsert_topic_mastery', {
+      const { error: masteryErr } = await getClient(req).rpc('upsert_topic_mastery', {
         p_user_id: userId,
         p_topic_id: topicId,
         p_topic_title: topicTitle,
@@ -138,7 +143,7 @@ export const handleChatStream = async (req: Request, res: Response, next: NextFu
       if (lastMsg.role === 'user') {
         originalUserContent = lastMsg.content;
         if (chatId) {
-          const { error: userErr } = await supabase.from('messages').insert([{
+          const { error: userErr } = await getClient(req).from('messages').insert([{
             chat_id: chatId,
             role: 'user',
             content: originalUserContent
@@ -179,7 +184,7 @@ export const handleChatStream = async (req: Request, res: Response, next: NextFu
 
     // Save assistant message to DB
     if (chatId && fullAssistantContent) {
-      const { error: astErr } = await supabase.from('messages').insert([{
+      const { error: astErr } = await getClient(req).from('messages').insert([{
         chat_id: chatId,
         role: 'assistant',
         content: fullAssistantContent
