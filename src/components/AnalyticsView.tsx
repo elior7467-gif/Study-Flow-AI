@@ -3,7 +3,11 @@ import { CohortMetric } from '../types';
 import { Globe, ShieldCheck, TrendingUp, ChevronUp, RefreshCw } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
 
-export const AnalyticsView: React.FC = () => {
+interface AnalyticsProps {
+  onNotify?: (msg: string, type: 'success' | 'warning' | 'error' | 'info') => void;
+}
+
+export const AnalyticsView: React.FC<AnalyticsProps> = ({ onNotify }) => {
   const [cohorts, setCohorts] = useState<CohortMetric[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortField, setSortField] = useState<'meanScore' | 'participation'>('meanScore');
@@ -19,9 +23,12 @@ export const AnalyticsView: React.FC = () => {
         if (res.ok) {
           const data = await res.json();
           setCohorts(data);
+        } else {
+          onNotify?.('Failed to load analytics data', 'warning');
         }
       } catch (err) {
         console.error('Failed to load analytics', err);
+        onNotify?.('Network error loading analytics', 'error');
       } finally {
         setLoading(false);
       }

@@ -296,6 +296,9 @@ CRITICAL RULE FOR HONESTY:
     const cacheKey = `solverCritic_${Buffer.from(query + subject + language + historyString).toString('base64')}`;
     const cachedResponse = appCache.get<any>(cacheKey);
     if (cachedResponse) {
+      if (onEvent) {
+        onEvent({ type: 'solver_draft', data: cachedResponse });
+      }
       return cachedResponse;
     }
 

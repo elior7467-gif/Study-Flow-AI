@@ -25,7 +25,6 @@ export const ChatView: React.FC<ChatViewProps> = ({
   messages,
   setMessages,
   initialQuery = '',
-  soundEnabled = true,
   soundEnabled: propSoundEnabled = true,
   onNotify,
 }) => {
@@ -38,6 +37,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [chats, setChats] = useState<ChatSession[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const [language, setLanguage] = useState(localStorage.getItem('preferred_language') || 'en');
   const scrollRef = useRef<HTMLDivElement>(null);
   const [soundEnabled, setSoundEnabled] = useState(propSoundEnabled);
@@ -56,6 +56,16 @@ export const ChatView: React.FC<ChatViewProps> = ({
   useEffect(() => {
     if (initialQuery) setUserPrompt(initialQuery);
   }, [initialQuery]);
+
+  useEffect(() => {
+    const handleClear = () => {
+      setChats([]);
+      setActiveChatId(null);
+      setMessages([]);
+    };
+    window.addEventListener('clear-chat-history', handleClear);
+    return () => window.removeEventListener('clear-chat-history', handleClear);
+  }, [setChats, setActiveChatId, setMessages]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -85,6 +95,13 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
   // Load messages when active chat changes
   useEffect(() => {
+    let ignore = false;
+
+    // Abort any ongoing stream if user switches chat
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
     const fetchMessages = async () => {
       if (!activeChatId) {
         setMessages([]);
@@ -97,14 +114,21 @@ export const ChatView: React.FC<ChatViewProps> = ({
         });
         if (res.ok) {
           const data = await res.json();
-          setMessages(data);
+          if (!ignore) setMessages(data);
+        } else {
+          if (!ignore) onNotify("Failed to fetch messages", "warning");
         }
       } catch (err) {
-        console.error('Failed to fetch messages:', err);
+        if (!ignore) {
+          console.error('Failed to fetch messages:', err);
+          onNotify("Network error fetching messages", "warning");
+        }
       }
     };
     fetchMessages();
-  }, [activeChatId, setMessages]);
+
+    return () => { ignore = true; };
+  }, [activeChatId, setMessages, getToken, onNotify]);
 
   const presetQueries = [
     {
@@ -156,10 +180,16 @@ export const ChatView: React.FC<ChatViewProps> = ({
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
 
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
     try {
       const response = await fetch('/api/solver-critic?stream=true', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'text/event-stream' },
+        signal: abortControllerRef.current.signal,
         body: JSON.stringify({
           query: queryToUse,
           subject: 'NCERT Class 11 Physics',
@@ -278,7 +308,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
         onNotify('Chat renamed', 'success');
       }
     } catch (err) {
-      onNotify('Failed to rename chat', 'error');
+      onNotify('Failed to rename chat', 'warning');
     } finally {
       setEditingChatId(null);
     }
@@ -300,7 +330,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
         onNotify('Chat deleted', 'success');
       }
     } catch (err) {
-      onNotify('Failed to delete chat', 'error');
+      onNotify('Failed to delete chat', 'warning');
     }
   };
 
@@ -317,7 +347,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
         onNotify(!currentPinStatus ? 'Message pinned' : 'Message unpinned', 'success');
       }
     } catch (err) {
-      onNotify('Failed to update pin status', 'error');
+      onNotify('Failed to update pin status', 'warning');
     }
   };
 
@@ -325,8 +355,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
   const preprocessMath = (content: string) => {
     if (!content) return '';
     let processed = content;
-    // Fix block math wrappers
-    processed = processed.replace(/\\\[/g, '$$').replace(/\\\]/g, '$$');
+    // Fix block math wrappers - use '$$$$' because '$$' in replace string is evaluated as a single '$'
+    processed = processed.replace(/\\\[/g, '$$$$').replace(/\\\]/g, '$$$$');
     // Fix inline math wrappers
     processed = processed.replace(/\\\(/g, '$').replace(/\\\)/g, '$');
     
@@ -376,7 +406,6 @@ export const ChatView: React.FC<ChatViewProps> = ({
       // Fallback for non-JSON or older string messages
     }
     
-    return (
     return (
       <div className={`bg-neo-convex shadow-neo rounded-2xl rounded-tl-none px-5 py-4 text-xs md:text-sm text-neo leading-relaxed prose prose-sm max-w-none prose-p:leading-relaxed overflow-x-auto relative ${msg.is_pinned ? 'ring-2 ring-amber-400 dark:ring-amber-500/50' : ''}`}>
         <div className="absolute top-2 right-2 flex items-center gap-1">

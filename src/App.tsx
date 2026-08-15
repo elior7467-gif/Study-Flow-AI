@@ -25,8 +25,12 @@ export default function App() {
   const [initialChatQuery, setInitialChatQuery] = useState<string>('');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-    const saved = localStorage.getItem('studyflow_dark_mode');
-    return saved === 'true';
+    try {
+      const saved = localStorage.getItem('studyflow_dark_mode');
+      return saved === 'true';
+    } catch {
+      return false;
+    }
   });
 
   React.useEffect(() => {
@@ -35,7 +39,11 @@ export default function App() {
     } else {
       document.documentElement.classList.remove('dark');
     }
-    localStorage.setItem('studyflow_dark_mode', isDarkMode.toString());
+    try {
+      localStorage.setItem('studyflow_dark_mode', isDarkMode.toString());
+    } catch (e) {
+      // Ignore
+    }
   }, [isDarkMode]);
 
   const handleNotify = (message: string, type: ToastType) => {
@@ -49,6 +57,7 @@ export default function App() {
 
   const handleClearData = () => {
     setChatMessages([]);
+    window.dispatchEvent(new Event('clear-chat-history'));
     handleNotify('Chat history cleared', 'success');
   };
 
@@ -129,7 +138,7 @@ export default function App() {
               />
             )}
 
-            {activeTab === 'analytics' && <AnalyticsView />}
+            {activeTab === 'analytics' && <AnalyticsView onNotify={handleNotify} />}
           </motion.div>
         </AnimatePresence>
       </main>

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { ingestDocument } from '../scripts/ingest';
+import fs from 'fs';
 
 const router = Router();
 
@@ -35,6 +36,14 @@ router.post('/ingest', adminAuth, upload.single('file'), async (req: Request, re
   } catch (error: any) {
     console.error('Ingestion error:', error);
     res.status(500).json({ error: 'Ingestion failed', details: error.message });
+  } finally {
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) {
+        console.error('Failed to cleanup file:', e);
+      }
+    }
   }
 });
 

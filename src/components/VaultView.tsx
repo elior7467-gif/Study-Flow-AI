@@ -19,13 +19,15 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
   );
 
   const activeProblem =
-    problems.find((p) => p.id === selectedProblemId) || problems[0];
+    problems && problems.length > 0 
+      ? problems.find((p) => p.id === selectedProblemId) || problems[0]
+      : null;
 
   // Interactive Physics Simulator Parameters
-  const [mass, setMass] = useState(activeProblem.params.mass);
-  const [velocity, setVelocity] = useState(activeProblem.params.velocity);
-  const [radius, setRadius] = useState(activeProblem.params.radius);
-  const [mu, setMu] = useState(activeProblem.params.mu);
+  const [mass, setMass] = useState(activeProblem?.params?.mass || 0);
+  const [velocity, setVelocity] = useState(activeProblem?.params?.velocity || 0);
+  const [radius, setRadius] = useState(activeProblem?.params?.radius || 0);
+  const [mu, setMu] = useState(activeProblem?.params?.mu || 0);
 
   // Flashcard Flip State
   const [isFlipped, setIsFlipped] = useState(false);
@@ -43,9 +45,19 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
 
   // Calculations: g = 9.8 m/s^2
   const g = 9.8;
-  const fc = (mass * Math.pow(velocity, 2)) / radius; // Centripetal Force (N)
+  const fc = (mass * Math.pow(velocity, 2)) / (radius || 1); // Centripetal Force (N)
   const fMax = mu * mass * g; // Max Static Friction (N)
   const willSkid = fc > fMax;
+
+  if (!activeProblem) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-center">
+        <Compass className="w-12 h-12 text-gray-300 mb-4" />
+        <h3 className="text-lg font-semibold text-gray-500">No Problems Found</h3>
+        <p className="text-gray-400">Add problems to your vault to see them here.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-28 pt-4 px-4 max-w-md md:max-w-2xl lg:max-w-4xl mx-auto space-y-6">

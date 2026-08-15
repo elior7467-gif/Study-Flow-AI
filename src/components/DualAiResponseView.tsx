@@ -13,12 +13,12 @@ interface Props {
   userId?: string;
   chatId?: string | null;
   messageId?: string;
-  onNotify?: (msg: string, type: 'success' | 'warning' | 'error' | 'info') => void;
+  onNotify?: (msg: string, type: 'success' | 'warning' | 'info') => void;
 }
 
 export const DualAiResponseView: React.FC<Props> = ({ data, preprocessMath, userId, chatId, messageId, onNotify }) => {
   const isVerified = data.criticAuditStatus === 'VERIFIED';
-  const isVerifying = data.criticAuditStatus === 'VERIFYING';
+  const isVerifying = (data.criticAuditStatus as string) === 'VERIFYING';
   
   const [isFlagging, setIsFlagging] = useState(false);
   const [isFlagged, setIsFlagged] = useState(false);
@@ -26,7 +26,7 @@ export const DualAiResponseView: React.FC<Props> = ({ data, preprocessMath, user
 
   const handleFlagForReview = async () => {
     if (!userId || !chatId || !messageId) {
-      onNotify?.("Missing chat context to flag message.", "error");
+      onNotify?.("Missing chat context to flag message.", "warning");
       return;
     }
     
@@ -54,7 +54,7 @@ export const DualAiResponseView: React.FC<Props> = ({ data, preprocessMath, user
       onNotify?.("Flagged for Teacher Review successfully!", "success");
     } catch (err) {
       console.error(err);
-      onNotify?.("Failed to flag. Please try again.", "error");
+      onNotify?.("Failed to flag. Please try again.", "warning");
     } finally {
       setIsFlagging(false);
     }

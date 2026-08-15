@@ -1,14 +1,47 @@
 import express from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
+import helmet from 'helmet';
+import cors from 'cors';
+import hpp from 'hpp';
 import { config } from './server/config/env';
 import apiRoutes from './server/routes/api.routes';
 import { errorHandler } from './server/middlewares/errorHandler';
+import { globalLimiter } from './server/middlewares/rateLimiter';
 
 async function startServer() {
   const app = express();
   
-  app.use(express.json());
+  // Trust proxy if behind a load balancer (e.g., Vercel, Nginx)
+  app.set('trust proxy', 1);
+
+  // Security HTTP headers
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://*.clerk.accounts.dev", "https://*.clerk.com"],
+        connectSrc: ["'self'", "ws:", "wss:", "https://*.clerk.accounts.dev", "https://*.clerk.com"],
+        imgSrc: ["'self'", "data:", "blob:", "https://*.clerk.com", "https://img.clerk.com"],
+        workerSrc: ["'self'", "blob:"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        frameSrc: ["'self'", "https://*.clerk.accounts.dev", "https://*.clerk.com"]
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+  }));
+
+  // Enable CORS
+  app.use(cors());
+
+  // Global Rate Limiting
+  app.use(globalLimiter);
+
+  // Body parser
+  app.use(express.json({ limit: '10kb' }));
+
+  // Protect against HTTP Parameter Pollution
+  app.use(hpp());
 
   // Mount API Routes
   app.use('/api', apiRoutes);

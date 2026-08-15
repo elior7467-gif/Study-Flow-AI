@@ -20,12 +20,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[60] bg-[#0F172A]/40 backdrop-blur-sm flex items-center justify-center p-4">
+        <div 
+          className="fixed inset-0 z-[60] bg-[#0F172A]/40 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={onClose}
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="bg-neo-convex shadow-neo rounded-[32px] w-full max-w-md overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="p-5 flex items-center justify-between bg-neo-convex shadow-neo-sm mb-1">
               <div className="flex items-center gap-2">

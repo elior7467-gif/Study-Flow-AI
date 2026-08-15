@@ -1,42 +1,30 @@
-import { Request, Response, NextFunction } from 'express';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 
-const rateLimitMap = new Map<string, number[]>();
-
-// Cleanup stale entries every hour to prevent memory leaks
-setInterval(() => {
-  const now = Date.now();
-  const windowMs = 60 * 60 * 1000;
-  for (const [key, timestamps] of rateLimitMap.entries()) {
-    const validTimestamps = timestamps.filter(t => now - t < windowMs);
-    if (validTimestamps.length === 0) {
-      rateLimitMap.delete(key);
-    } else {
-      rateLimitMap.set(key, validTimestamps);
-    }
+// Global Rate Limiter: 100 requests per 15 minutes
+export const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: {
+    error: 'Too many requests',
+    message: 'You have exceeded your request limit. Please try again later.'
   }
-}, 60 * 60 * 1000);
+});
 
-export const solverCriticRateLimiter = (req: Request, res: Response, next: NextFunction) => {
-  // Use userId from body if authenticated, otherwise fallback to IP
-  const userId = req.body.userId || req.ip;
-  const now = Date.now();
-  const windowMs = 60 * 60 * 1000; // 1 hour
-
-  let timestamps = rateLimitMap.get(userId) || [];
-  
-  // Filter out timestamps older than the window
-  timestamps = timestamps.filter(t => now - t < windowMs);
-
-  if (timestamps.length >= 20) {
-    return res.status(429).json({ 
-      error: 'Rate limit exceeded', 
-      message: 'You have reached the maximum of 20 solver-critic requests per hour.' 
-    });
+// AI endpoints Rate Limiter: 20 requests per hour
+export const solverCriticRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20, // Limit each IP to 20 requests per `window` (here, per 1 hour)
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'Rate limit exceeded',
+    message: 'You have reached the maximum of 20 solver-critic requests per hour.'
+  },
+  keyGenerator: (req, res) => {
+    // Use userId from body if authenticated, otherwise fallback to standard IP
+    if (req.body.userId) return req.body.userId;
+    return ipKeyGenerator(req, res);
   }
-
-  // Record this request
-  timestamps.push(now);
-  rateLimitMap.set(userId, timestamps);
-
-  next();
-};
+});

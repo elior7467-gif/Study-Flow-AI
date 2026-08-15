@@ -46,8 +46,8 @@ export async function ingestDocument(filePath: string, subject: string, chapter:
 import { fileURLToPath } from 'url';
 
 // Keep backwards compatibility for direct script execution
-const isMainModule = process.argv[1] && process.argv[1] === fileURLToPath(import.meta.url);
-if (isMainModule || process.argv[1]?.endsWith('ingest.ts')) {
+const isMainModule = process.argv[1]?.endsWith('ingest.ts');
+if (isMainModule) {
   const defaultPath = path.join(process.cwd(), 'server', 'data', 'ncert_physics_ch5.md');
   ingestDocument(defaultPath, 'NCERT Class 11 Physics', 'Ch 5: Laws of Motion')
     .catch(console.error);

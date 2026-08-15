@@ -11,8 +11,8 @@ const router = Router();
 
 router.get('/health', getHealth);
 router.post('/solver-critic', solverCriticRateLimiter, handleSolverCritic);
-router.post('/audit-topic', handleAuditTopic);
-router.post('/chat-stream', handleChatStream);
+router.post('/audit-topic', solverCriticRateLimiter, handleAuditTopic);
+router.post('/chat-stream', solverCriticRateLimiter, handleChatStream);
 router.use('/db', dbRoutes);
 router.use('/admin', adminRoutes);
 
