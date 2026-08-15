@@ -3,6 +3,9 @@ import { supabase, getAuthSupabase } from '../lib/supabase';
 
 const getClient = (req: Request) => {
   const token = req.headers.authorization?.split(' ')[1];
+  console.log(`[DEBUG db.controller] auth header received: ${req.headers.authorization}`);
+  console.log(`[DEBUG db.controller] token parsed: ${token}`);
+  console.log(`[DEBUG db.controller] using client: ${token ? 'getAuthSupabase' : 'supabase'}`);
   return token ? getAuthSupabase(token) : supabase;
 };
 

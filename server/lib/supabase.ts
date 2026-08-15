@@ -24,6 +24,7 @@ export const supabase = createClient(
 // If we have a service role key, use it to bypass RLS in the trusted backend environment.
 // Otherwise, fall back to using the user's Clerk JWT (which requires proper RLS policies in Supabase).
 export const getAuthSupabase = (token: string) => {
+  console.log(`[DEBUG getAuthSupabase] Admin key present? ${!!supabaseAdminKey}`);
   if (supabaseAdminKey) {
     return createClient(supabaseUrl, supabaseAdminKey, {
       auth: {
