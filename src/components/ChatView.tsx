@@ -664,9 +664,9 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 }}
                 className="bg-neo-concave shadow-neo-inner rounded-xl px-2 py-3 text-xs md:text-sm text-neo focus:outline-none cursor-pointer flex-shrink-0"
               >
-                <option value="en">English</option>
-                <option value="bn">বাংলা</option>
-                <option value="hi">हिन्दी</option>
+                <option value="en" className="bg-white text-slate-900 dark:bg-slate-800 dark:text-white">English</option>
+                <option value="bn" className="bg-white text-slate-900 dark:bg-slate-800 dark:text-white">বাংলা</option>
+                <option value="hi" className="bg-white text-slate-900 dark:bg-slate-800 dark:text-white">हिन्दी</option>
               </select>
               <input
                 type="text"
