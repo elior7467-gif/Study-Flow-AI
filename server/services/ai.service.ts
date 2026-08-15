@@ -170,6 +170,13 @@ export class AiService {
   }
 
   static async generateSolverCritic(query: string, subject: string, language: string = 'en', messages: any[] = [], onEvent?: (event: any) => void, userId?: string) {
+    const languageMap: Record<string, string> = {
+      'en': 'English',
+      'bn': 'Bengali',
+      'hi': 'Hindi'
+    };
+    const langName = languageMap[language] || language;
+
     try {
       if (query.length < 150) {
         const primaryClient = this.getPrimaryClient();
@@ -190,7 +197,7 @@ export class AiService {
             const stream = await primaryClient.chat.completions.create({
               model: config.primaryAiModel,
               messages: [
-                { role: 'system', content: `You are StudyFlow AI, a helpful and friendly study assistant. Respond in ${language}. Keep it brief, conversational, and invite the user to ask a study-related question.` },
+                { role: 'system', content: `You are StudyFlow AI, a helpful and friendly study assistant. Respond in ${langName}. Keep it brief, conversational, and invite the user to ask a study-related question.` },
                 ...recentHistory,
                 { role: 'user', content: query }
               ],
@@ -209,7 +216,7 @@ export class AiService {
             const convRes = await primaryClient.chat.completions.create({
               model: config.primaryAiModel,
               messages: [
-                { role: 'system', content: `You are StudyFlow AI, a helpful and friendly study assistant. Respond in ${language}. Keep it brief, conversational, and invite the user to ask a study-related question.` },
+                { role: 'system', content: `You are StudyFlow AI, a helpful and friendly study assistant. Respond in ${langName}. Keep it brief, conversational, and invite the user to ask a study-related question.` },
                 ...recentHistory,
                 { role: 'user', content: query }
               ]
@@ -223,7 +230,13 @@ export class AiService {
       console.warn('[AI Engine] Intent check failed, falling back:', err);
     }
 
-    const recentHistory = messages.slice(-5).map(m => ({ role: m.role, content: m.content }));
+    // The frontend sends the entire message array including the latest query. 
+    // We should exclude the latest query from the history block so it isn't duplicated in the prompt.
+    let historyToUse = messages;
+    if (messages.length > 0 && messages[messages.length - 1].content === query) {
+      historyToUse = messages.slice(0, -1);
+    }
+    const recentHistory = historyToUse.slice(-5).map(m => ({ role: m.role, content: m.content }));
     const historyText = recentHistory.map(m => `${m.role === 'user' ? 'Student' : 'Tutor'}: ${m.content}`).join('\n');
     
     let searchQuery = query;
@@ -264,7 +277,7 @@ ${ncertContext}
 CRITICAL RULE FOR HONESTY:
 - You MUST ONLY use formulas and concepts found in the Ground Truth Knowledge Base above.`;
 
-    const languageInstruction = `Respond entirely in ${language}, including step descriptions and citation notes, but keep mathematical notation and variable names in English/standard math notation.`;
+    const languageInstruction = `Respond entirely in ${langName}, including step descriptions and citation notes, but keep mathematical notation and variable names in English/standard math notation.`;
     const solverSystemInstruction = `You are StudyFlow AI, an intelligent study assistant. Provide a step-by-step derivation without verifying your own work. ${languageInstruction}`;
     
     const solverSchema = `{

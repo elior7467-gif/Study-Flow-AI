@@ -21,10 +21,28 @@ export const supabase = createClient(
   }
 );
 
-// If we have a service role key, use it to bypass RLS in the trusted backend environment.
-// Otherwise, fall back to using the user's Clerk JWT (which requires proper RLS policies in Supabase).
-export const getAuthSupabase = (token: string) => {
-  console.log(`[DEBUG getAuthSupabase] Admin key present? ${!!supabaseAdminKey}`);
+// Create an authenticated Supabase client using a user's Clerk JWT
+export const getAuthSupabase = (token?: string) => {
+  // If a user token is provided, prioritize it to respect RLS policies tied to the user's Clerk JWT
+  if (token) {
+    return createClient(
+      supabaseUrl,
+      supabaseKey,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        },
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+  }
+
+  // Fallback to service role key for trusted backend operations if no user token is available
   if (supabaseAdminKey) {
     return createClient(supabaseUrl, supabaseAdminKey, {
       auth: {
@@ -34,19 +52,6 @@ export const getAuthSupabase = (token: string) => {
     });
   }
 
-  return createClient(
-    supabaseUrl,
-    supabaseKey,
-    {
-      global: {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      },
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    }
-  );
+  // Fallback to anon client if nothing else is available
+  return supabase;
 };

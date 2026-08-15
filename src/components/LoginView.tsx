@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { Bot, ShieldCheck, Sparkles, Moon, Sun } from 'lucide-react';
+import { Bot, ShieldCheck, Sparkles, Moon, Sun, Box, LineChart, ChevronRight } from 'lucide-react';
 import { SignIn } from '@clerk/clerk-react';
 import { dark } from '@clerk/themes';
 
@@ -92,9 +92,20 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
             }}
           >
             <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 mb-6 sm:mb-8 text-xs sm:text-sm font-semibold tracking-wide"
+            >
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>StudyFlow AI 2.0 is Here</span>
+              <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-70 ml-1" />
+            </motion.div>
+
+            <motion.div 
               variants={floatVariants}
               animate="animate"
-              className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-[#2563EB] to-[#1E40AF] rounded-[28px] sm:rounded-[32px] flex items-center justify-center shadow-neo-accent mb-6 sm:mb-10 transform -rotate-3 hover:rotate-0 hover:scale-110 transition-all duration-500 ease-out cursor-pointer"
+              className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-[#2563EB] to-[#1E40AF] rounded-[28px] sm:rounded-[32px] flex items-center justify-center shadow-neo-accent mb-6 sm:mb-8 transform -rotate-3 hover:rotate-0 hover:scale-110 transition-all duration-500 ease-out cursor-pointer"
             >
               <Bot className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
             </motion.div>
@@ -113,7 +124,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
               transition={{ duration: 0.6, delay: 0.3 }}
               className="text-neo opacity-80 font-medium text-base sm:text-lg lg:text-xl mb-8 sm:mb-12 leading-relaxed max-w-md"
             >
-              The only test prep AI with a built-in <span className="font-bold text-[#2563EB]">NCERT Fact-Checker</span>. No hallucinations. Just verified derivations.
+              The only test prep AI with a built-in <span className="font-bold text-[#2563EB]">Fact-Checker</span>. No hallucinations. Just verified derivations.
             </motion.p>
 
             <div className="space-y-4 sm:space-y-6 relative hidden sm:block">
@@ -148,7 +159,39 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
                 </div>
                 <div className="pt-1 relative z-10">
                   <div className="text-lg sm:text-xl font-bold text-neo mb-1.5 group-hover:text-[#2563EB] transition-colors">Step-by-Step Derivations</div>
-                  <div className="text-sm sm:text-[15px] text-neo opacity-75 leading-snug">Solver AI breaks down complex physics and math into easy, understandable chunks.</div>
+                  <div className="text-sm sm:text-[15px] text-neo opacity-75 leading-snug">Solver AI breaks down complex scientific problems into easy, understandable chunks.</div>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+                className="flex items-start gap-4 sm:gap-5 p-4 sm:p-5 rounded-[24px] sm:rounded-[28px] bg-neo-convex shadow-neo hover:shadow-neo-accent hover:-translate-y-1 transition-all duration-300 border border-[var(--neo-border)] group relative overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-blue-500/0 opacity-0 group-hover:opacity-100 translate-x-[-100%] group-hover:translate-x-[100%] transition-all duration-1000 ease-in-out" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-[18px] sm:rounded-2xl bg-neo-concave flex items-center justify-center flex-shrink-0 shadow-neo-inner relative z-10 group-hover:bg-[#2563EB]/10 transition-colors">
+                  <Box className="w-6 h-6 sm:w-7 sm:h-7 text-[#2563EB]" />
+                </div>
+                <div className="pt-1 relative z-10">
+                  <div className="text-lg sm:text-xl font-bold text-neo mb-1.5 group-hover:text-[#2563EB] transition-colors">Interactive Vault</div>
+                  <div className="text-sm sm:text-[15px] text-neo opacity-75 leading-snug">Visualize complex concepts with interactive 3D simulators and comprehensive study tools.</div>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+                className="flex items-start gap-4 sm:gap-5 p-4 sm:p-5 rounded-[24px] sm:rounded-[28px] bg-neo-convex shadow-neo hover:shadow-neo-accent hover:-translate-y-1 transition-all duration-300 border border-[var(--neo-border)] group relative overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-blue-500/0 opacity-0 group-hover:opacity-100 translate-x-[-100%] group-hover:translate-x-[100%] transition-all duration-1000 ease-in-out" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-[18px] sm:rounded-2xl bg-neo-concave flex items-center justify-center flex-shrink-0 shadow-neo-inner relative z-10 group-hover:bg-[#2563EB]/10 transition-colors">
+                  <LineChart className="w-6 h-6 sm:w-7 sm:h-7 text-[#2563EB]" />
+                </div>
+                <div className="pt-1 relative z-10">
+                  <div className="text-lg sm:text-xl font-bold text-neo mb-1.5 group-hover:text-[#2563EB] transition-colors">Smart Analytics</div>
+                  <div className="text-sm sm:text-[15px] text-neo opacity-75 leading-snug">Track your learning progress, identify weak spots, and optimize your study sessions.</div>
                 </div>
               </motion.div>
             </div>

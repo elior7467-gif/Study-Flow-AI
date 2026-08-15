@@ -32,7 +32,7 @@ ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS is_pinned BOOLEAN DEFAULT f
 DROP POLICY IF EXISTS "Allow all access to chats" ON public.chats;
 DROP POLICY IF EXISTS "Allow users to access own chats" ON public.chats;
 CREATE POLICY "Allow users to access own chats" ON public.chats
-FOR ALL USING (auth.uid()::text = user_id);
+FOR ALL USING ((auth.jwt() ->> 'sub') = user_id);
 
 DROP POLICY IF EXISTS "Allow all access to messages" ON public.messages;
 DROP POLICY IF EXISTS "Allow users to access own messages" ON public.messages;
@@ -41,7 +41,7 @@ FOR ALL USING (
   EXISTS (
     SELECT 1 FROM public.chats
     WHERE chats.id = messages.chat_id
-    AND auth.uid()::text = chats.user_id
+    AND (auth.jwt() ->> 'sub') = chats.user_id
   )
 );
 
@@ -136,7 +136,7 @@ DROP POLICY IF EXISTS "Users can only read their own mastery" ON public.user_top
 CREATE POLICY "Users can only read their own mastery"
     ON public.user_topic_mastery
     FOR SELECT
-    USING (auth.uid()::text = user_id);
+    USING ((auth.jwt() ->> 'sub') = user_id);
 
 -- RPC for securely incrementing topic mastery
 CREATE OR REPLACE FUNCTION public.upsert_topic_mastery(
@@ -206,7 +206,7 @@ DROP POLICY IF EXISTS "Users can only read their own usage" ON public.usage_log;
 CREATE POLICY "Users can only read their own usage"
     ON public.usage_log
     FOR SELECT
-    USING (auth.uid()::text = user_id);
+    USING ((auth.jwt() ->> 'sub') = user_id);
 
 DROP POLICY IF EXISTS "Service role can insert usage" ON public.usage_log;
 CREATE POLICY "Service role can insert usage"

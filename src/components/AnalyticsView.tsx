@@ -43,7 +43,7 @@ export const AnalyticsView: React.FC<AnalyticsProps> = ({ onNotify }) => {
   }
 
   return (
-    <div className="h-full overflow-y-auto scrollbar-none pb-28 pt-4 px-4 max-w-md md:max-w-2xl lg:max-w-4xl mx-auto space-y-6">
+    <div className="h-full overflow-y-auto scrollbar-none pt-4 px-4 max-w-md md:max-w-2xl lg:max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div>
         <h2 className="text-2xl md:text-3xl font-serif font-bold text-neo tracking-tight">

@@ -60,7 +60,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
   }
 
   return (
-    <div className="pb-28 pt-4 px-4 max-w-md md:max-w-2xl lg:max-w-4xl mx-auto space-y-6">
+    <div className="pt-4 px-4 max-w-md md:max-w-2xl lg:max-w-4xl mx-auto space-y-6">
       {/* Problem Selector Bar */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs scrollbar-none">
         <span className="text-neo opacity-80 font-semibold flex-shrink-0">Problem Vault:</span>

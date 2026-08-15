@@ -81,12 +81,6 @@ export default function App() {
             onOpenSettings={() => setShowSettings(true)}
           />
 
-          <Navbar 
-            activeTab={activeTab} 
-            onTabChange={setActiveTab} 
-            soundEnabled={soundEnabled}
-          />
-
           <SettingsModal
             isOpen={showSettings}
             onClose={() => setShowSettings(false)}
@@ -99,7 +93,7 @@ export default function App() {
           />
 
       {/* Main View Container with Animated View Transitions */}
-      <main className={`flex-1 w-full mx-auto relative overflow-y-auto overflow-x-hidden px-4 md:px-6 lg:px-8 ${activeTab === 'chat' ? 'max-w-[1600px]' : 'max-w-md md:max-w-2xl lg:max-w-4xl'}`}>
+      <main className={`flex-1 w-full mx-auto relative overflow-x-hidden px-4 md:px-6 lg:px-8 ${activeTab === 'chat' ? 'max-w-[1600px] overflow-y-hidden' : 'max-w-md md:max-w-2xl lg:max-w-4xl overflow-y-auto pb-24 md:pb-28'}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}

@@ -158,7 +158,7 @@ export const HubView: React.FC<HubViewProps> = ({
   };
 
   return (
-    <div className="pb-24 pt-4 px-4 max-w-md md:max-w-2xl lg:max-w-4xl mx-auto space-y-6">
+    <div className="pt-4 px-4 max-w-md md:max-w-2xl lg:max-w-4xl mx-auto space-y-6">
       {/* Unit Selector Header */}
       <div className="space-y-1">
         <div className="flex items-center justify-between">

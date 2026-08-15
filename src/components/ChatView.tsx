@@ -40,6 +40,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
   const abortControllerRef = useRef<AbortController | null>(null);
   const [language, setLanguage] = useState(localStorage.getItem('preferred_language') || 'en');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isManualSwitch = useRef<boolean>(true);
   const [soundEnabled, setSoundEnabled] = useState(propSoundEnabled);
   
   const [chatSearchQuery, setChatSearchQuery] = useState('');
@@ -73,6 +75,15 @@ export const ChatView: React.FC<ChatViewProps> = ({
     }
   }, [messages, loading]);
 
+  // Auto-focus input when loading finishes
+  useEffect(() => {
+    if (!loading && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 10);
+    }
+  }, [loading]);
+
   // Load chat sessions on mount
   useEffect(() => {
     const fetchChats = async () => {
@@ -104,9 +115,14 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
     const fetchMessages = async () => {
       if (!activeChatId) {
-        setMessages([]);
+        if (isManualSwitch.current) setMessages([]);
         return;
       }
+      if (!isManualSwitch.current) {
+        // Chat was just created automatically by sending a message, do not wipe our local state!
+        return;
+      }
+      
       try {
         const token = await getToken({ template: 'supabase' });
         const res = await fetch(`/api/db/chats/${activeChatId}/messages`, {
@@ -169,6 +185,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
           const newChat = await res.json();
           setChats(prev => [newChat, ...prev]);
           currentChatId = newChat.id;
+          isManualSwitch.current = false;
           setActiveChatId(currentChatId);
         }
       } catch (err) {
@@ -329,6 +346,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
       if (res.ok) {
         setChats(prev => prev.filter(c => c.id !== chatId));
         if (activeChatId === chatId) {
+          isManualSwitch.current = true;
           setActiveChatId(null);
           setMessages([]);
         }
@@ -452,6 +470,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
         <div className="p-4 border-b border-black/5 dark:border-white/5 space-y-3">
           <button 
             onClick={() => {
+              isManualSwitch.current = true;
               setActiveChatId(null);
               setSidebarOpen(false);
             }}
@@ -497,6 +516,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
               ) : (
                 <button
                   onClick={() => {
+                    isManualSwitch.current = true;
                     setActiveChatId(chat.id);
                     setSidebarOpen(false);
                   }}
@@ -622,7 +642,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
         </div>
 
         {/* Input Container */}
-        <div className="px-4 md:px-8 pt-2 pb-4">
+        <div className="px-4 md:px-8 pt-2 pb-24 md:pb-28">
           <div className="bg-neo-convex shadow-neo rounded-[24px] p-3 space-y-2">
             {/* Demo Preset Chips - only show on empty chat */}
             {!activeChatId && messages.length === 0 && (
@@ -669,6 +689,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 <option value="hi" className="bg-[var(--neo-bg)] text-[var(--neo-text)]">हिन्दी</option>
               </select>
               <input
+                ref={inputRef}
                 type="text"
                 value={userPrompt}
                 onChange={(e) => setUserPrompt(e.target.value)}
