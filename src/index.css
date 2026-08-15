@@ -5,15 +5,15 @@
   :root {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     
-    /* Neomorphism Light Mode Variables - Enhanced */
-    --neo-bg: #EAF0F6;
-    --neo-text: #2d3748;
-    --neo-text-muted: #718096;
-    --neo-shadow-light: #FFFFFF;
-    --neo-shadow-dark: #C8D5E1;
-    --neo-border: rgba(255, 255, 255, 0.7);
-    --neo-convex-light: #F2F7FB;
-    --neo-convex-dark: #DFE8F1;
+    /* Neomorphism Light Mode Variables - Softened */
+    --neo-bg: #E2E8F0;
+    --neo-text: #334155;
+    --neo-text-muted: #64748b;
+    --neo-shadow-light: rgba(255, 255, 255, 0.7);
+    --neo-shadow-dark: #CBD5E1;
+    --neo-border: rgba(255, 255, 255, 0.4);
+    --neo-convex-light: #E8EEF4;
+    --neo-convex-dark: #D6E0EA;
     --neo-accent-shadow: rgba(37, 99, 235, 0.4);
     --neo-glow: rgba(37, 99, 235, 0.15);
     

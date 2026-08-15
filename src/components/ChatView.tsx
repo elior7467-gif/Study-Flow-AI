@@ -425,7 +425,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
         </div>
         <ReactMarkdown 
           remarkPlugins={[remarkGfm, remarkMath]}
-          rehypePlugins={[[rehypeKatex, { strict: false }]]}
+          rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
         >
           {preprocessMath(textToRender)}
         </ReactMarkdown>

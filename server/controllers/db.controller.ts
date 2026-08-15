@@ -20,7 +20,10 @@ export const getUserChats = async (req: Request, res: Response, next: NextFuncti
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.warn('Supabase error in getUserChats:', error.message);
+      return res.json([]);
+    }
     res.json(data);
   } catch (err) {
     next(err);
@@ -62,7 +65,10 @@ export const getChatMessages = async (req: Request, res: Response, next: NextFun
       .eq('chat_id', chatId)
       .order('created_at', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      console.warn('Supabase error in getChatMessages:', error.message);
+      return res.json([]);
+    }
     res.json(data);
   } catch (err) {
     next(err);
@@ -82,7 +88,10 @@ export const getUserMastery = async (req: Request, res: Response, next: NextFunc
       .select('*')
       .eq('user_id', userId);
 
-    if (error) throw error;
+    if (error) {
+      console.warn('Supabase error in getUserMastery:', error.message);
+      return res.json([]);
+    }
     res.json(data);
   } catch (err) {
     next(err);
@@ -93,7 +102,10 @@ export const getCohortAnalytics = async (req: Request, res: Response, next: Next
   try {
     // Analytics is global across all users, using service-level RPC
     const { data, error } = await supabase.rpc('get_cohort_analytics');
-    if (error) throw error;
+    if (error) {
+      console.warn('Supabase error in getCohortAnalytics:', error.message);
+      return res.json([]);
+    }
     res.json(data);
   } catch (err) {
     next(err);
@@ -113,7 +125,10 @@ export const getRecommendations = async (req: Request, res: Response, next: Next
       .select('*')
       .eq('user_id', userId);
 
-    if (error) throw error;
+    if (error) {
+      console.warn('Supabase error in getRecommendations:', error.message);
+      return res.json([]);
+    }
 
     // Filter to at least 1 attempt, sort by masteryScore ascending, take top 3
     const recommendations = (data || [])

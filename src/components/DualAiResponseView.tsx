@@ -158,7 +158,7 @@ export const DualAiResponseView: React.FC<Props> = ({ data, preprocessMath, user
                 <div className="bg-neo-concave shadow-neo-inner p-3 rounded-xl overflow-x-auto my-2 text-sm">
                   <ReactMarkdown 
                     remarkPlugins={[remarkGfm, remarkMath]}
-                    rehypePlugins={[[rehypeKatex, { strict: false }]]}
+                    rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
                   >
                     {preprocessMath(step.mathBlock)}
                   </ReactMarkdown>
@@ -180,7 +180,7 @@ export const DualAiResponseView: React.FC<Props> = ({ data, preprocessMath, user
         <div className="mt-4 p-4 rounded-2xl bg-[#2563EB]/5 border border-[#2563EB]/20 text-center shadow-sm">
           <ReactMarkdown 
             remarkPlugins={[remarkGfm, remarkMath]}
-            rehypePlugins={[[rehypeKatex, { strict: false }]]}
+            rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
           >
             {preprocessMath(data.finalEquation)}
           </ReactMarkdown>

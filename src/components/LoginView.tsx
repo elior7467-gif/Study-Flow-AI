@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { Bot, ShieldCheck, Sparkles } from 'lucide-react';
+import { Bot, ShieldCheck, Sparkles, Moon, Sun } from 'lucide-react';
 import { SignIn } from '@clerk/clerk-react';
 import { dark } from '@clerk/themes';
 
 interface LoginViewProps {
   soundEnabled: boolean;
   isDarkMode?: boolean;
+  onToggleDarkMode?: () => void;
 }
 
-export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode }) => {
+export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, onToggleDarkMode }) => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -48,7 +49,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode }
   };
 
   return (
-    <div className="min-h-screen bg-neo flex flex-col lg:flex-row items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden perspective-1000">
+    <div className="min-h-screen bg-neo flex flex-col lg:flex-row items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-x-hidden overflow-y-auto perspective-1000">
       {/* Decorative background blobs with impressive animations */}
       <motion.div 
         variants={glowVariants}
@@ -64,6 +65,17 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode }
       
       {/* Grid Pattern overlay */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDQwIEwgNDAgNDAgNDAgMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLW9wYWNpdHk9IjAuMDQiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-50 pointer-events-none" />
+
+      {/* Dark Mode Toggle Button */}
+      {onToggleDarkMode && (
+        <button
+          onClick={onToggleDarkMode}
+          className="absolute top-4 right-4 z-50 p-2 sm:p-3 bg-neo-convex shadow-neo rounded-full hover:shadow-neo-accent transition-all duration-300"
+          aria-label="Toggle Dark Mode"
+        >
+          {isDarkMode ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-indigo-500" />}
+        </button>
+      )}
 
       {/* Left Column: Branding & Features */}
       <div className="w-full lg:w-1/2 max-w-xl p-2 sm:p-4 lg:p-12 z-10 flex flex-col justify-center mb-8 lg:mb-0 lg:mr-8 relative mt-4 lg:mt-0">

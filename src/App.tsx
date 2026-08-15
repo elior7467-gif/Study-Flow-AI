@@ -27,9 +27,9 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     try {
       const saved = localStorage.getItem('studyflow_dark_mode');
-      return saved === 'true';
+      return saved !== 'false'; // Defaults to true if nothing is saved
     } catch {
-      return false;
+      return true;
     }
   });
 
@@ -46,13 +46,13 @@ export default function App() {
     }
   }, [isDarkMode]);
 
-  const handleNotify = (message: string, type: ToastType) => {
+  const handleNotify = React.useCallback((message: string, type: ToastType) => {
     const id = Math.random().toString(36).substring(7);
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 3000);
-  };
+  }, []);
 
 
   const handleClearData = () => {
@@ -99,7 +99,7 @@ export default function App() {
           />
 
       {/* Main View Container with Animated View Transitions */}
-      <main className={`flex-1 w-full mx-auto relative overflow-hidden px-4 md:px-6 lg:px-8 ${activeTab === 'chat' ? 'max-w-[1600px]' : 'max-w-md md:max-w-2xl lg:max-w-4xl'}`}>
+      <main className={`flex-1 w-full mx-auto relative overflow-y-auto overflow-x-hidden px-4 md:px-6 lg:px-8 ${activeTab === 'chat' ? 'max-w-[1600px]' : 'max-w-md md:max-w-2xl lg:max-w-4xl'}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -148,7 +148,11 @@ export default function App() {
     </div>
       </SignedIn>
       <SignedOut>
-        <LoginView soundEnabled={soundEnabled} isDarkMode={isDarkMode} />
+        <LoginView 
+          soundEnabled={soundEnabled} 
+          isDarkMode={isDarkMode} 
+          onToggleDarkMode={() => setIsDarkMode(!isDarkMode)} 
+        />
       </SignedOut>
     </div>
   );
