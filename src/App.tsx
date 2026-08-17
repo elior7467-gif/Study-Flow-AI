@@ -11,7 +11,7 @@ const VaultView = lazy(() => import('./components/VaultView').then(module => ({ 
 import { LoginView } from './components/LoginView';
 import { SettingsModal } from './components/SettingsModal';
 import { ToastContainer, ToastMessage, ToastType } from './components/Toast';
-import { motion, AnimatePresence } from 'motion/react';
+import { m, AnimatePresence, LazyMotion, domAnimation } from 'motion/react';
 import { SignedIn, SignedOut, useClerk, useAuth } from '@clerk/clerk-react';
 
 export default function App() {
@@ -111,12 +111,13 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] w-full bg-neo transition-colors duration-300 relative">
+    <LazyMotion features={domAnimation}>
+      <div className="flex flex-col h-[100dvh] w-full bg-neo transition-colors duration-300 relative">
       
       {/* Toast Notifications container */}
       <ToastContainer toasts={toasts} />
       <SignedIn>
-        <div className="flex flex-col h-full w-full">
+        <div className="flex flex-col h-full w-full md:pl-24">
           <Header 
             currentUnit={selectedUnitId}
             onSelectUnit={(unitId) => setSelectedUnitId(unitId)}
@@ -143,15 +144,15 @@ export default function App() {
           />
 
       {/* Main View Container with Animated View Transitions */}
-      <main className={`flex-1 w-full mx-auto relative overflow-x-hidden px-4 md:px-6 lg:px-8 ${activeTab === 'chat' ? 'max-w-[1600px] overflow-y-hidden' : 'max-w-md md:max-w-2xl lg:max-w-4xl overflow-y-auto'}`}>
+      <main className={`flex-1 w-full mx-auto relative overflow-x-hidden ${activeTab === 'chat' ? 'px-0 max-w-none overflow-y-hidden' : 'px-4 md:px-6 lg:px-8 max-w-[1600px] overflow-y-auto'}`}>
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={activeTab}
             initial={{ opacity: 0, y: 12, scale: 0.99 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12, scale: 0.99 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className={`w-full ${activeTab === 'chat' ? 'h-full' : 'min-h-full pb-32 md:pb-36'}`}
+            className={`w-full ${activeTab === 'chat' ? 'h-full' : 'min-h-full pb-32 md:pb-12'}`}
           >
             <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><div className="w-8 h-8 rounded-full border-4 border-t-[#2563EB] border-black/10 dark:border-white/10 animate-spin" /></div>}>
               {activeTab === 'hub' && (
@@ -185,7 +186,7 @@ export default function App() {
 
               {activeTab === 'analytics' && <AnalyticsView onNotify={handleNotify} isTeacherMode={isTeacherMode} />}
             </Suspense>
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </main>
 
@@ -201,6 +202,7 @@ export default function App() {
         />
       </SignedOut>
     </div>
+    </LazyMotion>
   );
 }
 

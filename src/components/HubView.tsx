@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UnitOverview, TopicMastery } from '../types';
 import { TrendingUp, ShieldCheck, AlertTriangle, ChevronDown, Sparkles, RefreshCw, MessageSquare, CheckCircle2, Award } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { m, AnimatePresence } from 'motion/react';
 import { playSound } from '../utils/sound';
 import { useAuth, useUser } from '@clerk/clerk-react';
 
@@ -186,7 +186,7 @@ export const HubView: React.FC<HubViewProps> = ({
       </div>
 
       {/* Pitch & Value Proposition Hero Card */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
@@ -236,7 +236,7 @@ export const HubView: React.FC<HubViewProps> = ({
         {/* Demo Quick Start Chips */}
         <div className="pt-2 flex flex-wrap items-center gap-2 text-xs">
           <span className="text-neo font-medium text-[11px]">Try Hackathon Scenarios:</span>
-          <motion.button
+          <m.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.95, boxShadow: "var(--shadow-in)" }}
             onClick={() => {
@@ -246,8 +246,8 @@ export const HubView: React.FC<HubViewProps> = ({
             className="bg-neo-convex shadow-neo-accent text-[#2563EB] font-bold px-3 py-1.5 rounded-xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center gap-1 cursor-pointer"
           >
             <ShieldCheck className="w-3.5 h-3.5" /> 1. In-Scope NCERT Question (Verified)
-          </motion.button>
-          <motion.button
+          </m.button>
+          <m.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.95, boxShadow: "var(--shadow-in)" }}
             onClick={() => {
@@ -257,13 +257,13 @@ export const HubView: React.FC<HubViewProps> = ({
             className="bg-neo-convex shadow-neo text-[#F43F5E] font-bold px-3 py-1.5 rounded-xl hover:shadow-neo-sm active:shadow-neo-inner transition-all flex items-center gap-1 cursor-pointer"
           >
             <AlertTriangle className="w-3.5 h-3.5" /> 2. Misconception Trap (Honest Warning)
-          </motion.button>
+          </m.button>
         </div>
-      </motion.div>
+      </m.div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {/* Card 1: Overall Mastery */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.2, delay: 0.05 }}
@@ -286,7 +286,7 @@ export const HubView: React.FC<HubViewProps> = ({
 
             {/* Animated Progress Bar */}
             <div className="w-full bg-neo-concave shadow-neo-inner h-2.5 rounded-full overflow-hidden">
-              <motion.div
+              <m.div
                 initial={{ width: 0 }}
                 animate={{ width: `${currentUnit.overallMastery}%` }}
                 transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -294,7 +294,7 @@ export const HubView: React.FC<HubViewProps> = ({
               />
             </div>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Card 2: Total Time */}
         <div className="bg-neo-convex shadow-neo rounded-[24px] p-5 flex flex-col justify-between transition-all duration-300">
@@ -335,7 +335,7 @@ export const HubView: React.FC<HubViewProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {recommendations.map((rec, index) => (
-              <motion.div 
+              <m.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: index * 0.1 }}
@@ -357,7 +357,7 @@ export const HubView: React.FC<HubViewProps> = ({
                 >
                   <Sparkles className="w-3.5 h-3.5" /> Practice Now
                 </button>
-              </motion.div>
+              </m.div>
             ))}
           </div>
         </div>

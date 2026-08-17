@@ -9,7 +9,7 @@ const intelligentKeyGenerator = (req: Request, res: Response): string => {
   if (authHeader) {
     return authHeader.substring(0, 32); // Use hash/token prefix as identifier if no explicit userId
   }
-  return ipKeyGenerator(req, res);
+  return req.ip || req.socket.remoteAddress || '127.0.0.1';
 };
 
 // Global Rate Limiter: Increased to 500 requests per 15 minutes for smooth SPA operation

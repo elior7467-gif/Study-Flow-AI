@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SolverResult } from '../types';
 import { ShieldCheck, AlertTriangle, BookOpen, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
-import { motion } from 'motion/react';
+import { m } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -9,7 +9,7 @@ import rehypeKatex from 'rehype-katex';
 import { useAuth } from '@clerk/clerk-react';
 
 interface Props {
-  data: Partial<SolverResult> & { criticAuditStatus?: 'VERIFIED' | 'FLAGGED' | 'VERIFYING' | 'STREAMING' };
+  data: Omit<Partial<SolverResult>, 'criticAuditStatus'> & { criticAuditStatus?: 'VERIFIED' | 'FLAGGED' | 'VERIFYING' | 'STREAMING' };
   preprocessMath: (s: string) => string;
   userId?: string;
   chatId?: string | null;
@@ -70,7 +70,7 @@ export const DualAiResponseView: React.FC<Props> = React.memo(({ data, preproces
         <div className="flex items-center justify-between relative">
           {/* Connecting Line */}
           <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-black/5 dark:bg-white/5 -translate-y-1/2 z-0">
-             <motion.div 
+             <m.div 
                className="h-full bg-gradient-to-r from-blue-500 to-emerald-500"
                initial={{ width: '0%' }}
                animate={{ width: isVerifying ? '50%' : '100%' }}
@@ -80,36 +80,36 @@ export const DualAiResponseView: React.FC<Props> = React.memo(({ data, preproces
 
           {/* Node 1: First Principles */}
           <div className="relative z-10 flex flex-col items-center gap-2 bg-neo px-2">
-            <motion.div 
+            <m.div 
               initial={{ scale: 0 }} animate={{ scale: 1 }}
               className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30"
             >
               <BookOpen className="w-3 h-3" />
-            </motion.div>
+            </m.div>
             <span className="text-[9px] font-bold text-neo uppercase tracking-wider">Concept</span>
           </div>
 
           {/* Node 2: Derivation */}
           <div className="relative z-10 flex flex-col items-center gap-2 bg-neo px-2">
-            <motion.div 
+            <m.div 
               initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.3 }}
               className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30"
             >
               <RefreshCw className="w-3 h-3" />
-            </motion.div>
+            </m.div>
             <span className="text-[9px] font-bold text-neo uppercase tracking-wider">Derivation</span>
           </div>
 
           {/* Node 3: Critic Review */}
           <div className="relative z-10 flex flex-col items-center gap-2 bg-neo px-2">
-            <motion.div 
+            <m.div 
               initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.6 }}
               className={`w-6 h-6 rounded-full flex items-center justify-center text-white shadow-lg transition-colors duration-500 ${
                 isStreaming ? 'bg-black/5 dark:bg-white/5 text-neo/30' : isVerifying ? 'bg-black/10 dark:bg-white/10 text-neo' : isVerified ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-amber-500 shadow-amber-500/30'
               }`}
             >
               {(isVerifying || isStreaming) ? <RefreshCw className={`w-3 h-3 opacity-50 ${isVerifying ? 'animate-spin' : ''}`} /> : isVerified ? <ShieldCheck className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
-            </motion.div>
+            </m.div>
             <span className={`text-[9px] font-bold uppercase tracking-wider ${(isVerifying || isStreaming) ? 'text-neo opacity-50' : 'text-neo'}`}>Critic</span>
           </div>
         </div>

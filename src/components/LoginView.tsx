@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
+import { m, useMotionValue, useSpring, useTransform } from 'motion/react';
 import { Bot, ShieldCheck, Sparkles, Moon, Sun, Box, LineChart, ChevronRight } from 'lucide-react';
 import { SignIn, SignUp } from '@clerk/clerk-react';
 import { dark } from '@clerk/themes';
@@ -62,12 +62,12 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
   return (
     <div className="min-h-[100dvh] bg-neo flex relative overflow-x-hidden overflow-y-auto perspective-1000">
       {/* Decorative background blobs with impressive animations */}
-      <motion.div 
+      <m.div 
         variants={glowVariants}
         animate="animate"
         className="fixed top-[-10%] left-[-10%] w-[600px] h-[600px] bg-[#2563EB]/15 rounded-full blur-[120px] pointer-events-none" 
       />
-      <motion.div 
+      <m.div 
         variants={glowVariants}
         animate="animate"
         className="fixed bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-[#F43F5E]/10 rounded-full blur-[120px] pointer-events-none"
@@ -93,7 +93,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
         
         {/* Left Column: Branding & Features */}
         <div className="w-full lg:w-1/2 max-w-xl flex flex-col justify-center mb-12 lg:mb-0 lg:pr-12 relative">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, x: -40, rotateY: 10 }}
             animate={{ opacity: 1, x: 0, rotateY: 0 }}
             transition={{ duration: 0.8, ease: [0.25, 0.8, 0.25, 1] }}
@@ -102,7 +102,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
               y: leftColY 
             }}
           >
-            <motion.div 
+            <m.div 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
@@ -111,38 +111,38 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span>StudyFlow AI 2.0 is Here</span>
               <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-70 ml-1" />
-            </motion.div>
+            </m.div>
 
-            <motion.div 
+            <m.div 
               variants={floatVariants}
               animate="animate"
               className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-[#2563EB] to-[#1E40AF] rounded-[28px] sm:rounded-[32px] flex items-center justify-center shadow-neo-accent mb-6 sm:mb-8 transform -rotate-3 hover:rotate-0 hover:scale-110 transition-all duration-500 ease-out cursor-pointer"
             >
               <Bot className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
-            </motion.div>
+            </m.div>
 
-            <motion.h1 
+            <m.h1 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-neo mb-4 sm:mb-6 tracking-tight leading-[1.1]"
             >
               Master your exams with <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] to-[#60A5FA]">StudyFlow AI</span>
-            </motion.h1>
-            <motion.p 
+            </m.h1>
+            <m.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
               className="text-neo opacity-80 font-medium text-base sm:text-lg lg:text-xl mb-8 sm:mb-12 leading-relaxed max-w-md"
             >
               The only test prep AI with a built-in <span className="font-bold text-[#2563EB]">Fact-Checker</span>. No hallucinations. Just verified derivations.
-            </motion.p>
+            </m.p>
 
             <div className="space-y-4 sm:space-y-6 relative hidden sm:block">
               {/* Connecting line */}
               <div className="absolute left-7 top-7 bottom-7 w-0.5 bg-gradient-to-b from-[#2563EB] to-transparent opacity-20 hidden md:block"></div>
               
-              <motion.div 
+              <m.div 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.4 }}
@@ -156,9 +156,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
                   <div className="text-lg sm:text-xl font-bold text-neo mb-1.5 group-hover:text-[#2563EB] transition-colors">Zero Hallucination Guarantee</div>
                   <div className="text-sm sm:text-[15px] text-neo opacity-75 leading-snug">Critic AI line-audits every step against textbooks to ensure absolute accuracy.</div>
                 </div>
-              </motion.div>
+              </m.div>
               
-              <motion.div 
+              <m.div 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
@@ -172,9 +172,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
                   <div className="text-lg sm:text-xl font-bold text-neo mb-1.5 group-hover:text-[#2563EB] transition-colors">Step-by-Step Derivations</div>
                   <div className="text-sm sm:text-[15px] text-neo opacity-75 leading-snug">Solver AI breaks down complex scientific problems into easy, understandable chunks.</div>
                 </div>
-              </motion.div>
+              </m.div>
 
-              <motion.div 
+              <m.div 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.6 }}
@@ -188,9 +188,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
                   <div className="text-lg sm:text-xl font-bold text-neo mb-1.5 group-hover:text-[#2563EB] transition-colors">Interactive Vault</div>
                   <div className="text-sm sm:text-[15px] text-neo opacity-75 leading-snug">Visualize complex concepts with interactive 3D simulators and comprehensive study tools.</div>
                 </div>
-              </motion.div>
+              </m.div>
 
-              <motion.div 
+              <m.div 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.7 }}
@@ -204,13 +204,13 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
                   <div className="text-lg sm:text-xl font-bold text-neo mb-1.5 group-hover:text-[#2563EB] transition-colors">Smart Analytics</div>
                   <div className="text-sm sm:text-[15px] text-neo opacity-75 leading-snug">Track your learning progress, identify weak spots, and optimize your study sessions.</div>
                 </div>
-              </motion.div>
+              </m.div>
             </div>
-          </motion.div>
+          </m.div>
         </div>
 
         {/* Right Column: Sign In Component */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.9, rotateY: -10 }}
           animate={{ opacity: 1, scale: 1, rotateY: 0 }}
           transition={{ duration: 0.7, delay: 0.3, ease: [0.25, 0.8, 0.25, 1] }}
@@ -307,7 +307,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
               )}
             </div>
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </div>
   );

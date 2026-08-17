@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { m, AnimatePresence } from 'motion/react';
 import { ChatMessage, ChatSession } from '../types';
 import { Bot, User, Send, RefreshCw, Copy, Check, MessageSquare, Plus, Menu, X, Sparkles, Trash2, Edit2, Pin, PinOff, Search, Mic, MicOff, Camera, Languages } from 'lucide-react';
 import { playSound } from '../utils/sound';
@@ -131,7 +131,7 @@ const ChatMessageItem = React.memo(({ msg, onTogglePin, userId, activeChatId, on
   };
 
   return (
-    <motion.div 
+    <m.div 
       initial={{ opacity: 0, y: 15, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
@@ -139,7 +139,7 @@ const ChatMessageItem = React.memo(({ msg, onTogglePin, userId, activeChatId, on
     >
       {msg.role === 'user' ? (
         <div className="flex justify-end items-end gap-2 relative group/user-msg">
-          <div className={`bg-neo-concave shadow-neo-inner text-neo rounded-2xl rounded-br-none px-4 py-3 max-w-[85%] ${msg.is_pinned ? 'ring-2 ring-amber-400 dark:ring-amber-500/50' : ''}`}>
+          <div className={`bg-gradient-to-br from-[#2563EB] to-[#1E40AF] text-white shadow-lg shadow-blue-500/20 rounded-2xl rounded-br-none px-4 py-3 max-w-[85%] ${msg.is_pinned ? 'ring-2 ring-amber-400 dark:ring-amber-500/50' : ''}`}>
             <p className="text-xs font-medium leading-relaxed">{msg.content}</p>
             <button
               onClick={() => onTogglePin(msg.id, msg.is_pinned)}
@@ -149,7 +149,7 @@ const ChatMessageItem = React.memo(({ msg, onTogglePin, userId, activeChatId, on
               {msg.is_pinned ? <PinOff className="w-3 h-3 text-amber-500" /> : <Pin className="w-3 h-3" />}
             </button>
           </div>
-          <div className="w-8 h-8 rounded-full bg-neo-convex shadow-neo-sm flex items-center justify-center text-neo flex-shrink-0 mb-1 z-10">
+          <div className="w-8 h-8 rounded-full bg-[#1E40AF] shadow-lg shadow-blue-500/20 flex items-center justify-center text-white flex-shrink-0 mb-1 z-10 border border-white/10">
             <User className="w-4 h-4" />
           </div>
         </div>
@@ -163,7 +163,7 @@ const ChatMessageItem = React.memo(({ msg, onTogglePin, userId, activeChatId, on
           </div>
         </div>
       )}
-    </motion.div>
+    </m.div>
   );
 }, (prevProps, nextProps) => {
   return prevProps.msg.id === nextProps.msg.id && 
@@ -198,6 +198,63 @@ export const ChatView: React.FC<ChatViewProps> = ({
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editChatTitle, setEditChatTitle] = useState('');
   
+  const handleTogglePin = async (messageId: string, currentPinStatus?: boolean) => {
+    const newStatus = !currentPinStatus;
+    setMessages(prev => prev.map(m => m.id === messageId ? { ...m, is_pinned: newStatus } : m));
+    
+    try {
+      const token = await getToken({ template: 'supabase' });
+      await fetch(`/api/db/messages/${messageId}/pin`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ is_pinned: newStatus })
+      });
+    } catch (e) {
+      console.error("Failed to pin message", e);
+      onNotify("Failed to pin message", "warning");
+    }
+  };
+
+  const handleRenameChat = async (chatId: string) => {
+    if (!editChatTitle.trim()) {
+      setEditingChatId(null);
+      return;
+    }
+    setChats(prev => prev.map(c => c.id === chatId ? { ...c, title: editChatTitle } : c));
+    setEditingChatId(null);
+    try {
+      const token = await getToken({ template: 'supabase' });
+      await fetch(`/api/db/chats/${chatId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ title: editChatTitle })
+      });
+    } catch (e) {
+      console.error('Failed to rename chat:', e);
+    }
+  };
+
+  const handleDeleteChat = async (chatId: string) => {
+    setChats(prev => prev.filter(c => c.id !== chatId));
+    if (activeChatId === chatId) {
+      isManualSwitch.current = true;
+      setActiveChatId(null);
+      setMessages([]);
+    }
+    try {
+      const token = await getToken({ template: 'supabase' });
+      await fetch(`/api/db/chats/${chatId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (e) {
+      console.error('Failed to delete chat:', e);
+    }
+  };
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
 
@@ -265,18 +322,19 @@ export const ChatView: React.FC<ChatViewProps> = ({
   useEffect(() => {
     let ignore = false;
 
-    // Abort any ongoing stream if user switches chat
+    if (!isManualSwitch.current) {
+      // Chat was just created automatically by sending a message, do not wipe our local state or abort stream!
+      return;
+    }
+
+    // Abort any ongoing stream if user switches chat manually
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
 
     const fetchMessages = async () => {
       if (!activeChatId) {
-        if (isManualSwitch.current) setMessages([]);
-        return;
-      }
-      if (!isManualSwitch.current) {
-        // Chat was just created automatically by sending a message, do not wipe our local state!
+        setMessages([]);
         return;
       }
       
@@ -480,7 +538,11 @@ export const ChatView: React.FC<ChatViewProps> = ({
       }
       
       playSound('success', soundEnabled);
-    } catch (err) {
+    } catch (err: any) {
+      if (err.name === 'AbortError' || err.message?.includes('abort')) {
+        console.log('Stream aborted.');
+        return;
+      }
       console.error('Error streaming chat:', err);
       onNotify(err.message || "Failed to connect to AI server", "warning");
       playSound('warning', soundEnabled);
@@ -492,7 +554,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
 
   return (
-    <div className="flex h-[calc(100vh-140px)] w-full overflow-hidden bg-neo-convex shadow-neo rounded-[24px] relative transition-all duration-300">
+    <div className="flex h-full w-full overflow-hidden relative transition-all duration-300">
       
       {/* Mobile Sidebar Toggle */}
       <button 
@@ -504,7 +566,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
       {/* Sidebar for Chat History */}
       <div className={`
-        absolute md:static inset-y-0 left-0 z-40 w-64 bg-neo-convex shadow-neo-sm flex flex-col transition-transform duration-300 ease-in-out
+        absolute md:static inset-y-0 left-0 z-40 w-64 bg-neo-convex md:border-r md:border-black/5 dark:md:border-white/5 shadow-neo-sm flex flex-col transition-transform duration-300 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         <div className="p-4 border-b border-black/5 dark:border-white/5 space-y-3">
@@ -609,7 +671,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
         >
           <AnimatePresence mode="popLayout">
           {messages.length === 0 && (
-            <motion.div 
+            <m.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
@@ -625,7 +687,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                   Ask me any academic question and I'll explain it step-by-step.
                 </p>
               </div>
-            </motion.div>
+            </m.div>
           )}
 
           {messages.map((msg, i) => (
@@ -656,11 +718,11 @@ export const ChatView: React.FC<ChatViewProps> = ({
         </div>
 
         {/* Input Container */}
-        <div className="px-4 md:px-8 pt-2 pb-24 md:pb-28">
+        <div className="px-4 md:px-8 pt-2 pb-24 md:pb-6">
           <div className="bg-neo-convex shadow-neo rounded-[24px] p-3 space-y-2">
             {/* Demo Preset Chips - only show on empty chat */}
             {!activeChatId && messages.length === 0 && (
-              <motion.div 
+              <m.div 
                 initial="hidden"
                 animate="visible"
                 variants={{
@@ -670,7 +732,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none px-1"
               >
                 {presetQueries.map((preset, idx) => (
-                  <motion.button
+                  <m.button
                     variants={{
                       hidden: { opacity: 0, y: 10, scale: 0.9 },
                       visible: { opacity: 1, y: 0, scale: 1 }
@@ -686,9 +748,9 @@ export const ChatView: React.FC<ChatViewProps> = ({
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-neo-convex shadow-neo rounded-lg text-[10px] font-bold text-neo opacity-80 hover:opacity-100 hover:shadow-neo-accent hover:text-[#2563EB] dark:hover:text-[#60A5FA] transition-all flex-shrink-0 cursor-pointer"
                   >
                     {preset.label}
-                  </motion.button>
+                  </m.button>
                 ))}
-              </motion.div>
+              </m.div>
             )}
 
             <form onSubmit={(e) => handleSubmit(e)} className="flex items-center gap-2 relative">
@@ -717,14 +779,14 @@ export const ChatView: React.FC<ChatViewProps> = ({
               
               <AnimatePresence>
                 {userPrompt.trim() && !isListening && (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, scale: 0.5, x: 10 }}
                     animate={{ opacity: 1, scale: 1, x: 0 }}
                     exit={{ opacity: 0, scale: 0.5, x: 10 }}
                     className="absolute right-[115px] top-1/2 -translate-y-1/2 pointer-events-none"
                   >
                     <div className="w-1.5 h-1.5 rounded-full bg-[#2563EB] dark:bg-[#60A5FA] animate-ping opacity-75" />
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
               

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { VaultProblem } from '../types';
 import { ExternalLink, Flag, Compass, CheckCircle2, AlertOctagon, RotateCcw, HelpCircle, Layers, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { m, AnimatePresence } from 'motion/react';
 import { playSound } from '../utils/sound';
 
 import { ToastType } from './Toast';
@@ -65,7 +65,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
       <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs scrollbar-none">
         <span className="text-neo opacity-80 font-semibold flex-shrink-0">Problem Vault:</span>
         {problems.map((p) => (
-          <motion.button
+          <m.button
             key={p.id}
             whileTap={{ scale: 0.94 }}
             whileHover={{ scale: 1.04 }}
@@ -77,7 +77,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
             }`}
           >
             {p.problemNumber}
-          </motion.button>
+          </m.button>
         ))}
       </div>
 
@@ -94,7 +94,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
         <div className="space-y-6">
       {/* Interactive 3D Flip Flashcard / Question Card */}
       <div className="perspective-1000">
-        <motion.div
+        <m.div
           onClick={() => {
             playSound('click', soundEnabled);
             setIsFlipped(!isFlipped);
@@ -114,7 +114,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
 
           <AnimatePresence mode="wait">
             {!isFlipped ? (
-              <motion.div
+              <m.div
                 key="front"
                 initial={{ opacity: 0, rotateY: -90 }}
                 animate={{ opacity: 1, rotateY: 0 }}
@@ -125,9 +125,9 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
                 <p className="text-xs md:text-sm text-neo leading-relaxed font-medium">
                   {activeProblem.question}
                 </p>
-              </motion.div>
+              </m.div>
             ) : (
-              <motion.div
+              <m.div
                 key="back"
                 initial={{ opacity: 0, rotateY: 90 }}
                 animate={{ opacity: 1, rotateY: 0 }}
@@ -141,10 +141,10 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
                 <p className="text-neo leading-relaxed font-medium">
                   Centripetal force on a level road is provided purely by static friction: f_s = m v² / r. The maximum speed before skidding depends only on v_max = √(μ_s r g) and is independent of mass m.
                 </p>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
-        </motion.div>
+        </m.div>
       </div>
 
       {/* References Card */}
@@ -168,7 +168,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
         </div>
 
         <div className="space-y-2">
-          <motion.button
+          <m.button
             whileTap={{ scale: 0.98 }}
             onClick={() => {
               playSound('click', soundEnabled);
@@ -178,9 +178,9 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
           >
             <span>View Textbook Source</span>
             <ExternalLink className="w-3.5 h-3.5" />
-          </motion.button>
+          </m.button>
 
-          <motion.button
+          <m.button
             whileTap={{ scale: 0.98 }}
             onClick={() => {
               playSound('warning', soundEnabled);
@@ -190,7 +190,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
           >
             <Flag className="w-3.5 h-3.5 text-neo opacity-80" />
             <span>Report Issue</span>
-          </motion.button>
+          </m.button>
         </div>
       </div>
 
@@ -273,9 +273,10 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
               <circle cx="7" cy="8" r="3" className="fill-[var(--neo-text)]" />
 
               {/* Centripetal Force Vector (Inward) */}
-              <motion.line
+              <m.line
                 x1="0"
                 y1="0"
+                initial={{ x2: -Math.min(50, fc / 100) }}
                 animate={{ x2: -Math.min(50, fc / 100) }}
                 y2="0"
                 className="stroke-[var(--neo-text)]"
@@ -287,10 +288,11 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
               </text>
 
               {/* Velocity Vector (Tangential) */}
-              <motion.line
+              <m.line
                 x1="0"
                 y1="0"
                 x2="0"
+                initial={{ y2: -Math.min(45, velocity * 1.5) }}
                 animate={{ y2: -Math.min(45, velocity * 1.5) }}
                 stroke="#2563EB"
                 strokeWidth="2.5"
@@ -309,7 +311,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
           <div className="mt-3">
             <AnimatePresence mode="wait">
               {willSkid ? (
-                <motion.div
+                <m.div
                   key="skid"
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -318,9 +320,9 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
                 >
                   <AlertOctagon className="w-4 h-4 text-[#F43F5E] animate-bounce" />
                   TRAJECTORY UNSTABLE: CAR WILL SKID!
-                </motion.div>
+                </m.div>
               ) : (
-                <motion.div
+                <m.div
                   key="safe"
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -329,7 +331,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
                 >
                   <CheckCircle2 className="w-4 h-4 text-[#2563EB]" />
                   SAFE TRAJECTORY: FRICTION HOLDS
-                </motion.div>
+                </m.div>
               )}
             </AnimatePresence>
           </div>

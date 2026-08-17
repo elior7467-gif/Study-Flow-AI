@@ -212,9 +212,7 @@ Latest Question: ${query}`;
         properties: {
           queries: {
             type: "array",
-            items: { type: "string" },
-            minItems: 3,
-            maxItems: 3
+            items: { type: "string" }
           }
         },
         required: ["queries"],

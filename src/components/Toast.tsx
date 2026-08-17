@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { m, AnimatePresence } from 'motion/react';
 import { CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 
 export type ToastType = 'success' | 'warning' | 'info';
@@ -10,7 +10,7 @@ export const ToastContainer: React.FC<{ toasts: ToastMessage[] }> = ({ toasts })
     <div className="fixed top-6 left-0 right-0 z-[100] flex flex-col items-center gap-3 pointer-events-none px-4">
       <AnimatePresence>
         {toasts.map(toast => (
-          <motion.div
+          <m.div
             key={toast.id}
             initial={{ opacity: 0, y: -20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -25,7 +25,7 @@ export const ToastContainer: React.FC<{ toasts: ToastMessage[] }> = ({ toasts })
             {toast.type === 'warning' && <AlertTriangle className="w-5 h-5 flex-shrink-0" />}
             {toast.type === 'info' && <Info className="w-5 h-5 flex-shrink-0" />}
             <span className="flex-1 text-center">{toast.message}</span>
-          </motion.div>
+          </m.div>
         ))}
       </AnimatePresence>
     </div>

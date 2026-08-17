@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { m, AnimatePresence } from 'motion/react';
 import { Settings, Volume2, VolumeX, Moon, Trash2, LogOut, X, Loader2, GraduationCap } from 'lucide-react';
 import { playSound } from '../utils/sound';
 
@@ -28,7 +28,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           className="fixed inset-0 z-[60] bg-[var(--neo-text)]/20 backdrop-blur-sm flex items-center justify-center p-4"
           onClick={onClose}
         >
-          <motion.div
+          <m.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -66,7 +66,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <div 
                     className={`pointer-events-none w-12 h-6 rounded-full transition-all relative ${soundEnabled ? 'bg-[#2563EB] shadow-neo-inner' : 'bg-black/10 dark:bg-white/10 shadow-inner'}`}
                   >
-                    <motion.div 
+                    <m.div 
                       layout
                       className={`w-5 h-5 rounded-full absolute top-0.5 shadow-sm transition-all bg-white dark:bg-slate-200`}
                       animate={{ left: soundEnabled ? '26px' : '2px' }}
@@ -88,7 +88,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <div 
                     className={`pointer-events-none w-12 h-6 rounded-full transition-all relative ${isDarkMode ? 'bg-[#2563EB] shadow-neo-inner' : 'bg-black/10 dark:bg-white/10 shadow-inner'}`}
                   >
-                    <motion.div 
+                    <m.div 
                       layout
                       className={`w-5 h-5 rounded-full absolute top-0.5 shadow-sm transition-all bg-white dark:bg-slate-200`}
                       animate={{ left: isDarkMode ? '26px' : '2px' }}
@@ -110,7 +110,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <div 
                     className={`pointer-events-none w-12 h-6 rounded-full transition-all relative ${isTeacherMode ? 'bg-[#2563EB] shadow-neo-inner' : 'bg-black/10 dark:bg-white/10 shadow-inner'}`}
                   >
-                    <motion.div 
+                    <m.div 
                       layout
                       className={`w-5 h-5 rounded-full absolute top-0.5 shadow-sm transition-all bg-white dark:bg-slate-200`}
                       animate={{ left: isTeacherMode ? '26px' : '2px' }}
@@ -159,7 +159,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </button>
               </div>
             </div>
-          </motion.div>
+          </m.div>
         </div>
       )}
     </AnimatePresence>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Sparkles, BookOpen, CheckCircle2, Zap, Info, TrendingUp, Cpu, Volume2, VolumeX, Settings } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { m, AnimatePresence } from 'motion/react';
 import { playSound } from '../utils/sound';
 import { UserButton } from '@clerk/clerk-react';
 
@@ -19,16 +19,16 @@ export const Header: React.FC<HeaderProps> = React.memo(({ soundEnabled = true, 
 
   return (
     <header className="sticky top-0 z-30 bg-neo px-4 py-2.5 transition-colors duration-300">
-      <div className="max-w-md md:max-w-2xl lg:max-w-4xl mx-auto flex items-center justify-between">
+      <div className="w-full max-w-[1600px] mx-auto flex items-center justify-between">
         {/* Left Icon & Branding */}
         <div className="flex items-center gap-2.5">
-          <motion.div
+          <m.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95, boxShadow: "var(--shadow-in)" }}
             className="w-9 h-9 rounded-xl bg-neo-convex shadow-neo flex items-center justify-center text-[#2563EB] dark:text-[#60A5FA] flex-shrink-0 cursor-pointer transition-shadow overflow-hidden p-0.5"
           >
             <img src="/logo.jpg" alt="StudyFlow AI Logo" className="w-full h-full object-cover rounded-[10px]" />
-          </motion.div>
+          </m.div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-base md:text-lg font-extrabold tracking-tight text-neo">
@@ -47,7 +47,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({ soundEnabled = true, 
         {/* Live System Telemetry & Investor Deck Modal Trigger */}
         <div className="flex items-center gap-2">
 
-          <motion.button
+          <m.button
             whileTap={{ scale: 0.95 }}
             whileHover={{ scale: 1.03 }}
             onClick={() => {
@@ -58,7 +58,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({ soundEnabled = true, 
           >
             <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
             <span>SaaS Vision</span>
-          </motion.button>
+          </m.button>
           
           {/* Settings Button */}
           <button
@@ -82,7 +82,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({ soundEnabled = true, 
       <AnimatePresence>
         {showInvestorDeck && (
           <div className="fixed inset-0 z-50 bg-[var(--neo-text)]/20 backdrop-blur-sm flex items-center justify-center p-4">
-            <motion.div
+            <m.div
               initial={{ opacity: 0, scale: 0.9, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 15 }}
@@ -152,7 +152,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({ soundEnabled = true, 
                   Close Executive Summary
                 </button>
               </div>
-            </motion.div>
+            </m.div>
           </div>
         )}
       </AnimatePresence>
