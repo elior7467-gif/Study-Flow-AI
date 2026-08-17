@@ -1,40 +1,52 @@
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
+import { Request, Response } from 'express';
 
-// Global Rate Limiter: 100 requests per 15 minutes
+// Intelligent key generator prioritizes authenticated user IDs, then falls back to IP
+const intelligentKeyGenerator = (req: Request, res: Response): string => {
+  if (req.body && req.body.userId) return req.body.userId;
+  if (req.query && req.query.userId) return req.query.userId as string;
+  const authHeader = req.headers.authorization;
+  if (authHeader) {
+    return authHeader.substring(0, 32); // Use hash/token prefix as identifier if no explicit userId
+  }
+  return ipKeyGenerator(req, res);
+};
+
+// Global Rate Limiter: Increased to 500 requests per 15 minutes for smooth SPA operation
 export const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  max: 500,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipFailedRequests: false, // Count all requests for the global limiter to prevent DDoS
+  keyGenerator: intelligentKeyGenerator,
   message: {
     error: 'Too many requests',
     message: 'You have exceeded your request limit. Please try again later.'
   }
 });
 
-// AI endpoints Rate Limiter: 20 requests per hour
+// AI endpoints Rate Limiter: Increased to 100 requests per hour
 export const solverCriticRateLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 20, // Limit each IP to 20 requests per `window` (here, per 1 hour)
+  max: 100, 
   standardHeaders: true,
   legacyHeaders: false,
+  skipFailedRequests: true, // Don't penalize users if the AI fails or returns 4xx/5xx
+  keyGenerator: intelligentKeyGenerator,
   message: {
     error: 'Rate limit exceeded',
-    message: 'You have reached the maximum of 20 solver-critic requests per hour.'
-  },
-  keyGenerator: (req, res) => {
-    // Use userId from body if authenticated, otherwise fallback to standard IP
-    if (req.body.userId) return req.body.userId;
-    return ipKeyGenerator(req, res);
+    message: 'You have reached the maximum of 100 AI requests per hour.'
   }
 });
 
-// Admin endpoints Rate Limiter: 50 requests per hour
+// Admin endpoints Rate Limiter: 100 requests per hour
 export const adminLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 50,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: intelligentKeyGenerator,
   message: {
     error: 'Rate limit exceeded',
     message: 'Too many admin requests. Please try again later.'

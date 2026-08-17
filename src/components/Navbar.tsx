@@ -10,7 +10,7 @@ interface NavbarProps {
   soundEnabled?: boolean;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange, soundEnabled = true }) => {
+export const Navbar: React.FC<NavbarProps> = React.memo(({ activeTab, onTabChange, soundEnabled = true }) => {
   const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
     { id: 'hub', label: 'Hub', icon: <Compass className="w-5 h-5" /> },
     { id: 'chat', label: 'Chat', icon: <MessageSquare className="w-5 h-5" /> },
@@ -55,5 +55,5 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange, soundEna
       </div>
     </nav>
   );
-};
+});
 

@@ -1,20 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { TabType, UnitOverview, VaultProblem, CohortMetric, ChatMessage } from './types';
 import { MOCK_UNITS, MOCK_VAULT_PROBLEMS, MOCK_COHORTS } from './data/mockData';
 import { Header } from './components/Header';
 import { Navbar } from './components/Navbar';
-import { HubView } from './components/HubView';
-import { ChatView } from './components/ChatView';
-import { AnalyticsView } from './components/AnalyticsView';
-import { VaultView } from './components/VaultView';
+
+const HubView = lazy(() => import('./components/HubView').then(module => ({ default: module.HubView })));
+const ChatView = lazy(() => import('./components/ChatView').then(module => ({ default: module.ChatView })));
+const AnalyticsView = lazy(() => import('./components/AnalyticsView').then(module => ({ default: module.AnalyticsView })));
+const VaultView = lazy(() => import('./components/VaultView').then(module => ({ default: module.VaultView })));
 import { LoginView } from './components/LoginView';
 import { SettingsModal } from './components/SettingsModal';
 import { ToastContainer, ToastMessage, ToastType } from './components/Toast';
 import { motion, AnimatePresence } from 'motion/react';
-import { SignedIn, SignedOut, useClerk } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, useClerk, useAuth } from '@clerk/clerk-react';
 
 export default function App() {
   const { signOut } = useClerk();
+  const { userId, getToken } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
@@ -30,6 +32,13 @@ export default function App() {
       return saved !== 'false'; // Defaults to true if nothing is saved
     } catch {
       return true;
+    }
+  });
+  const [isTeacherMode, setIsTeacherMode] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('studyflow_teacher_mode') === 'true';
+    } catch {
+      return false;
     }
   });
 
@@ -55,10 +64,45 @@ export default function App() {
   }, []);
 
 
-  const handleClearData = () => {
-    setChatMessages([]);
-    window.dispatchEvent(new Event('clear-chat-history'));
-    handleNotify('Chat history cleared', 'success');
+  const handleClearData = async () => {
+    if (!userId) return;
+    
+    try {
+      const token = await getToken();
+      
+      const response = await fetch(`/api/db/chats/user/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch chats');
+      }
+      
+      const chats = await response.json();
+      
+      const deletePromises = chats.map((chat: any) => 
+        fetch(`/api/db/chats/${chat._id || chat.id}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }).then(res => {
+          if (!res.ok) throw new Error('Failed to delete chat');
+          return res;
+        })
+      );
+      
+      await Promise.all(deletePromises);
+      
+      setChatMessages([]);
+      window.dispatchEvent(new Event('clear-chat-history'));
+      handleNotify('Chat history cleared', 'success');
+    } catch (error) {
+      console.error('Error clearing chats:', error);
+      handleNotify('Some chats could not be cleared', 'warning');
+    }
   };
 
   const handleNavigateToChatWithQuery = (query: string) => {
@@ -88,12 +132,18 @@ export default function App() {
             onToggleSound={() => setSoundEnabled(!soundEnabled)}
             isDarkMode={isDarkMode}
             onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+            isTeacherMode={isTeacherMode}
+            onToggleTeacherMode={() => {
+              const newVal = !isTeacherMode;
+              setIsTeacherMode(newVal);
+              try { localStorage.setItem('studyflow_teacher_mode', String(newVal)); } catch (e) {}
+            }}
             onClearData={handleClearData}
             onSignOut={() => signOut()}
           />
 
       {/* Main View Container with Animated View Transitions */}
-      <main className={`flex-1 w-full mx-auto relative overflow-x-hidden px-4 md:px-6 lg:px-8 ${activeTab === 'chat' ? 'max-w-[1600px] overflow-y-hidden' : 'max-w-md md:max-w-2xl lg:max-w-4xl overflow-y-auto pb-24 md:pb-28'}`}>
+      <main className={`flex-1 w-full mx-auto relative overflow-x-hidden px-4 md:px-6 lg:px-8 ${activeTab === 'chat' ? 'max-w-[1600px] overflow-y-hidden' : 'max-w-md md:max-w-2xl lg:max-w-4xl overflow-y-auto'}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -101,38 +151,40 @@ export default function App() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12, scale: 0.99 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="w-full h-full"
+            className={`w-full ${activeTab === 'chat' ? 'h-full' : 'min-h-full pb-32 md:pb-36'}`}
           >
-            {activeTab === 'hub' && (
-              <HubView
-                selectedUnitId={selectedUnitId}
-                onSelectUnit={setSelectedUnitId}
-                onNavigateToChatWithQuery={handleNavigateToChatWithQuery}
-                soundEnabled={soundEnabled}
-                onNotify={handleNotify}
-              />
-            )}
+            <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><div className="w-8 h-8 rounded-full border-4 border-t-[#2563EB] border-black/10 dark:border-white/10 animate-spin" /></div>}>
+              {activeTab === 'hub' && (
+                <HubView
+                  selectedUnitId={selectedUnitId}
+                  onSelectUnit={setSelectedUnitId}
+                  onNavigateToChatWithQuery={handleNavigateToChatWithQuery}
+                  soundEnabled={soundEnabled}
+                  onNotify={handleNotify}
+                />
+              )}
 
-            {activeTab === 'chat' && (
-              <ChatView
-                messages={chatMessages}
-                setMessages={setChatMessages}
-                initialQuery={initialChatQuery}
-                soundEnabled={soundEnabled}
-                onNotify={handleNotify}
-              />
-            )}
+              {activeTab === 'chat' && (
+                <ChatView
+                  messages={chatMessages}
+                  setMessages={setChatMessages}
+                  initialQuery={initialChatQuery}
+                  soundEnabled={soundEnabled}
+                  onNotify={handleNotify}
+                />
+              )}
 
-            {activeTab === 'vault' && (
-              <VaultView 
-                problems={vaultProblems} 
-                onSelectProblem={(prob) => console.log('Selected problem:', prob.id)}
-                soundEnabled={soundEnabled}
-                onNotify={handleNotify}
-              />
-            )}
+              {activeTab === 'vault' && (
+                <VaultView 
+                  problems={vaultProblems} 
+                  onSelectProblem={(prob) => console.log('Selected problem:', prob.id)}
+                  soundEnabled={soundEnabled}
+                  onNotify={handleNotify}
+                />
+              )}
 
-            {activeTab === 'analytics' && <AnalyticsView onNotify={handleNotify} />}
+              {activeTab === 'analytics' && <AnalyticsView onNotify={handleNotify} isTeacherMode={isTeacherMode} />}
+            </Suspense>
           </motion.div>
         </AnimatePresence>
       </main>

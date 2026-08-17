@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
 import { Bot, ShieldCheck, Sparkles, Moon, Sun, Box, LineChart, ChevronRight } from 'lucide-react';
-import { SignIn } from '@clerk/clerk-react';
+import { SignIn, SignUp } from '@clerk/clerk-react';
 import { dark } from '@clerk/themes';
 
 interface LoginViewProps {
@@ -11,14 +11,25 @@ interface LoginViewProps {
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, onToggleDarkMode }) => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const smoothMouseX = useSpring(mouseX, { stiffness: 150, damping: 25 });
+  const smoothMouseY = useSpring(mouseY, { stiffness: 150, damping: 25 });
+  
+  const leftColX = useTransform(smoothMouseX, (v) => v * -1);
+  const leftColY = useTransform(smoothMouseY, (v) => v * -1);
+  const [isSignUp, setIsSignUp] = useState(() => window.location.hash.includes('sign-up'));
+
+  useEffect(() => {
+    const handleHashChange = () => setIsSignUp(window.location.hash.includes('sign-up'));
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({
-        x: (e.clientX / window.innerWidth - 0.5) * 20,
-        y: (e.clientY / window.innerHeight - 0.5) * 20,
-      });
+      mouseX.set((e.clientX / window.innerWidth - 0.5) * 20);
+      mouseY.set((e.clientY / window.innerHeight - 0.5) * 20);
     };
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
@@ -87,8 +98,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
             animate={{ opacity: 1, x: 0, rotateY: 0 }}
             transition={{ duration: 0.8, ease: [0.25, 0.8, 0.25, 1] }}
             style={{ 
-              x: mousePosition.x * -1, 
-              y: mousePosition.y * -1 
+              x: leftColX, 
+              y: leftColY 
             }}
           >
             <motion.div 
@@ -205,8 +216,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
           transition={{ duration: 0.7, delay: 0.3, ease: [0.25, 0.8, 0.25, 1] }}
           className="w-full lg:w-1/2 max-w-[440px] z-10"
           style={{ 
-            x: mousePosition.x * 1, 
-            y: mousePosition.y * 1 
+            x: smoothMouseX, 
+            y: smoothMouseY 
           }}
         >
           <div className="bg-neo-convex shadow-neo-accent rounded-[32px] sm:rounded-[40px] p-2 sm:p-3 border border-[var(--neo-border)] relative group">
@@ -214,42 +225,86 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
             <div className="absolute inset-0 rounded-[32px] sm:rounded-[40px] bg-gradient-to-r from-[#2563EB] to-[#F43F5E] opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-700 pointer-events-none" />
             
             <div className="bg-neo-concave rounded-[24px] sm:rounded-[32px] p-4 sm:p-6 shadow-neo-inner flex justify-center relative z-10 overflow-hidden">
-              <SignIn 
-                routing="hash" 
-                appearance={{
-                  baseTheme: isDarkMode ? dark : undefined,
-                  elements: {
-                    rootBox: "w-full flex justify-center",
-                    card: "shadow-none bg-transparent m-0 p-0 w-full max-w-full sm:max-w-sm",
-                    headerTitle: "text-2xl sm:text-3xl font-extrabold text-neo mb-1 sm:mb-2",
-                    headerSubtitle: "text-neo opacity-70 text-sm sm:text-base font-medium",
-                    socialButtonsBlockButton: "bg-neo-convex shadow-neo-sm border-none text-neo hover:bg-neo hover:shadow-neo transition-all rounded-xl sm:rounded-2xl h-10 sm:h-12 mb-2 sm:mb-3",
-                    socialButtonsBlockButtonText: "font-bold text-sm text-neo",
-                    socialButtonsProviderIcon: "w-4 h-4 sm:w-5 sm:h-5",
-                    dividerLine: "bg-[var(--neo-shadow-dark)] opacity-40",
-                    dividerText: "text-neo opacity-50 font-medium text-xs sm:text-sm",
-                    formFieldLabel: "text-neo font-bold text-xs sm:text-sm mb-1 sm:mb-1.5",
-                    formFieldInput: "bg-neo-concave shadow-neo-inner border-none rounded-xl sm:rounded-2xl text-neo focus:ring-2 focus:ring-[#2563EB] h-10 sm:h-12 px-3 sm:px-4 transition-shadow text-sm",
-                    formButtonPrimary: "bg-gradient-to-r from-[#2563EB] to-[#1E40AF] shadow-neo-accent border-none rounded-xl sm:rounded-2xl text-white hover:opacity-90 hover:scale-[1.02] transition-all h-10 sm:h-12 font-extrabold text-sm sm:text-base mt-1 sm:mt-2 active:scale-[0.98]",
-                    footerAction: "text-neo bg-transparent",
-                    footerActionText: "text-neo opacity-70 font-medium text-xs sm:text-sm",
-                    footerActionLink: "text-[#2563EB] hover:text-[#1E40AF] font-bold ml-1 transition-colors text-xs sm:text-sm",
-                    identityPreviewText: "text-neo font-medium text-sm",
-                    identityPreviewEditButton: "text-[#2563EB] hover:text-[#1E40AF]",
-                    formFieldSuccessText: "text-green-600 font-medium text-xs",
-                    formFieldErrorText: "text-red-500 font-medium text-xs mt-1",
-                    alert: "bg-neo-concave shadow-neo-inner border-none text-neo rounded-lg sm:rounded-xl text-sm",
-                    footer: "bg-transparent border-none mt-4 sm:mt-6",
-                    header: "mb-4 sm:mb-6",
-                    form: "gap-3 sm:gap-4",
-                    formFieldRow: "mb-2 sm:mb-4",
-                  },
-                  layout: {
-                    socialButtonsPlacement: "top",
-                    socialButtonsVariant: "blockButton",
-                  }
-                }}
-              />
+              {isSignUp ? (
+                <SignUp 
+                  routing="hash" 
+                  forceRedirectUrl="/"
+                  signInUrl="#/sign-in"
+                  appearance={{
+                    baseTheme: isDarkMode ? dark : undefined,
+                    elements: {
+                      rootBox: "w-full flex justify-center",
+                      card: "shadow-none bg-transparent m-0 p-0 w-full max-w-full sm:max-w-sm",
+                      headerTitle: "text-2xl sm:text-3xl font-extrabold text-neo mb-1 sm:mb-2",
+                      headerSubtitle: "text-neo opacity-70 text-sm sm:text-base font-medium",
+                      socialButtonsBlockButton: "bg-neo-convex shadow-neo-sm border-none text-neo hover:bg-neo hover:shadow-neo transition-all rounded-xl sm:rounded-2xl h-10 sm:h-12 mb-2 sm:mb-3",
+                      socialButtonsBlockButtonText: "font-bold text-sm text-neo",
+                      socialButtonsProviderIcon: "w-4 h-4 sm:w-5 sm:h-5",
+                      dividerLine: "bg-[var(--neo-shadow-dark)] opacity-40",
+                      dividerText: "text-neo opacity-50 font-medium text-xs sm:text-sm",
+                      formFieldLabel: "text-neo font-bold text-xs sm:text-sm mb-1 sm:mb-1.5",
+                      formFieldInput: "bg-neo-concave shadow-neo-inner border-none rounded-xl sm:rounded-2xl text-neo focus:ring-2 focus:ring-[#2563EB] h-10 sm:h-12 px-3 sm:px-4 transition-shadow text-sm",
+                      formButtonPrimary: "bg-gradient-to-r from-[#2563EB] to-[#1E40AF] shadow-neo-accent border-none rounded-xl sm:rounded-2xl text-white hover:opacity-90 hover:scale-[1.02] transition-all h-10 sm:h-12 font-extrabold text-sm sm:text-base mt-1 sm:mt-2 active:scale-[0.98]",
+                      footerAction: "text-neo bg-transparent",
+                      footerActionText: "text-neo opacity-70 font-medium text-xs sm:text-sm",
+                      footerActionLink: "text-[#2563EB] hover:text-[#1E40AF] font-bold ml-1 transition-colors text-xs sm:text-sm",
+                      identityPreviewText: "text-neo font-medium text-sm",
+                      identityPreviewEditButton: "text-[#2563EB] hover:text-[#1E40AF]",
+                      formFieldSuccessText: "text-green-600 font-medium text-xs",
+                      formFieldErrorText: "text-red-500 font-medium text-xs mt-1",
+                      alert: "bg-neo-concave shadow-neo-inner border-none text-neo rounded-lg sm:rounded-xl text-sm",
+                      footer: "bg-transparent border-none mt-4 sm:mt-6",
+                      header: "mb-4 sm:mb-6",
+                      form: "gap-3 sm:gap-4",
+                      formFieldRow: "mb-2 sm:mb-4",
+                    },
+                    layout: {
+                      socialButtonsPlacement: "top",
+                      socialButtonsVariant: "blockButton",
+                    }
+                  }}
+                />
+              ) : (
+                <SignIn 
+                  routing="hash" 
+                  forceRedirectUrl="/"
+                  signUpForceRedirectUrl="/"
+                  signUpUrl="#/sign-up"
+                  appearance={{
+                    baseTheme: isDarkMode ? dark : undefined,
+                    elements: {
+                      rootBox: "w-full flex justify-center",
+                      card: "shadow-none bg-transparent m-0 p-0 w-full max-w-full sm:max-w-sm",
+                      headerTitle: "text-2xl sm:text-3xl font-extrabold text-neo mb-1 sm:mb-2",
+                      headerSubtitle: "text-neo opacity-70 text-sm sm:text-base font-medium",
+                      socialButtonsBlockButton: "bg-neo-convex shadow-neo-sm border-none text-neo hover:bg-neo hover:shadow-neo transition-all rounded-xl sm:rounded-2xl h-10 sm:h-12 mb-2 sm:mb-3",
+                      socialButtonsBlockButtonText: "font-bold text-sm text-neo",
+                      socialButtonsProviderIcon: "w-4 h-4 sm:w-5 sm:h-5",
+                      dividerLine: "bg-[var(--neo-shadow-dark)] opacity-40",
+                      dividerText: "text-neo opacity-50 font-medium text-xs sm:text-sm",
+                      formFieldLabel: "text-neo font-bold text-xs sm:text-sm mb-1 sm:mb-1.5",
+                      formFieldInput: "bg-neo-concave shadow-neo-inner border-none rounded-xl sm:rounded-2xl text-neo focus:ring-2 focus:ring-[#2563EB] h-10 sm:h-12 px-3 sm:px-4 transition-shadow text-sm",
+                      formButtonPrimary: "bg-gradient-to-r from-[#2563EB] to-[#1E40AF] shadow-neo-accent border-none rounded-xl sm:rounded-2xl text-white hover:opacity-90 hover:scale-[1.02] transition-all h-10 sm:h-12 font-extrabold text-sm sm:text-base mt-1 sm:mt-2 active:scale-[0.98]",
+                      footerAction: "text-neo bg-transparent",
+                      footerActionText: "text-neo opacity-70 font-medium text-xs sm:text-sm",
+                      footerActionLink: "text-[#2563EB] hover:text-[#1E40AF] font-bold ml-1 transition-colors text-xs sm:text-sm",
+                      identityPreviewText: "text-neo font-medium text-sm",
+                      identityPreviewEditButton: "text-[#2563EB] hover:text-[#1E40AF]",
+                      formFieldSuccessText: "text-green-600 font-medium text-xs",
+                      formFieldErrorText: "text-red-500 font-medium text-xs mt-1",
+                      alert: "bg-neo-concave shadow-neo-inner border-none text-neo rounded-lg sm:rounded-xl text-sm",
+                      footer: "bg-transparent border-none mt-4 sm:mt-6",
+                      header: "mb-4 sm:mb-6",
+                      form: "gap-3 sm:gap-4",
+                      formFieldRow: "mb-2 sm:mb-4",
+                    },
+                    layout: {
+                      socialButtonsPlacement: "top",
+                      socialButtonsVariant: "blockButton",
+                    }
+                  }}
+                />
+              )}
             </div>
           </div>
         </motion.div>

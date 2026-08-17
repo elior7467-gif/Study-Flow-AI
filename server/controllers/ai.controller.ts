@@ -45,6 +45,8 @@ export const handleSolverCritic = async (req: Request, res: Response, next: Next
             timestamp: new Date().toISOString(),
           };
           res.write(`event: solver_draft\ndata: ${JSON.stringify(partialResponse)}\n\n`);
+        } else if (eventData.type === 'solver_chunk') {
+          res.write(`event: solver_chunk\ndata: ${JSON.stringify(eventData.data)}\n\n`);
         } else if (eventData.type === 'conversation_chunk') {
           res.write(`event: conversation_chunk\ndata: ${JSON.stringify(eventData.data)}\n\n`);
         }

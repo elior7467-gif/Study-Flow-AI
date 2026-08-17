@@ -20,13 +20,13 @@ async function startServer() {
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://*.clerk.accounts.dev", "https://*.clerk.com"],
-        connectSrc: ["'self'", "ws:", "wss:", "https://*.clerk.accounts.dev", "https://*.clerk.com"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://*.clerk.accounts.dev", "https://*.clerk.com", "https://challenges.cloudflare.com"],
+        connectSrc: ["'self'", "ws:", "wss:", "https://*.clerk.accounts.dev", "https://*.clerk.com", "https://challenges.cloudflare.com"],
         imgSrc: ["'self'", "data:", "blob:", "https://*.clerk.com", "https://img.clerk.com"],
         workerSrc: ["'self'", "blob:"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
-        frameSrc: ["'self'", "https://*.clerk.accounts.dev", "https://*.clerk.com"]
+        frameSrc: ["'self'", "https://*.clerk.accounts.dev", "https://*.clerk.com", "https://challenges.cloudflare.com"]
       },
     },
     crossOriginEmbedderPolicy: false,

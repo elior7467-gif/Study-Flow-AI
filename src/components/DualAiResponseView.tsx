@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SolverResult } from '../types';
 import { ShieldCheck, AlertTriangle, BookOpen, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
+import { motion } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -8,7 +9,7 @@ import rehypeKatex from 'rehype-katex';
 import { useAuth } from '@clerk/clerk-react';
 
 interface Props {
-  data: SolverResult & { criticAuditStatus?: 'VERIFIED' | 'FLAGGED' | 'VERIFYING' };
+  data: Partial<SolverResult> & { criticAuditStatus?: 'VERIFIED' | 'FLAGGED' | 'VERIFYING' | 'STREAMING' };
   preprocessMath: (s: string) => string;
   userId?: string;
   chatId?: string | null;
@@ -16,9 +17,10 @@ interface Props {
   onNotify?: (msg: string, type: 'success' | 'warning' | 'info') => void;
 }
 
-export const DualAiResponseView: React.FC<Props> = ({ data, preprocessMath, userId, chatId, messageId, onNotify }) => {
+export const DualAiResponseView: React.FC<Props> = React.memo(({ data, preprocessMath, userId, chatId, messageId, onNotify }) => {
   const isVerified = data.criticAuditStatus === 'VERIFIED';
-  const isVerifying = (data.criticAuditStatus as string) === 'VERIFYING';
+  const isVerifying = data.criticAuditStatus === 'VERIFYING';
+  const isStreaming = data.criticAuditStatus === 'STREAMING';
   
   const [isFlagging, setIsFlagging] = useState(false);
   const [isFlagged, setIsFlagged] = useState(false);
@@ -62,6 +64,57 @@ export const DualAiResponseView: React.FC<Props> = ({ data, preprocessMath, user
   
   return (
     <div className="space-y-4 w-full">
+      {/* First Principles Timeline Visualizer */}
+      <div className="bg-neo-convex shadow-neo-sm p-4 rounded-2xl mb-4">
+        <h4 className="text-[10px] font-bold text-neo opacity-80 uppercase tracking-widest mb-3">AI Execution Pipeline</h4>
+        <div className="flex items-center justify-between relative">
+          {/* Connecting Line */}
+          <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-black/5 dark:bg-white/5 -translate-y-1/2 z-0">
+             <motion.div 
+               className="h-full bg-gradient-to-r from-blue-500 to-emerald-500"
+               initial={{ width: '0%' }}
+               animate={{ width: isVerifying ? '50%' : '100%' }}
+               transition={{ duration: 1.5, ease: 'easeInOut' }}
+             />
+          </div>
+
+          {/* Node 1: First Principles */}
+          <div className="relative z-10 flex flex-col items-center gap-2 bg-neo px-2">
+            <motion.div 
+              initial={{ scale: 0 }} animate={{ scale: 1 }}
+              className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30"
+            >
+              <BookOpen className="w-3 h-3" />
+            </motion.div>
+            <span className="text-[9px] font-bold text-neo uppercase tracking-wider">Concept</span>
+          </div>
+
+          {/* Node 2: Derivation */}
+          <div className="relative z-10 flex flex-col items-center gap-2 bg-neo px-2">
+            <motion.div 
+              initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.3 }}
+              className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30"
+            >
+              <RefreshCw className="w-3 h-3" />
+            </motion.div>
+            <span className="text-[9px] font-bold text-neo uppercase tracking-wider">Derivation</span>
+          </div>
+
+          {/* Node 3: Critic Review */}
+          <div className="relative z-10 flex flex-col items-center gap-2 bg-neo px-2">
+            <motion.div 
+              initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.6 }}
+              className={`w-6 h-6 rounded-full flex items-center justify-center text-white shadow-lg transition-colors duration-500 ${
+                isStreaming ? 'bg-black/5 dark:bg-white/5 text-neo/30' : isVerifying ? 'bg-black/10 dark:bg-white/10 text-neo' : isVerified ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-amber-500 shadow-amber-500/30'
+              }`}
+            >
+              {(isVerifying || isStreaming) ? <RefreshCw className={`w-3 h-3 opacity-50 ${isVerifying ? 'animate-spin' : ''}`} /> : isVerified ? <ShieldCheck className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
+            </motion.div>
+            <span className={`text-[9px] font-bold uppercase tracking-wider ${(isVerifying || isStreaming) ? 'text-neo opacity-50' : 'text-neo'}`}>Critic</span>
+          </div>
+        </div>
+      </div>
+
       {/* Badge Header */}
       <div className={`p-4 rounded-2xl flex items-start gap-3 shadow-sm relative overflow-hidden ${
         isVerifying 
@@ -70,7 +123,9 @@ export const DualAiResponseView: React.FC<Props> = ({ data, preprocessMath, user
             ? 'bg-emerald-500/10 border border-emerald-500/20 shimmer-effect' 
             : 'bg-amber-500/10 border border-amber-500/20'
       }`}>
-        {isVerifying ? (
+        {isStreaming ? (
+          <RefreshCw className="w-6 h-6 text-neo/30 mt-0.5 flex-shrink-0 relative z-10" />
+        ) : isVerifying ? (
           <RefreshCw className="w-6 h-6 text-blue-500 mt-0.5 flex-shrink-0 relative z-10 animate-spin" />
         ) : isVerified ? (
           <ShieldCheck className="w-6 h-6 text-emerald-500 mt-0.5 flex-shrink-0 relative z-10" />
@@ -79,24 +134,30 @@ export const DualAiResponseView: React.FC<Props> = ({ data, preprocessMath, user
         )}
         <div className="relative z-10">
           <h3 className={`font-bold text-sm ${
-            isVerifying 
-              ? 'text-blue-600 dark:text-blue-400'
-              : isVerified 
-                ? 'text-emerald-600 dark:text-emerald-400' 
-                : 'text-amber-600 dark:text-amber-400'
+            isStreaming
+              ? 'text-neo opacity-70'
+              : isVerifying 
+                ? 'text-blue-600 dark:text-blue-400'
+                : isVerified 
+                  ? 'text-emerald-600 dark:text-emerald-400' 
+                  : 'text-amber-600 dark:text-amber-400'
           }`}>
-            {isVerifying 
-              ? 'Verifying against Ground Truth...' 
-              : isVerified 
-                ? 'Verified by Critic AI' 
-                : 'Honest Warning from Critic AI'}
+            {isStreaming
+              ? 'Awaiting Solver to finish...'
+              : isVerifying 
+                ? 'Verifying against Ground Truth...' 
+                : isVerified 
+                  ? 'Verified by Critic AI' 
+                  : 'Honest Warning from Critic AI'}
           </h3>
           <p className="text-xs opacity-90 mt-1.5 leading-relaxed">
-            {isVerifying
-              ? 'The Critic AI is currently line-by-line verifying this derivation against standard NCERT curriculum.'
-              : isVerified 
-                ? 'This derivation has been line-by-line verified against standard NCERT curriculum.' 
-                : data.criticAuditNotes || 'This question involves out-of-scope concepts or tricky assumptions. Do not trust the derivation completely.'}
+            {isStreaming
+              ? 'The Critic AI will begin verification once the derivation is complete.'
+              : isVerifying
+                ? 'The Critic AI is currently line-by-line verifying this derivation against standard NCERT curriculum.'
+                : isVerified 
+                  ? 'This derivation has been line-by-line verified against standard NCERT curriculum.' 
+                  : data.criticAuditNotes || 'This question involves out-of-scope concepts or tricky assumptions. Do not trust the derivation completely.'}
           </p>
           {!isVerified && !isVerifying && onNotify && userId && (
             <button 
@@ -130,20 +191,26 @@ export const DualAiResponseView: React.FC<Props> = ({ data, preprocessMath, user
       )}
 
       {/* Summary */}
+      {/* Derivation Title */}
+      <h2 className="font-bold text-xl mb-3 pr-8 relative">
+        {data.title || 'Solving...'}
+        {isStreaming && <span className="absolute ml-2 animate-pulse bg-neo w-2 h-5 inline-block top-1"></span>}
+      </h2>
+      
       {data.summary && (
-        <div className="text-sm font-medium leading-relaxed bg-neo-convex shadow-neo-sm p-4 rounded-2xl">
+        <p className="text-sm opacity-80 mb-6 leading-relaxed">
           {data.summary}
-        </div>
+        </p>
       )}
 
       {/* Steps */}
-      {data.steps && (
-        <div className="space-y-4 mt-4">
-          {data.steps.map((step, idx) => (
+      {data.steps && data.steps.length > 0 && (
+        <div className="space-y-4">
+          {data.steps.map((step: any, idx: number) => (
             <div key={idx} className="bg-neo-convex shadow-neo-sm p-4 rounded-2xl space-y-3 relative overflow-hidden">
               <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-2">
-                <span className="text-xs font-bold text-[#2563EB] uppercase tracking-wider">Step {step.stepNumber}: {step.title}</span>
-                {!isVerifying && (
+                <span className="text-xs font-bold text-[#2563EB] uppercase tracking-wider">Step {step.stepNumber || idx + 1}: {step.title || 'Step'}</span>
+                {!isVerifying && !isStreaming && (
                   step.verified ? (
                     <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                   ) : (
@@ -152,7 +219,7 @@ export const DualAiResponseView: React.FC<Props> = ({ data, preprocessMath, user
                 )}
               </div>
               
-              <p className="text-sm leading-relaxed">{step.description}</p>
+              {step.description && <p className="text-sm leading-relaxed">{step.description}</p>}
               
               {step.mathBlock && (
                 <div className="bg-neo-concave shadow-neo-inner p-3 rounded-xl overflow-x-auto my-2 text-sm">
@@ -188,4 +255,7 @@ export const DualAiResponseView: React.FC<Props> = ({ data, preprocessMath, user
       )}
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  return prevProps.messageId === nextProps.messageId && 
+         JSON.stringify(prevProps.data) === JSON.stringify(nextProps.data);
+});

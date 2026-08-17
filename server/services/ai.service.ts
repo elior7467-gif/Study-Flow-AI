@@ -5,6 +5,25 @@ import fs from 'fs';
 import path from 'path';
 import { getExtractor } from '../utils/pipeline';
 import { supabase } from '../lib/supabase';
+import { evaluate } from 'mathjs';
+
+const MASTER_SYSTEM_PROMPT = `You are StudyFlow AI, an elite academic study assistant. You operate using a Dual-Engine architecture (Solver and Critic). Your primary goal is to guide students to mastery through rigorous pedagogy.
+
+### CORE PEDAGOGY: FIRST PRINCIPLES THINKING
+- Never skip algebraic steps or assume the student "just knows" a formula.
+- Always begin by identifying the fundamental physical laws or mathematical axioms involved.
+- Define all variables, state coordinate systems/sign conventions, and outline assumptions explicitly before substituting numbers.
+- Your derivations must be logically flawless and pedagogically structured.
+
+### MATHEMATICAL FORMATTING RULES
+- Use $...$ for inline math and $$...$$ for block math.
+- Do NOT use \\( ... \\) or \\[ ... \\].
+- Block math ($$) MUST start and end on their own separate lines.
+- For multi-line equations, wrap them in \\begin{aligned} ... \\end{aligned} inside the $$ block. Do not output \\end{aligned} without a matching \\begin.
+- Variables and mathematical notation must always remain in English/standard notation, even if the surrounding text is translated.
+
+### CRITICAL INSTRUCTION
+- You must STRICTLY adhere to the Ground Truth Context provided. Do not hallucinate constants or formulas not supported by standard curriculum.`;
 
 export class AiService {
   private static getPrimaryClient() {
@@ -27,38 +46,93 @@ export class AiService {
     });
   }
 
-  private static async executeWithFallback(prompt: string, systemInstruction: string, schemaDescription: string, userId?: string, endpoint?: string) {
-    let primaryError: any = null;
-    let secondaryError: any = null;
+  private static cosineSimilarity(vecA: number[], vecB: number[]): number {
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+    for (let i = 0; i < vecA.length; i++) {
+      dotProduct += vecA[i] * vecB[i];
+      normA += vecA[i] * vecA[i];
+      normB += vecB[i] * vecB[i];
+    }
+    if (normA === 0 || normB === 0) return 0;
+    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+  }
 
-    const fullSystemInstruction = `${systemInstruction}\n\nIMPORTANT: You MUST return ONLY valid JSON matching this exact structure, with no markdown formatting or other text:\n${schemaDescription}`;
+  private static async executeLoop(client: OpenAI, model: string, messages: any[], jsonSchema: Record<string, any>, schemaName: string, userId?: string, endpoint?: string, temperature?: number, onChunk?: (chunk: string) => void, tools?: any[], toolCallback?: (name: string, args: any) => Promise<any>) {
+    let currentMessages = [...messages];
 
-    try {
-      const primaryClient = this.getPrimaryClient();
-      console.log(`[AI Engine] Attempting generation with Primary API (${config.primaryAiModel})...`);
-      const response = await primaryClient.chat.completions.create({
-        model: config.primaryAiModel,
-        messages: [
-          { role: 'system', content: fullSystemInstruction },
-          { role: 'user', content: prompt }
-        ],
-        response_format: { type: 'json_object' },
+    while (true) {
+      const response = await client.chat.completions.create({
+        model,
+        messages: currentMessages,
+        response_format: { 
+          type: 'json_schema',
+          json_schema: { name: schemaName, strict: true, schema: jsonSchema }
+        },
+        ...(tools && tools.length > 0 ? { tools } : {}),
+        ...(temperature !== undefined ? { temperature } : {}),
+        stream: !!onChunk,
       });
-      
-      const tokensUsed = response.usage?.total_tokens || 0;
+
+      const tokensUsed = (response as any).usage?.total_tokens || 0;
       if (userId && endpoint && tokensUsed > 0) {
-        // Fire-and-forget logging
-        supabase.from('usage_log').insert([{ 
-          user_id: userId, 
-          endpoint, 
-          tokens_used: tokensUsed 
-        }]).then(({error}) => {
+        supabase.from('usage_log').insert([{ user_id: userId, endpoint, tokens_used: tokensUsed }]).then(({error}) => {
           if (error) console.error('[Usage Logger] Error:', error);
         });
       }
 
-      const content = response.choices[0].message.content;
+      if (onChunk) {
+        let content = '';
+        for await (const chunk of response as any) {
+          const token = chunk.choices[0]?.delta?.content || '';
+          if (token) {
+            content += token;
+            onChunk(token);
+          }
+        }
+        return content ? JSON.parse(content) : {};
+      }
+
+      const message = (response as any).choices[0].message;
+      if (message.tool_calls && message.tool_calls.length > 0 && toolCallback) {
+        currentMessages.push(message);
+        for (const toolCall of message.tool_calls) {
+          if (toolCall.type === 'function') {
+            try {
+              const args = JSON.parse(toolCall.function.arguments);
+              console.log(`[AI Engine] Tool call: ${toolCall.function.name}(${toolCall.function.arguments})`);
+              const result = await toolCallback(toolCall.function.name, args);
+              currentMessages.push({
+                role: 'tool',
+                tool_call_id: toolCall.id,
+                content: JSON.stringify(result)
+              });
+            } catch (e: any) {
+              currentMessages.push({
+                role: 'tool',
+                tool_call_id: toolCall.id,
+                content: JSON.stringify({ error: String(e.message) })
+              });
+            }
+          }
+        }
+        continue;
+      }
+
+      const content = message.content || '';
       return content ? JSON.parse(content) : {};
+    }
+  }
+
+  private static async executeWithFallback(messages: any[], jsonSchema: Record<string, any>, schemaName: string, userId?: string, endpoint?: string, temperature?: number, onChunk?: (chunk: string) => void, tools?: any[], toolCallback?: (name: string, args: any) => Promise<any>) {
+    let primaryError: any = null;
+    let secondaryError: any = null;
+
+    try {
+      const primaryClient = this.getPrimaryClient();
+      console.log(`[AI Engine] Attempting generation with Primary API (${config.primaryAiModel})...`);
+      return await this.executeLoop(primaryClient, config.primaryAiModel, messages, jsonSchema, schemaName, userId, endpoint, temperature, onChunk, tools, toolCallback);
     } catch (error) {
       console.warn(`[AI Engine] Primary API failed:`, error);
       primaryError = error;
@@ -67,29 +141,7 @@ export class AiService {
     try {
       const secondaryClient = this.getSecondaryClient();
       console.log(`[AI Engine] Attempting generation with Secondary API (${config.secondaryAiModel})...`);
-      const response = await secondaryClient.chat.completions.create({
-        model: config.secondaryAiModel,
-        messages: [
-          { role: 'system', content: fullSystemInstruction },
-          { role: 'user', content: prompt }
-        ],
-        response_format: { type: 'json_object' },
-      });
-      
-      const tokensUsed = response.usage?.total_tokens || 0;
-      if (userId && endpoint && tokensUsed > 0) {
-        // Fire-and-forget logging
-        supabase.from('usage_log').insert([{ 
-          user_id: userId, 
-          endpoint, 
-          tokens_used: tokensUsed 
-        }]).then(({error}) => {
-          if (error) console.error('[Usage Logger] Error:', error);
-        });
-      }
-
-      const content = response.choices[0].message.content;
-      return content ? JSON.parse(content) : {};
+      return await this.executeLoop(secondaryClient, config.secondaryAiModel, messages, jsonSchema, schemaName, userId, endpoint, temperature, onChunk, tools, toolCallback);
     } catch (error) {
       console.error(`[AI Engine] Secondary API also failed:`, error);
       secondaryError = error;
@@ -120,19 +172,248 @@ export class AiService {
     }
   }
 
+  static async retrieveContextRaw(query: string, filter?: { subject?: string; chapter?: string }) {
+    try {
+      const extractor = await getExtractor();
+      const output = await extractor(query, { pooling: 'mean', normalize: true });
+      const query_embedding = Array.from(output.data);
+
+      const { data, error } = await supabase.rpc('match_documents', {
+        query_embedding,
+        match_threshold: 0.3,
+        match_count: 5,
+        filter_subject: filter?.subject || null,
+        filter_chapter: filter?.chapter || null
+      });
+
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.error('Retrieval error:', err);
+      return [];
+    }
+  }
+
+  static async advancedRetrieveContext(query: string, historyText: string, filter?: { subject?: string; chapter?: string }, userId?: string) {
+    try {
+      const expansionPrompt = `Given the user's latest question and chat history, generate 3 distinct search queries to find the most relevant information in a textbook.
+1. The first query should be the core conceptual question.
+2. The second query should focus on any specific formulas, equations, or laws mentioned or implied.
+3. The third query should be a broader topical search or rephrase the question differently.
+Return ONLY a JSON array of 3 strings.
+
+History:
+${historyText}
+
+Latest Question: ${query}`;
+
+      const expansionSchema = {
+        type: "object",
+        properties: {
+          queries: {
+            type: "array",
+            items: { type: "string" },
+            minItems: 3,
+            maxItems: 3
+          }
+        },
+        required: ["queries"],
+        additionalProperties: false
+      };
+
+      const expansionRes = await this.executeWithFallback(
+        [
+          { role: 'system', content: "You are an expert search query generator for a physics/math RAG pipeline." },
+          { role: 'user', content: expansionPrompt }
+        ],
+        expansionSchema, 
+        "query_expansion", 
+        userId, 
+        "rag_expansion", 
+        0.2
+      );
+
+      const queries = expansionRes.queries && Array.isArray(expansionRes.queries) ? expansionRes.queries : [query];
+      if (!queries.includes(query)) queries.push(query);
+
+      console.log(`[AI Engine] RAG Multi-Query Expansion generated:`, queries);
+
+      const retrievalPromises = queries.map((q: string) => this.retrieveContextRaw(q, filter));
+      const resultsArray = await Promise.all(retrievalPromises);
+
+      const rrfScores = new Map<string, { content: string, score: number }>();
+      const k = 60;
+
+      resultsArray.forEach((results) => {
+        if (Array.isArray(results)) {
+          results.forEach((doc: any, rank: number) => {
+            if (!doc.id || !doc.content) return;
+            const rrfScore = 1 / (k + rank + 1);
+            if (rrfScores.has(doc.id)) {
+              rrfScores.get(doc.id)!.score += rrfScore;
+            } else {
+              rrfScores.set(doc.id, { content: doc.content, score: rrfScore });
+            }
+          });
+        }
+      });
+
+      const topDocs = Array.from(rrfScores.values())
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+
+      if (topDocs.length === 0) return 'No external context available.';
+
+      const rerankPrompt = `Evaluate the relevance of the following textbook excerpts to the user's question.
+For each excerpt, provide a relevance score from 0 to 10. 10 is perfectly relevant to solving the question, 0 is completely irrelevant.
+
+User Question: "${query}"
+
+Excerpts:
+${topDocs.map((doc, idx) => `[Excerpt ${idx}]\n${doc.content}\n`).join('\n')}`;
+
+      const rerankSchema = {
+        type: "object",
+        properties: {
+          scoredExcerpts: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                excerptIndex: { type: "integer" },
+                score: { type: "integer" }
+              },
+              required: ["excerptIndex", "score"],
+              additionalProperties: false
+            }
+          }
+        },
+        required: ["scoredExcerpts"],
+        additionalProperties: false
+      };
+
+      const rerankRes = await this.executeWithFallback(
+        [
+          { role: 'system', content: "You are a strict relevance judge for an academic RAG pipeline. Only highly relevant documents should score above 5." },
+          { role: 'user', content: rerankPrompt }
+        ],
+        rerankSchema,
+        "context_reranker",
+        userId,
+        "rag_rerank",
+        0.0
+      );
+
+      let finalContexts: string[] = [];
+      if (rerankRes.scoredExcerpts && Array.isArray(rerankRes.scoredExcerpts)) {
+        const sorted = rerankRes.scoredExcerpts
+          .filter((item: any) => item.score >= 5)
+          .sort((a: any, b: any) => b.score - a.score);
+        
+        sorted.forEach((item: any) => {
+          if (topDocs[item.excerptIndex]) {
+            finalContexts.push(topDocs[item.excerptIndex].content);
+          }
+        });
+      }
+
+      if (finalContexts.length === 0) {
+        console.log(`[AI Engine] RAG Re-ranker filtered out all documents or failed. Falling back to top RRF result.`);
+        finalContexts = [topDocs[0].content];
+      }
+
+      console.log(`[AI Engine] Advanced RAG Pipeline completed. Yielded ${finalContexts.length} highly relevant chunks.`);
+      return finalContexts.join('\n\n');
+
+    } catch (err) {
+      console.error('[AI Engine] Advanced RAG Pipeline Error:', err);
+      return this.retrieveContext(query, filter);
+    }
+  }
+
+  static async fetchUserMasteryContext(userId?: string): Promise<string> {
+    if (!userId) return '';
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_topic_mastery')
+        .select('*')
+        .eq('user_id', userId);
+        
+      if (error || !data || data.length === 0) return '';
+
+      const struggledTopics = data.filter(t => {
+        const total = t.verified_count + t.flagged_count;
+        if (total === 0) return false;
+        const score = t.verified_count / total;
+        return score <= 0.6 || t.flagged_count > 1; // Struggling threshold
+      });
+
+      if (struggledTopics.length === 0) return '';
+
+      const topicSummaries = struggledTopics.map(t => 
+        `- ${t.topic_title} (${t.verified_count}/${t.verified_count + t.flagged_count} verified)`
+      ).join('\n');
+
+      return `\n\n=== STUDENT ADAPTIVITY PROFILE ===\nThis student has previously struggled with the following topics:\n${topicSummaries}\n\nIf the current question relates to any of these topics, you MUST explain foundational steps extremely explicitly rather than assuming mastery. Do not skip any mathematical or conceptual steps for these areas.`;
+    } catch (err) {
+      console.warn('[AI Engine] Failed to fetch user mastery:', err);
+      return '';
+    }
+  }
+
   static async streamChat(messages: any[], systemInstruction: string) {
     let primaryError: any = null;
     
+    // Summarization logic to prevent context bloat
+    let processedMessages = messages;
+    if (messages.length > 10) {
+      const earlierMessages = messages.slice(0, -4);
+      const lastFourMessages = messages.slice(-4);
+      
+      const earlierHistoryText = earlierMessages.map((m: any) => `${m.role}: ${m.content}`).join('\n');
+      const summaryPrompt = `Summarize the following chat history concisely. Focus on the student's learning progress, concepts covered, and any persistent confusion.\n\nHistory:\n${earlierHistoryText}`;
+      
+      try {
+        const primaryClient = this.getPrimaryClient();
+        const summaryRes = await primaryClient.chat.completions.create({
+          model: config.primaryAiModel,
+          messages: [{ role: 'user', content: summaryPrompt }],
+          max_tokens: 150,
+          temperature: 0.1
+        });
+        const summary = summaryRes.choices[0]?.message?.content || '';
+        if (summary) {
+          processedMessages = [
+            { role: 'system', content: `Previous Context Summary: ${summary}` },
+            ...lastFourMessages
+          ];
+        }
+      } catch (err) {
+        console.warn('[AI Engine] Summarization failed, falling back to full history:', err);
+      }
+    }
+
     // Step 1: Extract the latest user query
     const latestQuery = messages[messages.length - 1]?.content || '';
     
     // Step 2: Retrieve Context
     const retrievedContext = await this.retrieveContext(latestQuery);
 
-    // Step 3: Run the Critic pipeline in the background before streaming
-    const pipelineSystemInstruction = `${systemInstruction}\n\nYou are a dual-engine AI. \n=== GROUND TRUTH ===\n${retrievedContext}\n====================\n\nEnsure your answer strictly aligns with the Ground Truth. If you rely on the Ground Truth, cite it.`;
+    // Step 3: Run the pipeline in the background before streaming
+    const pipelineSystemInstruction = `${MASTER_SYSTEM_PROMPT}
 
-    const fullSystemInstruction = `${pipelineSystemInstruction}\n\nCRITICAL MATH FORMATTING INSTRUCTIONS:\n- Use $...$ for inline math and $$...$$ for block math.\n- Do NOT use \\\\( ... \\\\) or \\\\[ ... \\\\].\n- Block math ($$) MUST start and end on their own separate lines.\n- If you write multi-line equations or use alignment (&=), you MUST explicitly wrap them in \\\\begin{aligned} ... \\\\end{aligned} inside the $$ block.\n- Do NOT output \\\\end{aligned} without a matching \\\\begin{aligned}.\n- Never put text on the same line as the closing $$.`;
+### PEDAGOGICAL APPROACH (SOCRATIC METHOD)
+- Since this is a conversational follow-up, do NOT just give away the answer immediately.
+- Use the Socratic method: Ask guiding questions to help the student realize the next step on their own.
+- Validate their partial understanding before correcting them.
+- Keep responses concise and focused on one conceptual step at a time.
+
+${systemInstruction}
+
+You are a dual-engine AI. Ensure your answer strictly aligns with the Ground Truth. If you rely on the Ground Truth, cite it.`;
+
+    const fullSystemInstruction = pipelineSystemInstruction;
 
     try {
       const primaryClient = this.getPrimaryClient();
@@ -141,7 +422,8 @@ export class AiService {
         model: config.primaryAiModel,
         messages: [
           { role: 'system', content: fullSystemInstruction },
-          ...messages
+          { role: 'system', content: `=== GROUND TRUTH ===\n${retrievedContext}\n====================` },
+          ...processedMessages
         ],
         stream: true,
       });
@@ -158,7 +440,8 @@ export class AiService {
         model: config.secondaryAiModel,
         messages: [
           { role: 'system', content: fullSystemInstruction },
-          ...messages
+          { role: 'system', content: `=== GROUND TRUTH ===\n${retrievedContext}\n====================` },
+          ...processedMessages
         ],
         stream: true,
       });
@@ -172,8 +455,8 @@ export class AiService {
   static async generateSolverCritic(query: string, subject: string, language: string = 'en', messages: any[] = [], onEvent?: (event: any) => void, userId?: string) {
     const languageMap: Record<string, string> = {
       'en': 'English',
-      'bn': 'Bengali',
-      'hi': 'Hindi'
+      'bn': 'Bengali (in proper Bengali script / বাংলা লিপি, DO NOT use English letters for Bengali words)',
+      'hi': 'Hindi (in proper Devanagari script / देवनागरी, DO NOT use English letters for Hindi words)'
     };
     const langName = languageMap[language] || language;
 
@@ -188,7 +471,8 @@ export class AiService {
             ...recentHistory,
             { role: 'user', content: query }
           ],
-          max_tokens: 10
+          max_tokens: 10,
+          temperature: 0.2
         });
         const intent = intentRes.choices[0].message.content?.trim().toUpperCase() || 'ACADEMIC';
 
@@ -239,129 +523,201 @@ export class AiService {
     const recentHistory = historyToUse.slice(-5).map(m => ({ role: m.role, content: m.content }));
     const historyText = recentHistory.map(m => `${m.role === 'user' ? 'Student' : 'Tutor'}: ${m.content}`).join('\n');
     
-    let searchQuery = query;
-    if (recentHistory.length > 1) {
-      try {
-        const primaryClient = this.getPrimaryClient();
-        const searchRes = await primaryClient.chat.completions.create({
-          model: config.primaryAiModel,
-          messages: [
-            { role: 'system', content: 'You are a search query generator. Given the chat history and the latest question, rewrite the latest question into a standalone, detailed search query optimized for semantic vector search in a physics textbook. Return ONLY the rewritten query text without quotes or preamble.' },
-            { role: 'user', content: `Chat History:\n${historyText}\n\nLatest Question: ${query}\n\nRewritten Search Query:` }
-          ],
-          max_tokens: 60
-        });
-        searchQuery = searchRes.choices[0].message.content?.trim() || query;
-        console.log(`[AI Engine] Rewrote query for RAG: "${query}" -> "${searchQuery}"`);
-      } catch (err) {
-        console.warn('[AI Engine] Query rewrite failed, using original query:', err);
-      }
-    }
-
-    const ncertContext = await this.retrieveContext(searchQuery, { subject });
-
-    const solverPrompt = `You are the StudyFlow AI "Solver AI".
-Solve the following question strictly using principles relevant to the subject.
-
-=== RECENT CHAT HISTORY ===
-${historyText || 'No previous history.'}
-===========================
-
-Question: "${query}"
-Course Context: "${subject}"
-
-=== NCERT GROUND TRUTH KNOWLEDGE BASE ===
-${ncertContext}
-=========================================
-
-CRITICAL RULE FOR HONESTY:
-- You MUST ONLY use formulas and concepts found in the Ground Truth Knowledge Base above.`;
+    const ncertContext = await this.advancedRetrieveContext(query, historyText, { subject }, userId);
 
     const languageInstruction = `Respond entirely in ${langName}, including step descriptions and citation notes, but keep mathematical notation and variable names in English/standard math notation.`;
-    const solverSystemInstruction = `You are StudyFlow AI, an intelligent study assistant. Provide a step-by-step derivation without verifying your own work. ${languageInstruction}`;
+    const masteryContext = await this.fetchUserMasteryContext(userId);
     
-    const solverSchema = `{
-      "title": "string",
-      "summary": "string",
-      "steps": [
-        {
-          "stepNumber": 1,
-          "title": "string",
-          "description": "string",
-          "mathBlock": "string (optional)"
+    const solverMessages = [
+      { role: 'system', content: MASTER_SYSTEM_PROMPT + `\n\nYou are StudyFlow AI, an intelligent study assistant. Provide a step-by-step derivation without verifying your own work. ${languageInstruction}${masteryContext}` },
+      { role: 'system', content: `=== NCERT GROUND TRUTH KNOWLEDGE BASE ===\n${ncertContext}\n=========================================\n\nCRITICAL RULE FOR HONESTY:\n- You MUST ONLY use formulas and concepts found in the Ground Truth Knowledge Base above.` },
+      ...recentHistory,
+      { role: 'user', content: `Solve the following question strictly using principles relevant to ${subject}.\n\nQuestion: "${query}"` }
+    ];
+    
+    const solverSchema = {
+      type: "object",
+      properties: {
+        title: { type: "string" },
+        summary: { type: "string" },
+        steps: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              stepNumber: { type: "integer" },
+              title: { type: "string" },
+              description: { type: "string" },
+              mathBlock: { type: ["string", "null"] }
+            },
+            required: ["stepNumber", "title", "description", "mathBlock"],
+            additionalProperties: false
+          }
+        },
+        finalEquation: { type: "string" },
+        citation: {
+          type: "object",
+          properties: {
+            textbook: { type: "string" },
+            chapter: { type: "string" },
+            notes: { type: "string" },
+            ncertPage: { type: ["string", "null"] }
+          },
+          required: ["textbook", "chapter", "notes", "ncertPage"],
+          additionalProperties: false
+        },
+        pipelineLog: {
+          type: "object",
+          properties: {
+            solverDraftSummary: { type: "string" },
+            ncertSourceMatch: { type: "string" }
+          },
+          required: ["solverDraftSummary", "ncertSourceMatch"],
+          additionalProperties: false
         }
-      ],
-      "finalEquation": "string",
-      "citation": {
-        "textbook": "string",
-        "chapter": "string",
-        "notes": "string",
-        "ncertPage": "string (optional)"
       },
-      "pipelineLog": {
-        "solverDraftSummary": "string",
-        "ncertSourceMatch": "string"
-      }
-    }`;
+      required: ["title", "summary", "steps", "finalEquation", "citation", "pipelineLog"],
+      additionalProperties: false
+    };
 
     const historyString = JSON.stringify(recentHistory);
     const cacheKey = `solverCritic_${Buffer.from(query + subject + language + historyString).toString('base64')}`;
     const cachedResponse = appCache.get<any>(cacheKey);
     if (cachedResponse) {
+      console.log(`[AI Engine] Serving exact match cache for query.`);
       if (onEvent) {
         onEvent({ type: 'solver_draft', data: cachedResponse });
       }
       return cachedResponse;
     }
 
-    const solverData = await this.executeWithFallback(solverPrompt, solverSystemInstruction, solverSchema, userId, 'solver');
+    // Semantic Caching
+    let queryEmbedding: number[] | null = null;
+    try {
+      const extractor = await getExtractor();
+      const output = await extractor(query, { pooling: 'mean', normalize: true });
+      queryEmbedding = Array.from(output.data);
+      
+      const now = Date.now();
+      for (const [key, item] of appCache.entries()) {
+        if (key.startsWith('semanticCache_') && item.expiry > now) {
+          const cachedData = item.value;
+          if (cachedData.subject === subject && cachedData.language === language) {
+            const similarity = this.cosineSimilarity(queryEmbedding, cachedData.embedding);
+            if (similarity > 0.93) {
+              console.log(`[AI Engine] Serving semantic cache match (similarity: ${(similarity * 100).toFixed(1)}%).`);
+              if (onEvent) {
+                onEvent({ type: 'solver_draft', data: cachedData.response });
+              }
+              return cachedData.response;
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[AI Engine] Semantic cache check failed:', err);
+    }
+
+    const solverData = await this.executeWithFallback(solverMessages, solverSchema, 'solver_response', userId, 'solver', 0.4, (token) => {
+      if (onEvent) {
+        onEvent({ type: 'solver_chunk', data: { content: token } });
+      }
+    });
     if (onEvent) {
       onEvent({ type: 'solver_draft', data: solverData });
     }
 
-    const criticPrompt = `You are the StudyFlow AI "Critic AI". Fact-check the following Solver AI's derivation line-by-line against standard academic curriculum and the ground truth.
-
-=== RECENT CHAT HISTORY ===
-${historyText || 'No previous history.'}
-===========================
+    const criticMessages = [
+      { role: 'system', content: MASTER_SYSTEM_PROMPT + `\n\nYou are the StudyFlow AI Critic Auditor. You audit physics concepts for mathematical consistency, sign errors, reference frames, and edge cases. You have NEVER seen this derivation before and must audit it skeptically step by step.\n\n${languageInstruction}` },
+      { role: 'system', content: `=== NCERT GROUND TRUTH KNOWLEDGE BASE ===\n${ncertContext}\n=========================================` },
+      ...recentHistory,
+      { role: 'user', content: `Fact-check the following Solver AI's derivation line-by-line against standard academic curriculum and the ground truth.
 
 Question: "${query}"
 
 Solver Derivation:
 ${JSON.stringify(solverData.steps, null, 2)}
 
-=== NCERT GROUND TRUTH KNOWLEDGE BASE ===
-${ncertContext}
-=========================================
-
-CRITICAL RULE FOR HONESTY:
-- Verify every step against the Ground Truth.
+CRITICAL RULES FOR AUDIT:
+1. Dimensional Analysis: Explicitly check units/dimensions of the final equation.
+2. Sign Conventions: Verify vectors, coordinate systems, and work/energy signs.
+3. Hallucination Traps: Check if the Solver hallucinates friction coefficients, standard gravity constants, or incorrectly assumes massless strings.
 - If the question is within academic scope and conceptually correct, set criticAuditStatus = "VERIFIED" and isOutOfScope = false.
-- If the question contains a trick assumption, asks for out-of-scope concepts, or includes a common student/AI hallucination trap, set criticAuditStatus = "FLAGGED", isOutOfScope = true, and provide criticAuditNotes.
+- If it contains a trick assumption, asks for out-of-scope concepts, or fails the traps above, set criticAuditStatus = "FLAGGED", isOutOfScope = true, and provide criticAuditNotes.
 - Provide a confidenceScore (0-100).
-- Mark unverified steps clearly with verified = false and provide criticFeedback.`;
-
-    const criticSystemInstruction = `You are the StudyFlow AI Critic Auditor. You have NEVER seen this derivation before and must audit it skeptically step by step. ${languageInstruction}`;
+- Mark unverified steps clearly with verified = false and provide criticFeedback.` }
+    ];
     
-    const criticSchema = `{
-      "criticAuditStatus": "VERIFIED" | "FLAGGED",
-      "isOutOfScope": true, // boolean
-      "criticAuditNotes": "string",
-      "confidenceScore": 0, // integer 0-100
-      "stepVerdicts": [
-        {
-          "stepNumber": 1,
-          "verified": true, // boolean
-          "criticFeedback": "string (optional)"
+    const criticSchema = {
+      type: "object",
+      properties: {
+        criticAuditStatus: { type: "string", enum: ["VERIFIED", "FLAGGED"] },
+        isOutOfScope: { type: "boolean" },
+        criticAuditNotes: { type: "string" },
+        confidenceScore: { type: "integer" },
+        stepVerdicts: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              stepNumber: { type: "integer" },
+              verified: { type: "boolean" },
+              criticFeedback: { type: ["string", "null"] }
+            },
+            required: ["stepNumber", "verified", "criticFeedback"],
+            additionalProperties: false
+          }
+        },
+        pipelineLog: {
+          type: "object",
+          properties: {
+            criticVerificationPassed: { type: "boolean" },
+            criticWarnings: {
+              type: "array",
+              items: { type: "string" }
+            }
+          },
+          required: ["criticVerificationPassed", "criticWarnings"],
+          additionalProperties: false
         }
-      ],
-      "pipelineLog": {
-        "criticVerificationPassed": true, // boolean
-        "criticWarnings": ["string"]
-      }
-    }`;
+      },
+      required: ["criticAuditStatus", "isOutOfScope", "criticAuditNotes", "confidenceScore", "stepVerdicts", "pipelineLog"],
+      additionalProperties: false
+    };
 
-    const criticData = await this.executeWithFallback(criticPrompt, criticSystemInstruction, criticSchema, userId, 'critic');
+    const criticTools = [
+      {
+        type: "function",
+        function: {
+          name: "evaluate_expression",
+          description: "Evaluate an arithmetic or algebraic expression (e.g. '15 * 42', 'sin(45 deg)'). Returns the mathematical result.",
+          parameters: {
+            type: "object",
+            properties: {
+              expression: { type: "string" }
+            },
+            required: ["expression"],
+            additionalProperties: false
+          },
+          strict: true
+        }
+      }
+    ];
+
+    const criticToolHandler = async (name: string, args: any) => {
+      if (name === "evaluate_expression") {
+        try {
+          // mathjs evaluate handles standard math evaluation safely
+          const val = evaluate(args.expression);
+          return { result: String(val) };
+        } catch (e: any) {
+          return { error: e.message };
+        }
+      }
+      return { error: "Unknown tool" };
+    };
+
+    const criticData = await this.executeWithFallback(criticMessages, criticSchema, 'critic_response', userId, 'critic', 0.1, undefined, criticTools, criticToolHandler);
 
     const stepVerdictsMap = new Map();
     if (criticData.stepVerdicts && Array.isArray(criticData.stepVerdicts)) {
@@ -381,45 +737,45 @@ CRITICAL RULE FOR HONESTY:
     // Autonomous Self-Correction Loop
     if (finalStatus === 'FLAGGED') {
       console.log(`[AI Engine] Critic flagged the response. Initiating Self-Correction Loop...`);
-      const correctionPrompt = `${solverPrompt}
+      const correctionMessages = [
+        { role: 'system', content: MASTER_SYSTEM_PROMPT + `\n\nYou are StudyFlow AI, an intelligent study assistant. Provide a step-by-step derivation without verifying your own work. ${languageInstruction}${masteryContext}` },
+        { role: 'system', content: `=== NCERT GROUND TRUTH KNOWLEDGE BASE ===\n${ncertContext}\n=========================================\n\nCRITICAL RULE FOR HONESTY:\n- You MUST ONLY use formulas and concepts found in the Ground Truth Knowledge Base above.` },
+        ...recentHistory,
+        { role: 'user', content: `Solve the following question strictly using principles relevant to ${subject}.\n\nQuestion: "${query}"\n\n=== CRITIC FEEDBACK FROM PREVIOUS ATTEMPT ===\nThe Critic AI rejected your previous derivation for the following reasons:\n${criticData.criticAuditNotes}\nStep-specific feedback:\n${JSON.stringify(criticData.stepVerdicts?.filter((v: any) => !v.verified) || [], null, 2)}\n\nCRITICAL INSTRUCTION: You must rewrite your derivation to address ALL of the Critic's feedback. Do not repeat the same mistakes.` }
+      ];
 
-=== CRITIC FEEDBACK FROM PREVIOUS ATTEMPT ===
-The Critic AI rejected your previous derivation for the following reasons:
-${criticData.criticAuditNotes}
-Step-specific feedback:
-${JSON.stringify(criticData.stepVerdicts?.filter((v: any) => !v.verified) || [], null, 2)}
-
-CRITICAL INSTRUCTION: You must rewrite your derivation to address ALL of the Critic's feedback. Do not repeat the same mistakes.`;
-
-      const correctedSolverData = await this.executeWithFallback(correctionPrompt, solverSystemInstruction, solverSchema, userId, 'solver');
+      const correctedSolverData = await this.executeWithFallback(correctionMessages, solverSchema, 'solver_response', userId, 'solver', 0.4, (token) => {
+        if (onEvent) {
+          onEvent({ type: 'solver_chunk', data: { content: token, isCorrection: true } });
+        }
+      });
       
       if (onEvent) {
          onEvent({ type: 'solver_draft', data: correctedSolverData });
       }
 
-      const reCriticPrompt = `You are the StudyFlow AI "Critic AI". Fact-check the following corrected Solver AI's derivation line-by-line against standard academic curriculum and the ground truth.
-
-=== RECENT CHAT HISTORY ===
-${historyText || 'No previous history.'}
-===========================
+      const reCriticMessages = [
+        { role: 'system', content: MASTER_SYSTEM_PROMPT + `\n\nYou are the StudyFlow AI Critic Auditor. You audit physics concepts for mathematical consistency, sign errors, reference frames, and edge cases. You have NEVER seen this derivation before and must audit it skeptically step by step.\n\n${languageInstruction}` },
+        { role: 'system', content: `=== NCERT GROUND TRUTH KNOWLEDGE BASE ===\n${ncertContext}\n=========================================` },
+        ...recentHistory,
+        { role: 'user', content: `Fact-check the following CORRECTED Solver AI's derivation line-by-line against standard academic curriculum and the ground truth.
 
 Question: "${query}"
 
 Corrected Solver Derivation:
 ${JSON.stringify(correctedSolverData.steps, null, 2)}
 
-=== NCERT GROUND TRUTH KNOWLEDGE BASE ===
-${ncertContext}
-=========================================
-
-CRITICAL RULE FOR HONESTY:
-- Verify every step against the Ground Truth.
+CRITICAL RULES FOR AUDIT:
+1. Dimensional Analysis: Explicitly check units/dimensions of the final equation.
+2. Sign Conventions: Verify vectors, coordinate systems, and work/energy signs.
+3. Hallucination Traps: Check if the Solver hallucinates friction coefficients, standard gravity constants, or incorrectly assumes massless strings.
 - If the question is within academic scope and conceptually correct, set criticAuditStatus = "VERIFIED" and isOutOfScope = false.
-- If the question contains a trick assumption, asks for out-of-scope concepts, or includes a common student/AI hallucination trap, set criticAuditStatus = "FLAGGED", isOutOfScope = true, and provide criticAuditNotes.
+- If it contains a trick assumption, asks for out-of-scope concepts, or includes a common student/AI hallucination trap, set criticAuditStatus = "FLAGGED", isOutOfScope = true, and provide criticAuditNotes.
 - Provide a confidenceScore (0-100).
-- Mark unverified steps clearly with verified = false and provide criticFeedback.`;
+- Mark unverified steps clearly with verified = false and provide criticFeedback.` }
+      ];
 
-      const reCriticData = await this.executeWithFallback(reCriticPrompt, criticSystemInstruction, criticSchema, userId, 'critic');
+      const reCriticData = await this.executeWithFallback(reCriticMessages, criticSchema, 'critic_response', userId, 'critic', 0.1, undefined, criticTools, criticToolHandler);
       
       finalSolverData = correctedSolverData;
       finalCriticData = reCriticData;
@@ -475,20 +831,35 @@ CRITICAL RULE FOR HONESTY:
     };
 
     appCache.set(cacheKey, finalResponse, 3600 * 24);
+    
+    if (queryEmbedding) {
+      const semanticKey = `semanticCache_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      appCache.set(semanticKey, {
+        subject,
+        language,
+        embedding: queryEmbedding,
+        response: finalResponse
+      }, 3600 * 24);
+    }
+
     return finalResponse;
   }
 
   static async generateTopicAudit(topicTitle: string, subtitle: string, unit: string, userId?: string) {
-    const prompt = `Perform a Critic Audit on the academic topic "${topicTitle}" (${subtitle}) in unit "${unit}". Evaluate mathematical consistency, sign conventions, and common student pitfalls.`;
-    
-    const systemInstruction = 'You are StudyFlow AI Critic Auditor. You audit physics concepts for mathematical consistency, sign errors, reference frames, and edge cases.';
-
-    const schemaDescription = `{
-      "status": "string",
-      "auditDetails": "string",
-      "insights": ["string"],
-      "recommendedMasteryScore": 0 // integer
-    }`;
+    const schemaDescription = {
+      type: "object",
+      properties: {
+        status: { type: "string" },
+        auditDetails: { type: "string" },
+        insights: {
+          type: "array",
+          items: { type: "string" }
+        },
+        recommendedMasteryScore: { type: "integer" }
+      },
+      required: ["status", "auditDetails", "insights", "recommendedMasteryScore"],
+      additionalProperties: false
+    };
 
     const cacheKey = `topicAudit_${Buffer.from(topicTitle + subtitle + unit).toString('base64')}`;
     const cachedResponse = appCache.get<any>(cacheKey);
@@ -496,7 +867,12 @@ CRITICAL RULE FOR HONESTY:
       return cachedResponse;
     }
 
-    const response = await this.executeWithFallback(prompt, systemInstruction, schemaDescription, userId, 'audit');
+    const auditMessages = [
+      { role: 'system', content: MASTER_SYSTEM_PROMPT + `\n\nYou are StudyFlow AI Critic Auditor. You audit physics concepts for mathematical consistency, sign errors, reference frames, and edge cases.` },
+      { role: 'user', content: `Perform a Critic Audit on the academic topic "${topicTitle}" (${subtitle}) in unit "${unit}". Evaluate mathematical consistency, sign conventions, and common student pitfalls.` }
+    ];
+
+    const response = await this.executeWithFallback(auditMessages, schemaDescription, 'topic_audit_response', userId, 'audit');
     appCache.set(cacheKey, response, 3600 * 24); // Cache for 24 hours
     return response;
   }

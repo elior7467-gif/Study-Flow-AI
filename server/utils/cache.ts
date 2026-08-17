@@ -42,6 +42,10 @@ export class MemoryCache {
     this.cache.clear();
   }
 
+  entries(): IterableIterator<[string, CacheItem<any>]> {
+    return this.cache.entries();
+  }
+
   private sweep(): void {
     const now = Date.now();
     for (const [key, item] of this.cache.entries()) {

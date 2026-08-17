@@ -13,7 +13,7 @@ interface HeaderProps {
   onSignOut?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSound, onOpenSettings, onSignOut }) => {
+export const Header: React.FC<HeaderProps> = React.memo(({ soundEnabled = true, onToggleSound, onOpenSettings, onSignOut, currentUnit, onSelectUnit }) => {
   const [showProfile, setShowProfile] = useState(false);
   const [showInvestorDeck, setShowInvestorDeck] = useState(false);
 
@@ -98,7 +98,7 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
                     <h3 className="font-serif font-bold text-base text-neo">
                       StudyFlow AI • Silicon Valley SaaS Thesis
                     </h3>
-                    <p className="text-[11px] text-neo opacity-80">Target Market: $4B Test Prep Market in South Asia</p>
+                    <p className="text-[11px] text-neo opacity-80">Target Market: $312M → $3B (2025-2034) India test-prep</p>
                   </div>
                 </div>
                 <button
@@ -115,7 +115,7 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
                     The Problem: Expensive AI Hallucinations
                   </span>
                   <p className="text-neo opacity-80">
-                    Standard LLMs answer fast and sound confident even when wrong. In competitive exams (JEE/NEET), losing 4 marks shifts a student's college rank by thousands.
+                    Standard LLMs answer fast and sound confident even when wrong. In competitive exams (JEE/NEET), losing 4 marks can theoretically shift a student's college rank by thousands.
                   </p>
                 </div>
 
@@ -134,12 +134,12 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
                     <span className="text-[10px] text-neo opacity-80">Annual Aspirants</span>
                   </div>
                   <div className="bg-neo p-2.5 rounded-xl">
-                    <span className="block font-black text-sm text-[#2563EB]">0%</span>
-                    <span className="text-[10px] text-neo opacity-80">Hallucination Risk</span>
+                    <span className="block font-black text-sm text-[#2563EB]">2-Agent</span>
+                    <span className="text-[10px] text-neo opacity-80">Verification</span>
                   </div>
                   <div className="bg-neo p-2.5 rounded-xl">
-                    <span className="block font-black text-sm text-neo">100%</span>
-                    <span className="text-[10px] text-neo opacity-80">NCERT Source Match</span>
+                    <span className="block font-black text-sm text-neo">NCERT</span>
+                    <span className="text-[10px] text-neo opacity-80">Grounded</span>
                   </div>
                 </div>
               </div>
@@ -158,7 +158,7 @@ export const Header: React.FC<HeaderProps> = ({ soundEnabled = true, onToggleSou
       </AnimatePresence>
     </header>
   );
-};
+});
 
 
 

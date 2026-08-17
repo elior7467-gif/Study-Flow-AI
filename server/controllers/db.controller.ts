@@ -101,13 +101,109 @@ export const getUserMastery = async (req: Request, res: Response, next: NextFunc
 
 export const getCohortAnalytics = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Analytics is global across all users, using service-level RPC
-    const { data, error } = await supabase.rpc('get_cohort_analytics');
-    if (error) {
-      console.warn('Supabase error in getCohortAnalytics:', error.message);
-      return res.json([]);
+    // 1. Get cohort analytics (topics)
+    const { data: cohortData, error: cohortError } = await supabase.rpc('get_cohort_analytics');
+    if (cohortError) {
+      console.warn('Supabase error in getCohortAnalytics:', cohortError.message);
+      return res.json({ cohorts: [], globalStats: { overallVerifiedRate: 0, totalQueries: 0 } });
     }
-    res.json(data);
+    const formattedCohorts = (cohortData || []).map((row: any) => ({
+      cohortId: row.cohort_id,
+      meanScore: Number(row.mean_score) || 0,
+      variance: 0,
+      participation: Number(row.participation) || 0,
+    }));
+
+    // 2. Get overall verified rate
+    const { data: masteryData, error: masteryError } = await supabase
+      .from('user_topic_mastery')
+      .select('verified_count, flagged_count');
+      
+    let overallVerifiedRate = 0;
+    if (!masteryError && masteryData) {
+      let totalVerified = 0;
+      let totalFlagged = 0;
+      masteryData.forEach(row => {
+        totalVerified += (row.verified_count || 0);
+        totalFlagged += (row.flagged_count || 0);
+      });
+      const total = totalVerified + totalFlagged;
+      if (total > 0) {
+        overallVerifiedRate = (totalVerified / total) * 100;
+      }
+    }
+
+    // 3. Get total queries count
+    const { count: totalQueries, error: messagesError } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true });
+
+    res.json({
+      cohorts: formattedCohorts,
+      globalStats: {
+        overallVerifiedRate,
+        totalQueries: totalQueries || 0
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getPersonalCohortAnalytics = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const client = getClient(req);
+    
+    // 1. Get user's topic mastery data (RLS will filter automatically)
+    const { data: masteryData, error: masteryError } = await client
+      .from('user_topic_mastery')
+      .select('*');
+
+    if (masteryError) {
+      console.warn('Supabase error in getPersonalCohortAnalytics:', masteryError.message);
+      return res.json({ cohorts: [], globalStats: { overallVerifiedRate: 0, totalQueries: 0 } });
+    }
+
+    const formattedCohorts = (masteryData || []).map((row: any) => {
+      const total = (row.verified_count || 0) + (row.flagged_count || 0);
+      const meanScore = total > 0 ? (row.verified_count / total) * 100 : 0;
+      return {
+        cohortId: row.topic_id,
+        meanScore,
+        variance: 0,
+        participation: 1
+      };
+    });
+
+    let overallVerifiedRate = 0;
+    let totalVerified = 0;
+    let totalFlagged = 0;
+    
+    if (masteryData) {
+      masteryData.forEach(row => {
+        totalVerified += (row.verified_count || 0);
+        totalFlagged += (row.flagged_count || 0);
+      });
+      const total = totalVerified + totalFlagged;
+      if (total > 0) {
+        overallVerifiedRate = (totalVerified / total) * 100;
+      }
+    }
+
+    // 3. Get total queries count for this user
+    // Since RLS is on 'messages' checking chat owner, this will count only their messages
+    const { count: totalQueries, error: messagesError } = await client
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('role', 'user');
+
+    res.json({
+      cohorts: formattedCohorts,
+      globalStats: {
+        overallVerifiedRate,
+        totalQueries: totalQueries || 0
+      }
+    });
   } catch (err) {
     next(err);
   }
