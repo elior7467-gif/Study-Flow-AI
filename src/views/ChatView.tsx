@@ -455,38 +455,38 @@ export const ChatView: React.FC<ChatViewProps> = ({
       {/* Mobile Sidebar Toggle */}
       <button 
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="md:hidden absolute top-4 left-4 z-50 p-2 bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 shadow-sm rounded-lg transition-all"
+        className="md:hidden absolute top-4 left-4 z-50 p-2 bg-white dark:bg-[#111113] border border-zinc-200 dark:border-white/[0.06] shadow-sm rounded-lg transition-all"
       >
-        {sidebarOpen ? <X className="w-5 h-5 text-zinc-900 dark:text-zinc-50" /> : <Menu className="w-5 h-5 text-zinc-900 dark:text-zinc-50" />}
+        {sidebarOpen ? <X className="w-5 h-5 text-zinc-900 dark:text-zinc-100" /> : <Menu className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />}
       </button>
 
       {/* Sidebar for Chat History */}
       <div className={`
-        absolute md:static inset-y-0 left-0 z-40 w-64 bg-black/40 backdrop-blur-2xl border-r border-white/5 flex flex-col transition-transform duration-300 ease-in-out shadow-2xl
+        absolute md:static inset-y-0 left-0 z-40 w-60 bg-white dark:bg-[#111113] border-r border-zinc-200 dark:border-white/[0.06] flex flex-col transition-transform duration-300 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
-        <div className="p-4 border-b border-white/5 space-y-4">
+        <div className="p-3 border-b border-zinc-200 dark:border-white/[0.06] space-y-2">
           <button 
             onClick={() => {
               isManualSwitch.current = true;
               setActiveChatId(null);
               setSidebarOpen(false);
             }}
-            className="w-full flex items-center justify-center gap-2 bg-white/5 border border-white/10 shadow-lg text-white py-2.5 px-4 rounded-xl text-sm font-bold hover:bg-white/10 active:scale-95 premium-transition"
+            className="w-full flex items-center justify-center gap-2 bg-zinc-100 dark:bg-white/[0.04] border border-zinc-200 dark:border-white/[0.06] text-zinc-700 dark:text-zinc-200 py-2 px-3 rounded-lg text-sm font-medium hover:bg-zinc-200 dark:hover:bg-white/[0.08] active:scale-[0.98] premium-transition"
           >
             <Plus className="w-4 h-4" />
-            New Thread
+            New Chat
           </button>
           
           {/* Chat Search */}
-          <div className="relative group">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-[#60A5FA] premium-transition" />
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
             <input 
               type="text"
               placeholder="Search history..."
               value={chatSearchQuery}
               onChange={(e) => setChatSearchQuery(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 text-white text-xs rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-[#60A5FA]/50 focus:ring-1 focus:ring-[#60A5FA]/50 placeholder:opacity-50 premium-transition"
+              className="w-full bg-zinc-50 dark:bg-white/[0.03] border border-zinc-200 dark:border-white/[0.06] text-zinc-900 dark:text-zinc-200 text-xs rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:border-blue-500/40 premium-transition placeholder:text-zinc-400"
             />
           </div>
         </div>
@@ -502,10 +502,10 @@ export const ChatView: React.FC<ChatViewProps> = ({
             .map(chat => (
             <div
               key={chat.id}
-              className={`group w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl premium-transition text-sm cursor-pointer ${
+              className={`group w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg premium-transition text-sm cursor-pointer ${
                 activeChatId === chat.id 
-                  ? 'bg-white/10 font-bold text-white shadow-inner' 
-                  : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                  ? 'bg-zinc-100 dark:bg-white/[0.06] font-semibold text-zinc-900 dark:text-white' 
+                  : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-white/[0.03] hover:text-zinc-900 dark:hover:text-white'
               }`}
             >
               {editingChatId === chat.id ? (
@@ -525,9 +525,9 @@ export const ChatView: React.FC<ChatViewProps> = ({
                     setActiveChatId(chat.id);
                     setSidebarOpen(false);
                   }}
-                  className="flex items-center gap-3 flex-1 text-left truncate min-w-0"
+                  className="flex items-center gap-2 flex-1 text-left truncate min-w-0"
                 >
-                  <MessageSquare className={`w-4 h-4 flex-shrink-0 ${activeChatId === chat.id ? 'text-[#60A5FA]' : 'text-zinc-500'}`} />
+                  <MessageSquare className={`w-4 h-4 flex-shrink-0 ${activeChatId === chat.id ? 'text-blue-500' : 'text-zinc-400'}`} />
                   <span className="truncate">{chat.title}</span>
                   {chat.is_pinned && <Pin className="w-3 h-3 flex-shrink-0 text-amber-400" />}
                 </button>
@@ -574,11 +574,11 @@ export const ChatView: React.FC<ChatViewProps> = ({
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col h-full bg-transparent relative">
+      <div className="flex-1 flex flex-col h-full bg-white dark:bg-[#0A0A0B] relative">
         {/* Scrollable Chat History */}
         <div 
           ref={scrollRef}
-          className="flex-1 overflow-y-auto space-y-8 px-4 md:px-8 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent pt-16 md:pt-10 pb-12"
+          className="flex-1 overflow-y-auto space-y-6 px-4 md:px-8 scrollbar-thin scrollbar-thumb-zinc-300 dark:scrollbar-thumb-white/[0.08] scrollbar-track-transparent pt-16 md:pt-8 pb-12"
         >
           <AnimatePresence mode="popLayout">
           {messages.length === 0 && (
@@ -589,12 +589,12 @@ export const ChatView: React.FC<ChatViewProps> = ({
               transition={{ type: "spring", stiffness: 200, damping: 20 }}
               className="flex justify-start items-start gap-3 mb-6"
             >
-              <div className="w-10 h-10 rounded-2xl bg-[#2563EB]/20 border border-[#2563EB]/30 flex items-center justify-center text-[#60A5FA] flex-shrink-0 mt-1 shadow-lg">
-                <Bot className="w-5 h-5" />
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 flex-shrink-0 mt-1">
+                <Bot className="w-4 h-4" />
               </div>
-              <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-[2rem] rounded-tl-sm px-6 py-5 max-w-[85%] shadow-2xl">
-                <p className="text-sm text-zinc-300 leading-relaxed font-medium">
-                  Hi! I'm the <span className="font-bold text-white tracking-wide">StudyFlow AI</span>. 
+              <div className="bg-zinc-50 dark:bg-white/[0.04] border border-zinc-200 dark:border-white/[0.06] rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
+                <p className="text-[13px] text-zinc-600 dark:text-zinc-300 leading-relaxed">
+                  Hi! I'm the <span className="font-semibold text-zinc-900 dark:text-white">StudyFlow AI</span>. 
                   Ask me any academic question and I'll explain it step-by-step.
                 </p>
               </div>
@@ -615,14 +615,14 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
           {loading && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center text-[#2563EB] dark:text-[#60A5FA] flex-shrink-0 mt-1">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 flex-shrink-0 mt-1">
                 <Bot className="w-4 h-4" />
               </div>
-              <div className="bg-[#FAFAFA] dark:bg-[#18181B] border border-black/5 dark:border-white/5 shadow-sm rounded-2xl rounded-tl-sm px-4 py-4 max-w-[85%] flex items-center gap-2">
-                 <div className="w-1.5 h-1.5 rounded-full bg-[#2563EB] dark:bg-[#60A5FA] animate-bounce" style={{ animationDelay: '0ms' }} />
-                 <div className="w-1.5 h-1.5 rounded-full bg-[#2563EB] dark:bg-[#60A5FA] animate-bounce" style={{ animationDelay: '150ms' }} />
-                 <div className="w-1.5 h-1.5 rounded-full bg-[#2563EB] dark:bg-[#60A5FA] animate-bounce" style={{ animationDelay: '300ms' }} />
-                 <span className="text-[11px] text-zinc-900 dark:text-zinc-50 opacity-70 font-medium ml-2 tracking-wide">Processing...</span>
+              <div className="bg-zinc-50 dark:bg-white/[0.04] border border-zinc-200 dark:border-white/[0.06] rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%] flex items-center gap-2">
+                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+                 <span className="text-[11px] text-zinc-500 font-medium ml-2">Processing...</span>
               </div>
             </div>
           )}
@@ -630,9 +630,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
         </div>
 
         {/* Input Container */}
-        <div className="px-4 md:px-8 pt-4 pb-24 md:pb-8 w-full max-w-5xl mx-auto">
-          <div className="ethereal-card-shell p-1.5">
-            <div className="ethereal-card-core !p-2 !bg-black/80 space-y-3">
+        <div className="px-4 md:px-8 pt-3 pb-24 md:pb-6 w-full max-w-4xl mx-auto">
+          <div className="sf-card p-1.5">
             {/* Demo Preset Chips - only show on empty chat */}
             {!activeChatId && messages.length === 0 && (
               <m.div 
@@ -642,7 +641,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                   visible: { transition: { staggerChildren: 0.1 } },
                   hidden: {}
                 }}
-                className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none px-1"
+                className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none px-2 pt-2"
               >
                 {presetQueries.map((preset, idx) => (
                   <m.button
@@ -658,7 +657,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                       playSound('click', soundEnabled);
                       handleSubmit(undefined, preset.text);
                     }}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 rounded-xl text-xs font-bold text-zinc-300 hover:text-white transition-all flex-shrink-0 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 dark:bg-white/[0.04] border border-zinc-200 dark:border-white/[0.06] hover:border-zinc-300 dark:hover:border-white/[0.12] rounded-lg text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-all flex-shrink-0 cursor-pointer"
                   >
                     {preset.label}
                   </m.button>
@@ -674,11 +673,11 @@ export const ChatView: React.FC<ChatViewProps> = ({
                   setLanguage(newLang);
                   try { localStorage.setItem('preferred_language', newLang); } catch (err) {}
                 }}
-                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-3 py-3 mx-2 text-xs font-bold tracking-widest uppercase text-white focus:outline-none cursor-pointer flex-shrink-0 premium-transition"
+                className="bg-zinc-100 dark:bg-white/[0.04] border border-zinc-200 dark:border-white/[0.06] rounded-lg px-2 py-2 mx-1 text-[11px] font-semibold tracking-wider uppercase text-zinc-600 dark:text-zinc-400 focus:outline-none cursor-pointer flex-shrink-0 premium-transition"
               >
-                <option value="en" className="bg-[#09090b] text-white">ENG</option>
-                <option value="bn" className="bg-[#09090b] text-white">BEN</option>
-                <option value="hi" className="bg-[#09090b] text-white">HIN</option>
+                <option value="en" className="bg-white dark:bg-[#111113]">EN</option>
+                <option value="bn" className="bg-white dark:bg-[#111113]">BN</option>
+                <option value="hi" className="bg-white dark:bg-[#111113]">HI</option>
               </select>
               <textarea
                 ref={inputRef as any}
@@ -697,8 +696,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
                   }
                 }}
                 placeholder="Message AI... (Shift+Enter for new line)"
-                className="flex-1 bg-transparent px-4 py-3 text-base text-white focus:outline-none placeholder:text-zinc-500 resize-none overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 font-medium"
-                style={{ minHeight: '48px', maxHeight: '150px' }}
+                className="flex-1 bg-transparent px-3 py-3 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none placeholder:text-zinc-400 resize-none overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-300 dark:scrollbar-thumb-white/[0.08]"
+                style={{ minHeight: '44px', maxHeight: '150px' }}
                 rows={1}
                 disabled={loading}
               />
@@ -727,12 +726,12 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isProcessingImage}
-                className="cursor-pointer text-zinc-400 hover:text-white hover:bg-white/10 w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 premium-transition self-end mb-0.5"
+                className="cursor-pointer text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.06] w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 premium-transition self-end mb-0.5"
               >
                 {isProcessingImage ? (
-                  <RefreshCw className="w-5 h-5 animate-spin text-[#60A5FA]" />
+                  <RefreshCw className="w-4 h-4 animate-spin text-blue-500" />
                 ) : (
-                  <Camera className="w-5 h-5" />
+                  <Camera className="w-4 h-4" />
                 )}
               </button>
 
@@ -740,15 +739,15 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 <button
                   type="button"
                   onClick={toggleListening}
-                  className={`cursor-pointer w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 premium-transition relative self-end mb-0.5 mr-1 ${isListening ? 'text-[#F43F5E] bg-[#F43F5E]/10 border border-[#F43F5E]/30' : 'text-zinc-400 hover:text-white hover:bg-white/10'}`}
+                  className={`cursor-pointer w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 premium-transition relative self-end mb-0.5 ${isListening ? 'text-rose-500 bg-rose-500/10' : 'text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.06]'}`}
                 >
                   {isListening ? (
-                    <MicOff className="w-5 h-5" />
+                    <MicOff className="w-4 h-4" />
                   ) : (
-                    <Mic className="w-5 h-5" />
+                    <Mic className="w-4 h-4" />
                   )}
                   {isListening && (
-                    <span className="absolute w-2.5 h-2.5 bg-[#F43F5E] rounded-full animate-ping right-1 top-1" />
+                    <span className="absolute w-2 h-2 bg-rose-500 rounded-full animate-ping right-0.5 top-0.5" />
                   )}
                 </button>
               )}
@@ -757,18 +756,18 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 <button
                   type="button"
                   onClick={handleStop}
-                  className="cursor-pointer bg-[#F43F5E] hover:bg-[#E11D48] text-white w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 premium-transition self-end mb-0 shadow-lg"
+                  className="cursor-pointer bg-rose-500 hover:bg-rose-600 text-white w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 premium-transition self-end mb-0 shadow-sm"
                   title="Stop generating"
                 >
-                  <Square className="w-5 h-5 fill-current" />
+                  <Square className="w-4 h-4 fill-current" />
                 </button>
               ) : (
                 <button
                   type="submit"
                   disabled={!userPrompt.trim() && !isListening}
-                  className="group cursor-pointer bg-white text-black disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-200 w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 premium-transition self-end mb-0 shadow-[0_0_20px_rgba(255,255,255,0.15)] disabled:shadow-none"
+                  className="cursor-pointer bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-800 dark:hover:bg-zinc-100 w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 premium-transition self-end mb-0 shadow-sm disabled:shadow-none"
                 >
-                  <Send className="w-5 h-5 ml-0.5 group-hover:translate-x-1 group-hover:-translate-y-1 premium-transition" />
+                  <Send className="w-4 h-4 ml-0.5" />
                 </button>
               )}
             </form>
@@ -779,7 +778,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
       {/* Overlay for mobile sidebar */}
       {sidebarOpen && (
         <div 
-          className="md:hidden absolute inset-0 z-30 bg-[#09090b]/20 backdrop-blur-sm"
+          className="md:hidden absolute inset-0 z-30 bg-black/20 backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
       )}

@@ -158,19 +158,22 @@ export const HubView: React.FC<HubViewProps> = ({
   };
 
   return (
-    <div className="pt-12 md:pt-24 px-4 max-w-md md:max-w-4xl lg:max-w-6xl mx-auto space-y-12 pb-32">
+    <div className="pt-8 md:pt-16 px-4 md:px-6 max-w-5xl mx-auto space-y-10 pb-32">
       {/* Unit Selector Header */}
-      <div className="space-y-2">
+      <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <h2 className="text-3xl md:text-4xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70 tracking-tight">
-            {currentUnit.name}
-          </h2>
+          <div>
+            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-1">{currentUnit.course}</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
+              {currentUnit.name}
+            </h2>
+          </div>
 
           <div className="relative group">
             <select
               value={currentUnit.id}
               onChange={(e) => onSelectUnit(e.target.value)}
-              className="bg-zinc-50 dark:bg-zinc-900 border border-black/5 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-zinc-50 text-xs font-semibold py-2 px-3.5 rounded-xl pr-8 cursor-pointer appearance-none outline-none focus:border border-black/5 dark:border-white/5 transition-all"
+              className="bg-white dark:bg-white/[0.04] border border-zinc-200 dark:border-white/[0.08] text-zinc-700 dark:text-zinc-300 text-xs font-medium py-2 px-3 rounded-lg pr-8 cursor-pointer appearance-none outline-none hover:border-zinc-300 dark:hover:border-white/15 premium-transition"
               id="unit-selector"
             >
               {units.map((u) => (
@@ -179,196 +182,183 @@ export const HubView: React.FC<HubViewProps> = ({
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-4 h-4 text-zinc-900 dark:text-zinc-50 opacity-80 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-3.5 h-3.5 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
-        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50 opacity-80">{currentUnit.course}</p>
       </div>
 
-      {/* Pitch & Value Proposition Hero Card */}
+      {/* Hero Card — Value Proposition */}
       <m.div
-        initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
-        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-        transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
-        className="ethereal-card-shell mt-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="sf-card"
       >
-        <div className="ethereal-card-core space-y-8">
+        <div className="p-6 md:p-8 space-y-6">
           <div className="flex items-center justify-between">
-            <span className="bg-white/5 border border-white/10 text-[#60A5FA] text-[10px] font-extrabold px-3 py-1.5 rounded-full uppercase tracking-widest">
-              HACKATHON DEMO • NCERT PHYSICS CH 5
+            <span className="inline-flex items-center gap-1.5 bg-blue-500/10 text-blue-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+              HACKATHON DEMO · NCERT PHYSICS CH 5
             </span>
-            <span className="text-xs text-zinc-400 font-medium flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#60A5FA]" /> Dual AI Pipeline
+            <span className="text-[11px] text-zinc-500 font-medium flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3 text-blue-400" /> Dual AI Pipeline
             </span>
           </div>
 
-          <div className="space-y-6">
-            <h2 className="text-4xl md:text-6xl lg:text-[4.5rem] font-sans font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white via-white/90 to-white/30 leading-[1.05] max-w-3xl">
-              Honest AI Study Assistant for JEE & NEET
+          <div className="space-y-4">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-zinc-900 dark:text-white leading-[1.1]">
+              Honest AI Study Assistant<br className="hidden md:block" /> for JEE & NEET
             </h2>
-            <p className="text-base md:text-lg text-zinc-400/90 leading-relaxed max-w-2xl font-medium tracking-wide">
+            <p className="text-sm md:text-[15px] text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-xl">
               Standard AI chatbots give wrong physics derivations confidently. In exams where 1 mark shifts your college rank, that's dangerous.
             </p>
           </div>
 
-          {/* 2-Step Dual Engine Illustration */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm pt-8">
-            <div className="bg-black/40 border border-white/5 rounded-3xl p-6 space-y-4 relative group premium-transition hover:bg-black/60 shadow-lg">
-              <div className="font-bold text-[#60A5FA] flex items-center gap-3">
-                <span className="w-10 h-10 rounded-full bg-[#60A5FA]/10 border border-[#60A5FA]/30 flex items-center justify-center text-xs tracking-widest">1</span>
-                <span className="text-base tracking-tight">Solver AI</span>
+          {/* 2-Step Dual Engine */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <div className="bg-zinc-50 dark:bg-white/[0.03] border border-zinc-200/60 dark:border-white/[0.05] rounded-xl p-5 space-y-3 group premium-transition hover:border-blue-500/20 dark:hover:border-blue-500/15">
+              <div className="font-semibold text-blue-500 flex items-center gap-2.5 text-sm">
+                <span className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-[11px] font-bold">1</span>
+                Solver AI
               </div>
-              <p className="text-zinc-400 text-sm leading-relaxed">
+              <p className="text-zinc-500 dark:text-zinc-400 text-[13px] leading-relaxed">
                 Retrieves NCERT Class 11 textbook text & drafts step-by-step math derivations.
               </p>
             </div>
 
-            <div className="bg-black/40 border border-white/5 rounded-3xl p-6 space-y-4 relative group premium-transition hover:bg-black/60 shadow-lg">
-              <div className="font-bold text-[#F43F5E] flex items-center gap-3">
-                <span className="w-10 h-10 rounded-full bg-[#F43F5E]/10 border border-[#F43F5E]/30 flex items-center justify-center text-xs tracking-widest">2</span>
-                <span className="text-base tracking-tight">Critic AI Fact-Checker</span>
+            <div className="bg-zinc-50 dark:bg-white/[0.03] border border-zinc-200/60 dark:border-white/[0.05] rounded-xl p-5 space-y-3 group premium-transition hover:border-rose-500/20 dark:hover:border-rose-500/15">
+              <div className="font-semibold text-rose-500 flex items-center gap-2.5 text-sm">
+                <span className="w-7 h-7 rounded-lg bg-rose-500/10 flex items-center justify-center text-[11px] font-bold">2</span>
+                Critic AI Fact-Checker
               </div>
-              <p className="text-zinc-400 text-sm leading-relaxed">
-                Audits each line against NCERT. If unbacked or tricky: warns <span className="text-[#F43F5E] font-semibold">"Ask a teacher instead!"</span>
+              <p className="text-zinc-500 dark:text-zinc-400 text-[13px] leading-relaxed">
+                Audits each line against NCERT. If unbacked or tricky: warns <span className="text-rose-500 font-semibold">"Ask a teacher instead!"</span>
               </p>
             </div>
           </div>
 
-          {/* Demo Quick Start Chips */}
-          <div className="pt-10 flex flex-col md:flex-row items-start md:items-center gap-4 text-sm">
-            <span className="text-zinc-500 font-bold text-xs uppercase tracking-[0.2em] bg-black/40 px-4 py-2 rounded-full border border-white/5">Try Hackathon Scenarios:</span>
-            <button
-              onClick={() => {
-                playSound('click', soundEnabled);
-                onNavigateToChatWithQuery('A car of mass 1500 kg drives at 20 m/s on a flat circular turn of radius 50 m with μ_s = 0.6. Will it skid? Show step-by-step NCERT derivation.');
-              }}
-              className="group bg-[#2563EB]/10 border border-[#2563EB]/30 text-[#60A5FA] font-bold px-5 py-3.5 rounded-full hover:bg-[#2563EB]/20 hover:border-[#2563EB]/50 active:scale-[0.98] premium-transition flex items-center gap-3 cursor-pointer w-full md:w-auto"
-            >
-              <span className="w-8 h-8 rounded-full bg-black/20 flex items-center justify-center group-hover:translate-x-1 premium-transition">
+          {/* Demo Quick Start */}
+          <div className="pt-4 flex flex-col md:flex-row items-start md:items-center gap-3">
+            <span className="text-zinc-400 dark:text-zinc-500 font-semibold text-[11px] uppercase tracking-wider shrink-0">Try Scenarios:</span>
+            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+              <button
+                onClick={() => {
+                  playSound('click', soundEnabled);
+                  onNavigateToChatWithQuery('A car of mass 1500 kg drives at 20 m/s on a flat circular turn of radius 50 m with μ_s = 0.6. Will it skid? Show step-by-step NCERT derivation.');
+                }}
+                className="group flex items-center gap-2 bg-blue-500/8 hover:bg-blue-500/15 border border-blue-500/15 hover:border-blue-500/30 text-blue-400 font-semibold text-[13px] px-4 py-2.5 rounded-lg active:scale-[0.98] premium-transition cursor-pointer"
+              >
                 <ShieldCheck className="w-4 h-4" />
-              </span>
-              1. In-Scope NCERT Question (Verified)
-            </button>
-            <button
-              onClick={() => {
-                playSound('click', soundEnabled);
-                onNavigateToChatWithQuery('A block of 5 kg rests on a rough table with μ_s = 0.4. A horizontal force of 10 N is applied. Is static friction equal to 0.4 × 5 × 9.8 = 19.6 N?');
-              }}
-              className="group bg-[#F43F5E]/10 border border-[#F43F5E]/30 text-[#F43F5E] font-bold px-5 py-3.5 rounded-full hover:bg-[#F43F5E]/20 hover:border-[#F43F5E]/50 active:scale-[0.98] premium-transition flex items-center gap-3 cursor-pointer w-full md:w-auto"
-            >
-              <span className="w-8 h-8 rounded-full bg-black/20 flex items-center justify-center group-hover:translate-x-1 premium-transition">
+                In-Scope NCERT (Verified)
+              </button>
+              <button
+                onClick={() => {
+                  playSound('click', soundEnabled);
+                  onNavigateToChatWithQuery('A block of 5 kg rests on a rough table with μ_s = 0.4. A horizontal force of 10 N is applied. Is static friction equal to 0.4 × 5 × 9.8 = 19.6 N?');
+                }}
+                className="group flex items-center gap-2 bg-rose-500/8 hover:bg-rose-500/15 border border-rose-500/15 hover:border-rose-500/30 text-rose-400 font-semibold text-[13px] px-4 py-2.5 rounded-lg active:scale-[0.98] premium-transition cursor-pointer"
+              >
                 <AlertTriangle className="w-4 h-4" />
-              </span>
-              2. Misconception Trap (Honest Warning)
-            </button>
+                Misconception Trap (Warning)
+              </button>
+            </div>
           </div>
         </div>
       </m.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-12">
+      {/* Stats Bento Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {/* Card 1: Overall Mastery */}
         <m.div
-          initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          transition={{ duration: 0.8, delay: 0.1, ease: [0.32, 0.72, 0, 1] }}
-          className="md:col-span-2 ethereal-card-shell"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          className="sf-card p-5 md:p-6 flex flex-col justify-between min-h-[160px]"
         >
-          <div className="ethereal-card-core flex flex-col justify-between h-full min-h-[200px]">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-400 tracking-widest uppercase">
-              <span>Overall Mastery</span>
-              <TrendingUp className="w-4 h-4 text-[#60A5FA]" />
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-zinc-400 tracking-wider uppercase">Overall Mastery</span>
+            <TrendingUp className="w-4 h-4 text-blue-400" />
+          </div>
+
+          <div className="mt-auto space-y-3">
+            <div className="flex items-end gap-2">
+              <span className="text-4xl md:text-5xl font-bold text-zinc-900 dark:text-white tracking-tight leading-none">
+                {currentUnit.overallMastery}%
+              </span>
+              <span className="text-[11px] font-semibold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded mb-1">
+                +{currentUnit.masteryDelta}%
+              </span>
             </div>
 
-            <div className="mt-8 space-y-4">
-              <div className="flex flex-wrap items-end gap-3">
-                <span className="text-5xl md:text-[4rem] font-bold text-white tracking-tight leading-none">
-                  {currentUnit.overallMastery}%
-                </span>
-                <span className="text-xs font-bold text-[#60A5FA] bg-[#2563EB]/10 border border-[#2563EB]/20 px-3 py-1.5 rounded-full mb-1">
-                  +{currentUnit.masteryDelta}% this week
-                </span>
-              </div>
-
-              {/* Animated Progress Bar */}
-              <div className="w-full bg-black/60 border border-white/5 h-2.5 rounded-full overflow-hidden p-0.5">
-                <m.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${currentUnit.overallMastery}%` }}
-                  transition={{ duration: 1.2, delay: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                  className="bg-gradient-to-r from-[#2563EB] to-[#60A5FA] h-full rounded-full relative"
-                >
-                  <div className="absolute inset-0 bg-white/20 w-full h-full animate-[shimmer_2s_infinite]" />
-                </m.div>
-              </div>
+            {/* Progress Bar */}
+            <div className="w-full bg-zinc-200 dark:bg-white/[0.06] h-1.5 rounded-full overflow-hidden">
+              <m.div
+                initial={{ width: 0 }}
+                animate={{ width: `${currentUnit.overallMastery}%` }}
+                transition={{ duration: 1.2, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="bg-gradient-to-r from-blue-500 to-blue-400 h-full rounded-full"
+              />
             </div>
           </div>
         </m.div>
 
         {/* Card 2: Total Time */}
         <m.div
-          initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          transition={{ duration: 0.8, delay: 0.2, ease: [0.32, 0.72, 0, 1] }}
-          className="md:col-span-1 ethereal-card-shell"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+          className="sf-card p-5 md:p-6 flex flex-col justify-between min-h-[160px]"
         >
-          <div className="ethereal-card-core flex flex-col justify-between h-full min-h-[200px]">
-            <div className="text-[11px] font-semibold text-zinc-400 tracking-widest uppercase">
-              Total Time
-            </div>
-            <div className="mt-8 text-4xl md:text-[3.5rem] font-bold text-white tracking-tight leading-none">
-              {currentUnit.totalTimeHours}<span className="text-2xl text-zinc-600 tracking-normal ml-1">h</span> <br className="hidden md:block" /> {currentUnit.totalTimeMinutes}<span className="text-2xl text-zinc-600 tracking-normal ml-1">m</span>
-            </div>
+          <span className="text-[11px] font-semibold text-zinc-400 tracking-wider uppercase">Total Time</span>
+          <div className="mt-auto text-4xl md:text-5xl font-bold text-zinc-900 dark:text-white tracking-tight leading-none">
+            {currentUnit.totalTimeHours}<span className="text-xl text-zinc-400 ml-0.5">h</span>{' '}
+            {currentUnit.totalTimeMinutes}<span className="text-xl text-zinc-400 ml-0.5">m</span>
           </div>
         </m.div>
 
         {/* Card 3: Questions */}
         <m.div
-          initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          transition={{ duration: 0.8, delay: 0.3, ease: [0.32, 0.72, 0, 1] }}
-          className="md:col-span-1 ethereal-card-shell"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          className="sf-card p-5 md:p-6 flex flex-col justify-between min-h-[160px]"
         >
-          <div className="ethereal-card-core flex flex-col justify-between h-full min-h-[200px]">
-            <div className="text-[11px] font-semibold text-zinc-400 tracking-widest uppercase">
-              Questions
-            </div>
-            <div className="mt-8 flex items-end gap-1 text-5xl md:text-[4.5rem] font-bold text-white tracking-tight leading-none">
-              <span>{currentUnit.questionsCompleted}</span>
-              <span className="text-2xl font-medium text-zinc-600 mb-1 tracking-tight">
-                /{currentUnit.questionsTotal}
-              </span>
-            </div>
+          <span className="text-[11px] font-semibold text-zinc-400 tracking-wider uppercase">Questions</span>
+          <div className="mt-auto flex items-end gap-1 text-4xl md:text-5xl font-bold text-zinc-900 dark:text-white tracking-tight leading-none">
+            <span>{currentUnit.questionsCompleted}</span>
+            <span className="text-xl font-medium text-zinc-400 mb-0.5">
+              /{currentUnit.questionsTotal}
+            </span>
           </div>
         </m.div>
       </div>
 
       {/* Focus On This Recommendations */}
       {recommendations.length > 0 && (
-        <div className="space-y-6 mt-16">
-          <div className="flex items-center justify-between border-b border-white/5 pb-4">
-            <h3 className="text-xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70 tracking-tight flex items-center gap-3">
-              <AlertTriangle className="w-6 h-6 text-[#F43F5E]" />
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
+              <AlertTriangle className="w-4.5 h-4.5 text-rose-500" />
               Focus On This
             </h3>
-            <span className="text-[10px] md:text-xs font-bold text-[#F43F5E] bg-[#F43F5E]/10 border border-[#F43F5E]/20 px-4 py-2 rounded-full uppercase tracking-[0.2em]">
+            <span className="text-[10px] font-bold text-rose-500 bg-rose-500/10 border border-rose-500/15 px-2.5 py-1 rounded-full uppercase tracking-wider">
               Weakest topics
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {recommendations.map((rec, index) => (
               <m.div 
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1, ease: [0.32, 0.72, 0, 1] }}
+                transition={{ duration: 0.4, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
                 key={rec.topic_id} 
-                className="bg-black/40 border border-white/5 rounded-2xl p-5 flex flex-col justify-between group premium-transition hover:bg-black/60 hover:border-white/10 relative overflow-hidden"
+                className="sf-card p-5 flex flex-col justify-between group"
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#F43F5E]/5 rounded-full blur-3xl group-hover:bg-[#F43F5E]/10 premium-transition pointer-events-none" />
-                <div className="relative z-10">
-                  <h4 className="text-sm font-bold text-white line-clamp-2">{rec.topic_title || rec.topic_id}</h4>
-                  <p className="text-xs text-zinc-400 mt-2">
-                    Mastery: <span className="font-bold text-[#F43F5E]">{rec.masteryScore}%</span>
+                <div>
+                  <h4 className="text-sm font-semibold text-zinc-900 dark:text-white line-clamp-2">{rec.topic_title || rec.topic_id}</h4>
+                  <p className="text-xs text-zinc-400 mt-1.5">
+                    Mastery: <span className="font-bold text-rose-500">{rec.masteryScore}%</span>
                   </p>
                 </div>
                 <button
@@ -376,9 +366,9 @@ export const HubView: React.FC<HubViewProps> = ({
                     playSound('click', soundEnabled);
                     onNavigateToChatWithQuery(`Give me a practice question on ${rec.topic_title || rec.topic_id} similar to common JEE/NEET traps.`);
                   }}
-                  className="mt-6 bg-white/5 hover:bg-[#F43F5E]/20 active:bg-[#F43F5E]/30 text-white hover:text-[#F43F5E] border border-white/5 hover:border-[#F43F5E]/30 text-xs font-bold py-3 px-4 rounded-xl premium-transition cursor-pointer w-full flex items-center justify-center gap-2 relative z-10"
+                  className="mt-4 bg-zinc-100 dark:bg-white/[0.04] hover:bg-rose-500/10 dark:hover:bg-rose-500/10 text-zinc-700 dark:text-zinc-300 hover:text-rose-500 border border-zinc-200 dark:border-white/[0.06] hover:border-rose-500/20 text-xs font-semibold py-2.5 px-3 rounded-lg premium-transition cursor-pointer w-full flex items-center justify-center gap-1.5"
                 >
-                  <Sparkles className="w-4 h-4" /> Practice Now
+                  <Sparkles className="w-3.5 h-3.5" /> Practice Now
                 </button>
               </m.div>
             ))}
@@ -387,17 +377,17 @@ export const HubView: React.FC<HubViewProps> = ({
       )}
 
       {/* Conceptual Mastery Section */}
-      <div className="space-y-8 mt-16">
-        <div className="flex items-end justify-between border-b border-white/5 pb-4">
-          <h3 className="text-2xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70 tracking-tight leading-[1.1]">
-            Conceptual<br />Mastery
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight">
+            Conceptual Mastery
           </h3>
-          <span className="text-[10px] md:text-xs font-bold text-zinc-500 tracking-[0.2em] uppercase border border-white/5 bg-black/40 px-4 py-2 rounded-full mb-2">
+          <span className="text-[10px] font-bold text-zinc-400 tracking-wider uppercase">
             Solver-Critic Audit Log
           </span>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {currentUnit.topics.map((topic) => {
             const isVerified = topic.status === 'VERIFIED';
             return (
@@ -407,25 +397,25 @@ export const HubView: React.FC<HubViewProps> = ({
                   setSelectedTopic(topic);
                   setTopicAuditResult(null);
                 }}
-                className="bg-black/40 border border-white/5 hover:border-white/10 active:bg-white/5 rounded-2xl p-5 premium-transition cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
+                className="sf-card p-4 md:p-5 premium-transition cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
               >
                 <div>
-                  <h4 className="text-base font-bold text-white group-hover:text-[#60A5FA] premium-transition">
+                  <h4 className="text-sm font-semibold text-zinc-900 dark:text-white group-hover:text-blue-500 dark:group-hover:text-blue-400 premium-transition">
                     {topic.title}
                   </h4>
-                  <p className="text-xs text-zinc-400 mt-1">{topic.subtitle}</p>
+                  <p className="text-xs text-zinc-400 mt-0.5">{topic.subtitle}</p>
                 </div>
 
                 <div className="flex items-center gap-2 self-start sm:self-auto">
                   {isVerified ? (
-                    <div className="bg-[#2563EB]/10 text-[#60A5FA] border border-[#2563EB]/30 text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 tracking-widest uppercase">
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      AUDIT: VERIFIED
+                    <div className="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 tracking-wider uppercase">
+                      <ShieldCheck className="w-3 h-3" />
+                      VERIFIED
                     </div>
                   ) : (
-                    <div className="bg-[#F43F5E]/10 text-[#F43F5E] border border-[#F43F5E]/30 text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 tracking-widest uppercase">
-                      <AlertTriangle className="w-3.5 h-3.5" />
-                      AUDIT: FLAGGED
+                    <div className="bg-rose-500/10 text-rose-500 border border-rose-500/20 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 tracking-wider uppercase">
+                      <AlertTriangle className="w-3 h-3" />
+                      FLAGGED
                     </div>
                   )}
                 </div>
@@ -435,28 +425,28 @@ export const HubView: React.FC<HubViewProps> = ({
         </div>
       </div>
 
-      {/* Topic Audit Modal / Drawer */}
+      {/* Topic Audit Modal */}
       {selectedTopic && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <m.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
-            className="ethereal-card-shell max-w-lg w-full"
+            initial={{ opacity: 0, scale: 0.96, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="sf-card max-w-lg w-full"
           >
-            <div className="ethereal-card-core space-y-6 max-h-[85vh] overflow-y-auto">
-              <div className="flex items-start justify-between border-b border-white/10 pb-4">
+            <div className="p-6 md:p-8 space-y-5 max-h-[85vh] overflow-y-auto">
+              <div className="flex items-start justify-between">
                 <div>
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                    Conceptual Audit • {currentUnit.name}
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                    Conceptual Audit · {currentUnit.name}
                   </span>
-                  <h3 className="text-2xl font-bold text-white mt-1">{selectedTopic.title}</h3>
-                  <p className="text-sm text-zinc-400 mt-1">{selectedTopic.subtitle}</p>
+                  <h3 className="text-xl font-bold text-zinc-900 dark:text-white mt-1">{selectedTopic.title}</h3>
+                  <p className="text-sm text-zinc-400 mt-0.5">{selectedTopic.subtitle}</p>
                 </div>
 
                 <button
                   onClick={() => setSelectedTopic(null)}
-                  className="text-zinc-500 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-2 cursor-pointer active:scale-95 premium-transition flex-shrink-0"
+                  className="text-zinc-400 hover:text-zinc-900 dark:hover:text-white bg-zinc-100 dark:bg-white/[0.05] hover:bg-zinc-200 dark:hover:bg-white/[0.10] rounded-lg p-2 cursor-pointer active:scale-95 premium-transition flex-shrink-0"
                 >
                   ✕
                 </button>
@@ -464,22 +454,22 @@ export const HubView: React.FC<HubViewProps> = ({
 
               {/* Audit Status Banner */}
               <div
-                className={`p-5 rounded-2xl border flex items-center gap-4 ${
+                className={`p-4 rounded-xl border flex items-center gap-3 ${
                   selectedTopic.status === 'VERIFIED'
-                    ? 'bg-[#2563EB]/10 border-[#2563EB]/30 text-[#60A5FA]'
-                    : 'bg-[#F43F5E]/10 border-[#F43F5E]/30 text-[#F43F5E]'
+                    ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                    : 'bg-rose-500/10 border-rose-500/20 text-rose-500'
                 }`}
               >
                 {selectedTopic.status === 'VERIFIED' ? (
-                  <ShieldCheck className="w-8 h-8 flex-shrink-0" />
+                  <ShieldCheck className="w-6 h-6 flex-shrink-0" />
                 ) : (
-                  <AlertTriangle className="w-8 h-8 flex-shrink-0" />
+                  <AlertTriangle className="w-6 h-6 flex-shrink-0" />
                 )}
                 <div>
-                  <div className="text-xs font-bold uppercase tracking-widest">
-                    Audit Status: {selectedTopic.status}
+                  <div className="text-[11px] font-bold uppercase tracking-wider">
+                    Status: {selectedTopic.status}
                   </div>
-                  <div className="text-sm font-medium mt-1">
+                  <div className="text-sm font-medium mt-0.5 opacity-80">
                     {selectedTopic.auditDetails}
                   </div>
                 </div>
@@ -487,16 +477,16 @@ export const HubView: React.FC<HubViewProps> = ({
 
               {/* Live Audit Data if triggered */}
               {topicAuditResult && (
-                <div className="bg-black/40 border border-white/5 p-5 rounded-2xl space-y-3 text-sm">
-                  <div className="font-bold text-[#60A5FA] flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" /> Live Critic AI Audit
+                <div className="sf-card p-4 space-y-2 text-sm">
+                  <div className="font-semibold text-blue-400 flex items-center gap-1.5 text-xs">
+                    <Sparkles className="w-3.5 h-3.5" /> Live Critic AI Audit
                   </div>
-                  <p className="text-zinc-300 font-medium leading-relaxed">{topicAuditResult.auditDetails}</p>
+                  <p className="text-zinc-600 dark:text-zinc-300 leading-relaxed">{topicAuditResult.auditDetails}</p>
 
                   {topicAuditResult.insights && (
-                    <div className="space-y-2 pt-2">
-                      <span className="font-bold text-zinc-500 text-xs uppercase tracking-widest">Key Insights:</span>
-                      <ul className="list-disc list-inside space-y-1.5 text-zinc-400">
+                    <div className="space-y-1.5 pt-1">
+                      <span className="font-bold text-zinc-400 text-[10px] uppercase tracking-wider">Key Insights:</span>
+                      <ul className="list-disc list-inside space-y-1 text-zinc-500 dark:text-zinc-400 text-[13px]">
                         {topicAuditResult.insights.map((ins: string, idx: number) => (
                           <li key={idx}>{ins}</li>
                         ))}
@@ -507,11 +497,11 @@ export const HubView: React.FC<HubViewProps> = ({
               )}
 
               {/* Action Buttons */}
-              <div className="pt-2 flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col sm:flex-row gap-2 pt-1">
                 <button
                   onClick={() => handleRunTopicAudit(selectedTopic)}
                   disabled={auditingTopicId === selectedTopic.id}
-                  className="flex-1 bg-white text-black font-bold py-3.5 px-4 rounded-xl hover:bg-zinc-200 active:scale-[0.98] premium-transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  className="flex-1 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-semibold py-3 px-4 rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-100 active:scale-[0.98] premium-transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer text-sm"
                 >
                   {auditingTopicId === selectedTopic.id ? (
                     <>
@@ -530,7 +520,7 @@ export const HubView: React.FC<HubViewProps> = ({
                     setSelectedTopic(null);
                     onNavigateToChatWithQuery(query);
                   }}
-                  className="flex-1 bg-white/5 border border-white/10 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-white/10 active:scale-[0.98] premium-transition flex items-center justify-center gap-2 cursor-pointer"
+                  className="flex-1 bg-zinc-100 dark:bg-white/[0.05] border border-zinc-200 dark:border-white/[0.08] text-zinc-700 dark:text-zinc-200 font-semibold py-3 px-4 rounded-xl hover:bg-zinc-200 dark:hover:bg-white/[0.08] active:scale-[0.98] premium-transition flex items-center justify-center gap-2 cursor-pointer text-sm"
                 >
                   <MessageSquare className="w-4 h-4" /> Ask AI Derivation
                 </button>

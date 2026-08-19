@@ -106,10 +106,10 @@ export default function App() {
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="flex flex-col min-h-[100dvh] w-full bg-slate-50 dark:bg-mesh-dark text-slate-900 dark:text-zinc-50 transition-colors duration-700 relative selection:bg-[#2563EB]/30">
+      <div className="flex flex-col min-h-[100dvh] w-full bg-zinc-50 dark:bg-mesh-dark text-zinc-900 dark:text-zinc-100 transition-colors duration-500 relative selection:bg-blue-500/20">
       <ToastContainer toasts={toasts} />
       <SignedIn>
-        <div className={`flex flex-col h-full w-full transition-all duration-300 ${isSidebarCollapsed ? 'md:pl-[88px]' : 'md:pl-[260px]'}`}>
+        <div className={`flex flex-col h-full w-full transition-all duration-300 ${isSidebarCollapsed ? 'md:pl-[72px]' : 'md:pl-[240px]'}`}>
           <Header 
             currentUnit={selectedUnitId}
             onSelectUnit={(unitId) => setSelectedUnitId(unitId)}

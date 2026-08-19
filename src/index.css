@@ -1,123 +1,144 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300..800&display=swap');
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   :root {
-    font-family: 'Geist', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
   html, body {
-    @apply bg-slate-50 text-slate-900 dark:bg-[#000000] dark:text-zinc-50;
+    @apply bg-zinc-50 text-zinc-900 dark:bg-[#0A0A0B] dark:text-zinc-100;
   }
+
+  /* Better scrollbar in dark mode */
+  html.dark ::-webkit-scrollbar { width: 6px; }
+  html.dark ::-webkit-scrollbar-track { background: transparent; }
+  html.dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 999px; }
+  html.dark ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
 }
 
-/* Ethereal Glass / Premium Tech Utilities */
+/* ── Premium Dark Tech Surface ── */
 @layer utilities {
   .bg-mesh-dark {
-    @apply bg-slate-50 dark:bg-[#050505];
-    background-image: 
-      radial-gradient(at 20% 0%, rgba(37, 99, 235, 0.08) 0px, transparent 50%),
-      radial-gradient(at 80% 100%, rgba(37, 99, 235, 0.05) 0px, transparent 50%),
-      radial-gradient(at 100% 40%, rgba(96, 165, 250, 0.08) 0px, transparent 50%);
-    background-attachment: fixed;
+    @apply bg-zinc-50 dark:bg-[#0A0A0B];
+    background-image: none;
   }
 
   html.dark .bg-mesh-dark {
     background-image: 
-      radial-gradient(at 20% 0%, rgba(37, 99, 235, 0.25) 0px, transparent 50%),
-      radial-gradient(at 80% 100%, rgba(37, 99, 235, 0.15) 0px, transparent 50%),
-      radial-gradient(at 100% 40%, rgba(96, 165, 250, 0.15) 0px, transparent 50%);
+      radial-gradient(ellipse 80% 60% at 15% -5%, rgba(56, 120, 230, 0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 85% 105%, rgba(56, 120, 230, 0.06) 0%, transparent 50%);
+    background-attachment: fixed;
   }
 
-  /* The "Double Bezel" container core */
+  /* ── Card System: Single-Layer Clean Glass ── */
+  .sf-card {
+    @apply relative rounded-2xl bg-zinc-100 dark:bg-white/[0.04] border border-zinc-200/80 dark:border-white/[0.06] overflow-hidden;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  html.dark .sf-card {
+    box-shadow: 
+      0 0 0 1px rgba(255,255,255,0.03),
+      0 8px 40px -12px rgba(0,0,0,0.6);
+  }
+  html.dark .sf-card:hover {
+    border-color: rgba(255,255,255,0.10);
+    box-shadow: 
+      0 0 0 1px rgba(255,255,255,0.05),
+      0 12px 48px -12px rgba(0,0,0,0.7);
+  }
+
+  /* Legacy aliases — map old double-bezel to new clean card */
   .ethereal-card-shell {
-    @apply relative rounded-[2rem] p-1.5 bg-slate-200/40 dark:bg-white/[0.02] border border-slate-300/60 dark:border-white/10 overflow-hidden;
-    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255,255,255,0.7);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
+    @apply relative rounded-2xl bg-zinc-100 dark:bg-white/[0.03] border border-zinc-200/80 dark:border-white/[0.06] overflow-hidden p-0;
+    box-shadow: none;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
   html.dark .ethereal-card-shell {
-    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255,255,255,0.1);
+    box-shadow: 
+      0 0 0 1px rgba(255,255,255,0.02),
+      0 8px 40px -12px rgba(0,0,0,0.5);
   }
 
   .ethereal-card-core {
-    @apply w-full h-full rounded-[calc(2rem-0.375rem)] bg-white/90 dark:bg-[#09090b]/90 p-8;
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+    @apply w-full h-full rounded-2xl bg-white dark:bg-[#111113] p-6 md:p-8;
+    box-shadow: none;
   }
   html.dark .ethereal-card-core {
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+    box-shadow: none;
   }
   
-  /* Extreme smooth curves */
+  /* ── Smooth Transitions ── */
   .premium-transition {
     transition-property: all;
-    transition-duration: 700ms;
-    transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+    transition-duration: 500ms;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
 /* 
- * Utility aliases to avoid breaking any components that still rely on the neo-* classes,
- * mapping them to sleek flat-design equivalents.
+ * Legacy neo-* class aliases
  */
 .bg-neo {
-  @apply bg-white dark:bg-[#050505];
+  @apply bg-white dark:bg-[#0A0A0B];
 }
 
 .bg-neo-convex {
-  @apply bg-white/60 dark:bg-[#050505]/60 backdrop-blur-3xl border border-slate-200 dark:border-white/10;
+  @apply bg-white/60 dark:bg-[#111113]/80 backdrop-blur-2xl border border-zinc-200 dark:border-white/[0.06];
 }
 
 .bg-neo-concave {
-  @apply bg-slate-50 dark:bg-[#000000] border border-slate-200 dark:border-white/5;
+  @apply bg-zinc-50 dark:bg-[#0A0A0B] border border-zinc-200 dark:border-white/[0.04];
 }
 
 .bg-grid-pattern {
-  /* Minimal empty grid just to satisfy the class name if still applied, removing the heavy noise */
   background: none;
 }
 
 .text-neo {
-  @apply text-slate-900 dark:text-zinc-50;
+  @apply text-zinc-900 dark:text-zinc-100;
 }
 
 .shadow-neo {
-  /* Ethereal shadow for dark mode and light mode */
-  box-shadow: 0 8px 32px -8px rgba(0,0,0,0.05);
-  @apply border border-slate-200 dark:border-white/10;
-  transition: all 0.7s cubic-bezier(0.32, 0.72, 0, 1);
+  box-shadow: 0 4px 24px -8px rgba(0,0,0,0.04);
+  @apply border border-zinc-200 dark:border-white/[0.06];
+  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 html.dark .shadow-neo {
-  box-shadow: 0 8px 32px -8px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 24px -8px rgba(0,0,0,0.4);
 }
 
 .shadow-neo-accent {
-  /* Accent state: Electric Blue border */
-  box-shadow: 0 8px 32px -8px rgba(37, 99, 235, 0.15);
-  @apply border border-[#2563EB];
-  transition: all 0.7s cubic-bezier(0.32, 0.72, 0, 1);
+  box-shadow: 0 4px 24px -8px rgba(59, 130, 246, 0.12);
+  @apply border border-blue-500/40;
+  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 html.dark .shadow-neo-accent {
-  box-shadow: 0 8px 32px -8px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4px 24px -8px rgba(59, 130, 246, 0.15);
 }
 
 .shadow-neo-sm {
-  @apply border border-slate-200 dark:border-white/10;
-  transition: all 0.7s cubic-bezier(0.32, 0.72, 0, 1);
+  @apply border border-zinc-200 dark:border-white/[0.06];
+  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .shadow-neo-inner {
-  @apply bg-slate-100/50 dark:bg-black/50 border border-slate-200 dark:border-white/5;
-  box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
-  transition: all 0.7s cubic-bezier(0.32, 0.72, 0, 1);
+  @apply bg-zinc-100/50 dark:bg-black/40 border border-zinc-200 dark:border-white/[0.04];
+  box-shadow: inset 0 1px 4px rgba(0,0,0,0.03);
+  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 html.dark .shadow-neo-inner {
-  box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+  box-shadow: inset 0 1px 4px rgba(0,0,0,0.3);
 }
 
-/* Animations */
+/* ── Animations ── */
 @keyframes shimmer {
   0% { transform: translateX(-150%); }
   100% { transform: translateX(150%); }
@@ -131,19 +152,19 @@ html.dark .shadow-neo-inner {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.05), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.03), transparent);
   transform: translateX(-150%);
   animation: shimmer 3s infinite;
   pointer-events: none;
 }
 html.dark .shimmer-effect::after {
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
 }
 
-/* Clean formula / code callout styling */
+/* ── Math / Code Blocks ── */
 .math-block {
   font-family: 'JetBrains Mono', 'Courier New', Courier, monospace;
-  @apply bg-slate-100 dark:bg-black/50 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm font-medium;
+  @apply bg-zinc-100 dark:bg-black/40 border border-zinc-200 dark:border-white/[0.06] rounded-lg px-4 py-3 text-sm font-medium;
 }
 
 /* Fix KaTeX Math Overlaps */
