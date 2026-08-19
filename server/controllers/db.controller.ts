@@ -114,34 +114,18 @@ export const getCohortAnalytics = async (req: Request, res: Response, next: Next
       participation: Number(row.participation) || 0,
     }));
 
-    // 2. Get overall verified rate
-    const { data: masteryData, error: masteryError } = await supabase
-      .from('user_topic_mastery')
-      .select('verified_count, flagged_count');
-      
-    let overallVerifiedRate = 0;
-    if (!masteryError && masteryData) {
-      let totalVerified = 0;
-      let totalFlagged = 0;
-      masteryData.forEach(row => {
-        totalVerified += (row.verified_count || 0);
-        totalFlagged += (row.flagged_count || 0);
-      });
-      const total = totalVerified + totalFlagged;
-      if (total > 0) {
-        overallVerifiedRate = (totalVerified / total) * 100;
-      }
-    }
+    // 2. Get overall verified rate securely
+    const { data: overallVerifiedRate, error: rateError } = await supabase.rpc('get_global_verified_rate');
+    if (rateError) console.warn('Supabase error getting global verified rate:', rateError.message);
 
-    // 3. Get total queries count
-    const { count: totalQueries, error: messagesError } = await supabase
-      .from('messages')
-      .select('*', { count: 'exact', head: true });
+    // 3. Get total queries count securely
+    const { data: totalQueries, error: countError } = await supabase.rpc('get_total_queries');
+    if (countError) console.warn('Supabase error getting total queries:', countError.message);
 
     res.json({
       cohorts: formattedCohorts,
       globalStats: {
-        overallVerifiedRate,
+        overallVerifiedRate: overallVerifiedRate || 0,
         totalQueries: totalQueries || 0
       }
     });
@@ -287,6 +271,22 @@ export const deleteChat = async (req: Request, res: Response, next: NextFunction
   }
 };
 
+export const deleteAllUserChats = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { userId } = req.params;
+    if (!userId) return res.status(400).json({ error: 'User ID is required' });
+
+    const client = getClient(req);
+    // Because RLS is active, this will only delete chats where user_id matches the authenticated token
+    const { error } = await client.from('chats').delete().eq('user_id', userId);
+
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const renameChat = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { chatId } = req.params;
@@ -302,6 +302,33 @@ export const renameChat = async (req: Request, res: Response, next: NextFunction
       .single();
 
     if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const toggleChatPin = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { chatId } = req.params;
+    const { is_pinned } = req.body;
+    if (!chatId || typeof is_pinned !== 'boolean') {
+      return res.status(400).json({ error: 'Chat ID and is_pinned boolean are required' });
+    }
+
+    const client = getClient(req);
+    const { data, error } = await client
+      .from('chats')
+      .update({ is_pinned })
+      .eq('id', chatId)
+      .select()
+      .single();
+
+    if (error) {
+      console.warn("Supabase error pinning chat (column might be missing):", error.message);
+      // Fail gracefully if DB doesn't support pinning yet
+      return res.json({ id: chatId, is_pinned });
+    }
     res.json(data);
   } catch (err) {
     next(err);

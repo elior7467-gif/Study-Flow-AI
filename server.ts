@@ -21,7 +21,7 @@ async function startServer() {
       directives: {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://*.clerk.accounts.dev", "https://*.clerk.com", "https://challenges.cloudflare.com"],
-        connectSrc: ["'self'", "ws:", "wss:", "https://*.clerk.accounts.dev", "https://*.clerk.com", "https://challenges.cloudflare.com"],
+        connectSrc: ["'self'", "ws:", "wss:", "https://*.clerk.accounts.dev", "https://*.clerk.com", "https://challenges.cloudflare.com", "https://clerk-telemetry.com"],
         imgSrc: ["'self'", "data:", "blob:", "https://*.clerk.com", "https://img.clerk.com"],
         workerSrc: ["'self'", "blob:"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
@@ -32,8 +32,11 @@ async function startServer() {
     crossOriginEmbedderPolicy: false,
   }));
 
-  // Enable CORS
-  app.use(cors());
+  // Enable CORS securely
+  app.use(cors({
+    origin: config.nodeEnv === 'production' ? config.appUrl : ['http://localhost:3000', 'http://localhost:5173'],
+    credentials: true,
+  }));
 
   // Body parser
   app.use(express.json({ limit: '10kb' }));
@@ -68,4 +71,7 @@ async function startServer() {
   });
 }
 
-startServer();
+startServer().catch(err => {
+  console.error("Failed to start server:", err);
+  process.exit(1);
+});

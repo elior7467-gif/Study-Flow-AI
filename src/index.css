@@ -1,91 +1,120 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300..800&display=swap');
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   :root {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    
-    /* Vercel/Linear Light Mode Variables */
-    --neo-bg: #FAFAFA;
-    --neo-text: #09090B;
-    --neo-text-muted: #71717A;
-    --neo-shadow: 0 4px 24px -6px rgba(0, 0, 0, 0.05);
-    --neo-shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.05);
-    --neo-border: rgba(0, 0, 0, 0.06);
-    --neo-glass: rgba(255, 255, 255, 0.7);
-    --neo-glass-darker: rgba(255, 255, 255, 0.4);
-    --neo-accent: #2563EB;
-    --neo-glow: rgba(37, 99, 235, 0.15);
-    
-    background-color: var(--neo-bg);
-    color: var(--neo-text);
+    font-family: 'Geist', system-ui, -apple-system, sans-serif;
   }
-
-  html.dark {
-    /* Vercel/Linear Dark Mode Variables */
-    --neo-bg: #000000;
-    --neo-text: #FAFAFA;
-    --neo-text-muted: #A1A1AA;
-    --neo-shadow: 0 4px 24px -6px rgba(255, 255, 255, 0.03);
-    --neo-shadow-sm: 0 2px 8px -2px rgba(255, 255, 255, 0.03);
-    --neo-border: rgba(255, 255, 255, 0.1);
-    --neo-glass: rgba(24, 24, 27, 0.6);
-    --neo-glass-darker: rgba(9, 9, 11, 0.6);
-    --neo-accent: #60A5FA;
-    --neo-glow: rgba(96, 165, 250, 0.15);
-    
-    background-color: var(--neo-bg);
-    color: var(--neo-text);
+  
+  html, body {
+    @apply bg-slate-50 text-slate-900 dark:bg-[#000000] dark:text-zinc-50;
   }
 }
 
-/* Glassmorphism Utilities (Keeping legacy class names for compatibility) */
+/* Ethereal Glass / Premium Tech Utilities */
+@layer utilities {
+  .bg-mesh-dark {
+    @apply bg-slate-50 dark:bg-[#050505];
+    background-image: 
+      radial-gradient(at 20% 0%, rgba(37, 99, 235, 0.08) 0px, transparent 50%),
+      radial-gradient(at 80% 100%, rgba(37, 99, 235, 0.05) 0px, transparent 50%),
+      radial-gradient(at 100% 40%, rgba(96, 165, 250, 0.08) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  html.dark .bg-mesh-dark {
+    background-image: 
+      radial-gradient(at 20% 0%, rgba(37, 99, 235, 0.25) 0px, transparent 50%),
+      radial-gradient(at 80% 100%, rgba(37, 99, 235, 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 40%, rgba(96, 165, 250, 0.15) 0px, transparent 50%);
+  }
+
+  /* The "Double Bezel" container core */
+  .ethereal-card-shell {
+    @apply relative rounded-[2rem] p-1.5 bg-slate-200/40 dark:bg-white/[0.02] border border-slate-300/60 dark:border-white/10 overflow-hidden;
+    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255,255,255,0.7);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+  }
+  html.dark .ethereal-card-shell {
+    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+
+  .ethereal-card-core {
+    @apply w-full h-full rounded-[calc(2rem-0.375rem)] bg-white/90 dark:bg-[#09090b]/90 p-8;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+  }
+  html.dark .ethereal-card-core {
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  }
+  
+  /* Extreme smooth curves */
+  .premium-transition {
+    transition-property: all;
+    transition-duration: 700ms;
+    transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  }
+}
+
+/* 
+ * Utility aliases to avoid breaking any components that still rely on the neo-* classes,
+ * mapping them to sleek flat-design equivalents.
+ */
 .bg-neo {
-  background-color: var(--neo-bg);
+  @apply bg-white dark:bg-[#050505];
 }
 
 .bg-neo-convex {
-  background-color: var(--neo-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  @apply bg-white/60 dark:bg-[#050505]/60 backdrop-blur-3xl border border-slate-200 dark:border-white/10;
 }
 
 .bg-neo-concave {
-  background-color: var(--neo-glass-darker);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  @apply bg-slate-50 dark:bg-[#000000] border border-slate-200 dark:border-white/5;
+}
+
+.bg-grid-pattern {
+  /* Minimal empty grid just to satisfy the class name if still applied, removing the heavy noise */
+  background: none;
 }
 
 .text-neo {
-  color: var(--neo-text);
+  @apply text-slate-900 dark:text-zinc-50;
 }
 
 .shadow-neo {
-  box-shadow: var(--neo-shadow);
-  border: 1px solid var(--neo-border);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  /* Ethereal shadow for dark mode and light mode */
+  box-shadow: 0 8px 32px -8px rgba(0,0,0,0.05);
+  @apply border border-slate-200 dark:border-white/10;
+  transition: all 0.7s cubic-bezier(0.32, 0.72, 0, 1);
+}
+html.dark .shadow-neo {
+  box-shadow: 0 8px 32px -8px rgba(0,0,0,0.5);
 }
 
 .shadow-neo-accent {
-  box-shadow: 
-    var(--neo-shadow),
-    0 0 20px var(--neo-glow);
-  border: 1px solid var(--neo-accent);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  /* Accent state: Electric Blue border */
+  box-shadow: 0 8px 32px -8px rgba(37, 99, 235, 0.15);
+  @apply border border-[#2563EB];
+  transition: all 0.7s cubic-bezier(0.32, 0.72, 0, 1);
+}
+html.dark .shadow-neo-accent {
+  box-shadow: 0 8px 32px -8px rgba(37, 99, 235, 0.2);
 }
 
 .shadow-neo-sm {
-  box-shadow: var(--neo-shadow-sm);
-  border: 1px solid var(--neo-border);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  @apply border border-slate-200 dark:border-white/10;
+  transition: all 0.7s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .shadow-neo-inner {
-  /* Replaced inset shadow with a sleek border and background */
-  background-color: var(--neo-glass-darker);
-  border: 1px solid var(--neo-border);
-  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  @apply bg-slate-100/50 dark:bg-black/50 border border-slate-200 dark:border-white/5;
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+  transition: all 0.7s cubic-bezier(0.32, 0.72, 0, 1);
+}
+html.dark .shadow-neo-inner {
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
 }
 
 /* Animations */
@@ -102,24 +131,19 @@
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.05), transparent);
   transform: translateX(-150%);
   animation: shimmer 3s infinite;
   pointer-events: none;
 }
 html.dark .shimmer-effect::after {
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
 }
 
-/* Clean formula / code callout styling in Neomorphism */
+/* Clean formula / code callout styling */
 .math-block {
-  font-family: 'Courier New', Courier, monospace;
-  background-color: var(--neo-bg);
-  border-radius: 12px;
-  padding: 12px 16px;
-  color: var(--neo-text);
-  font-weight: 600;
-  box-shadow: inset 4px 4px 8px var(--neo-shadow-dark), inset -4px -4px 8px var(--neo-shadow-light);
+  font-family: 'JetBrains Mono', 'Courier New', Courier, monospace;
+  @apply bg-slate-100 dark:bg-black/50 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm font-medium;
 }
 
 /* Fix KaTeX Math Overlaps */

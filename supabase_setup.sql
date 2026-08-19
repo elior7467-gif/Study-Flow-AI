@@ -67,8 +67,9 @@ CREATE TABLE IF NOT EXISTS public.documents (
 -- 3. Set up RLS for documents (optional but good practice)
 ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all access to documents" ON public.documents;
-CREATE POLICY "Allow all access to documents" ON public.documents FOR ALL USING (true);
-GRANT ALL ON public.documents TO anon, authenticated;
+DROP POLICY IF EXISTS "Allow read access to documents" ON public.documents;
+CREATE POLICY "Allow read access to documents" ON public.documents FOR SELECT USING (true);
+GRANT SELECT ON public.documents TO anon, authenticated;
 
 -- 4. Create the match_documents function for cosine similarity search
 CREATE OR REPLACE FUNCTION match_documents (
@@ -115,7 +116,10 @@ CREATE TABLE IF NOT EXISTS public.review_queue (
 
 ALTER TABLE public.review_queue ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all access to review_queue" ON public.review_queue;
-CREATE POLICY "Allow all access to review_queue" ON public.review_queue FOR ALL USING (true);
+DROP POLICY IF EXISTS "Allow users to read their own reviews" ON public.review_queue;
+DROP POLICY IF EXISTS "Allow users to insert their own reviews" ON public.review_queue;
+CREATE POLICY "Allow users to read their own reviews" ON public.review_queue FOR SELECT USING ((auth.jwt() ->> 'sub') = user_id);
+CREATE POLICY "Allow users to insert their own reviews" ON public.review_queue FOR INSERT WITH CHECK ((auth.jwt() ->> 'sub') = user_id);
 GRANT ALL ON public.review_queue TO anon, authenticated;
 
 -- Topic Mastery Tracking
@@ -149,6 +153,13 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
+    -- SECURITY: Verify the caller is either the service role or the owner of the data
+    IF current_setting('request.jwt.claims', true)::jsonb ->> 'role' != 'service_role' THEN
+        IF current_setting('request.jwt.claims', true)::jsonb ->> 'sub' != p_user_id THEN
+            RAISE EXCEPTION 'Unauthorized: You can only update your own mastery data.';
+        END IF;
+    END IF;
+
     INSERT INTO public.user_topic_mastery (user_id, topic_id, topic_title, verified_count, flagged_count)
     VALUES (
         p_user_id, 
@@ -187,6 +198,45 @@ BEGIN
 END;
 $$;
 
+-- RPC to get global verified rate securely
+CREATE OR REPLACE FUNCTION get_global_verified_rate()
+RETURNS NUMERIC
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    total_verified BIGINT;
+    total_flagged BIGINT;
+    total BIGINT;
+BEGIN
+    SELECT COALESCE(SUM(verified_count), 0), COALESCE(SUM(flagged_count), 0)
+    INTO total_verified, total_flagged
+    FROM public.user_topic_mastery;
+    
+    total := total_verified + total_flagged;
+    
+    IF total = 0 THEN
+        RETURN 0.0;
+    ELSE
+        RETURN (total_verified::NUMERIC / total::NUMERIC) * 100.0;
+    END IF;
+END;
+$$;
+
+-- RPC to get global total queries securely
+CREATE OR REPLACE FUNCTION get_total_queries()
+RETURNS BIGINT
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    total BIGINT;
+BEGIN
+    SELECT COUNT(*) INTO total FROM public.messages;
+    RETURN total;
+END;
+$$;
+
 -- ==========================================
 -- Usage Tracking
 -- ==========================================
@@ -212,4 +262,5 @@ DROP POLICY IF EXISTS "Service role can insert usage" ON public.usage_log;
 CREATE POLICY "Service role can insert usage"
     ON public.usage_log
     FOR INSERT
+    TO service_role
     WITH CHECK (true);

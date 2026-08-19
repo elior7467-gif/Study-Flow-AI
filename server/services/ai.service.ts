@@ -72,27 +72,35 @@ export class AiService {
         },
         ...(tools && tools.length > 0 ? { tools } : {}),
         ...(temperature !== undefined ? { temperature } : {}),
-        stream: !!onChunk,
+        stream: !!onChunk && !(tools && tools.length > 0), // FIX: Bug 2
+        ...(!!onChunk && !(tools && tools.length > 0) ? { stream_options: { include_usage: true } } : {}) // FIX: Bug 1
       });
 
-      const tokensUsed = (response as any).usage?.total_tokens || 0;
-      if (userId && endpoint && tokensUsed > 0) {
-        supabase.from('usage_log').insert([{ user_id: userId, endpoint, tokens_used: tokensUsed }]).then(({error}) => {
-          if (error) console.error('[Usage Logger] Error:', error);
-        });
-      }
+      let tokensUsed = (response as any).usage?.total_tokens || 0; // FIX: Bug 1
 
-      if (onChunk) {
+      if (!!onChunk && !(tools && tools.length > 0)) { // FIX: Bug 2
         let content = '';
         for await (const chunk of response as any) {
+          if (chunk.usage) tokensUsed = chunk.usage.total_tokens; // FIX: Bug 1
           const token = chunk.choices[0]?.delta?.content || '';
           if (token) {
             content += token;
             onChunk(token);
           }
         }
+        if (userId && endpoint && tokensUsed > 0) { // FIX: Bug 1
+          supabase.from('usage_log').insert([{ user_id: userId, endpoint, tokens_used: tokensUsed }]).then(({error}) => { // FIX: Bug 1
+            if (error) console.error('[Usage Logger] Error:', error); // FIX: Bug 1
+          }); // FIX: Bug 1
+        } // FIX: Bug 1
         return content ? JSON.parse(content) : {};
       }
+
+      if (userId && endpoint && tokensUsed > 0) { // FIX: Bug 1
+        supabase.from('usage_log').insert([{ user_id: userId, endpoint, tokens_used: tokensUsed }]).then(({error}) => { // FIX: Bug 1
+          if (error) console.error('[Usage Logger] Error:', error); // FIX: Bug 1
+        }); // FIX: Bug 1
+      } // FIX: Bug 1
 
       const message = (response as any).choices[0].message;
       if (message.tool_calls && message.tool_calls.length > 0 && toolCallback) {
@@ -121,6 +129,9 @@ export class AiService {
       }
 
       const content = message.content || '';
+      if (onChunk && content) { // FIX: Bug 2
+        onChunk(content); // FIX: Bug 2
+      } // FIX: Bug 2
       return content ? JSON.parse(content) : {};
     }
   }
@@ -360,7 +371,7 @@ ${topDocs.map((doc, idx) => `[Excerpt ${idx}]\n${doc.content}\n`).join('\n')}`;
     }
   }
 
-  static async streamChat(messages: any[], systemInstruction: string) {
+  static async streamChat(messages: any[], systemInstruction: string, filter?: { subject?: string; chapter?: string }) { // FIX: Bug 5
     let primaryError: any = null;
     
     // Summarization logic to prevent context bloat
@@ -396,7 +407,7 @@ ${topDocs.map((doc, idx) => `[Excerpt ${idx}]\n${doc.content}\n`).join('\n')}`;
     const latestQuery = messages[messages.length - 1]?.content || '';
     
     // Step 2: Retrieve Context
-    const retrievedContext = await this.retrieveContext(latestQuery);
+    const retrievedContext = await this.retrieveContext(latestQuery, filter); // FIX: Bug 5
 
     // Step 3: Run the pipeline in the background before streaming
     const pipelineSystemInstruction = `${MASTER_SYSTEM_PROMPT}
@@ -444,33 +455,40 @@ You are a dual-engine AI. Ensure your answer strictly aligns with the Ground Tru
         stream: true,
       });
       return stream;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`[AI Engine] Secondary API stream also failed:`, error);
-      throw new Error(`AI Engine Stream Failure. Primary Error: ${primaryError?.message}. Secondary Error: ${error?.message}`);
+      throw new Error(`AI Engine Stream Failure. Primary Error: ${(primaryError as any)?.message}. Secondary Error: ${error?.message}`);
     }
   }
 
   static async generateSolverCritic(query: string, subject: string, language: string = 'en', messages: any[] = [], onEvent?: (event: any) => void, userId?: string) {
     const languageMap: Record<string, string> = {
       'en': 'English',
-      'bn': 'Bengali (in proper Bengali script / বাংলা লিপি, DO NOT use English letters for Bengali words)',
-      'hi': 'Hindi (in proper Devanagari script / देवनागरी, DO NOT use English letters for Hindi words)'
+      'bn': 'Bengali (Use ONLY proper Bengali script / বাংলা লিপি for ALL text. NEVER use English/Latin letters for Bengali words. No Romanized Bengali.)',
+      'hi': 'Hindi (Use ONLY proper Devanagari script / देवनागरी for ALL text. NEVER use English/Latin letters for Hindi words. No Romanized Hindi.)'
     };
     const langName = languageMap[language] || language;
 
     try {
-      if (query.length < 150) {
+      if (query.length < 1000) {
         const primaryClient = this.getPrimaryClient();
-        const recentHistory = messages.slice(-4).map(m => ({ role: m.role, content: m.content }));
+        const shortHistory = messages.slice(-4).map(m => ({ role: m.role, content: m.content }));
         const intentRes = await primaryClient.chat.completions.create({
           model: config.primaryAiModel,
           messages: [
-            { role: 'system', content: 'You are an intent classifier. Respond with ONLY the word "CONVERSATION" if the user input is a casual greeting, small talk, or simple acknowledgement without any academic/math/physics query. Otherwise, respond with "ACADEMIC".' },
-            ...recentHistory,
+            { role: 'system', content: 'You are a strict router. You must classify the user\'s message and respond with EXACTLY one word: either "ACADEMIC" or "CONVERSATION". No punctuation, no explanation.\n- Output "ACADEMIC" if it contains a physics, math, science, or study-related question that requires a step-by-step solver.\n- Output "CONVERSATION" for casual greetings (e.g. "Hello bro", "Hi"), small talk, jokes, or off-topic questions.' },
+            { role: 'user', content: 'What is the formula for kinetic energy?' },
+            { role: 'assistant', content: 'ACADEMIC' },
+            { role: 'user', content: 'Hello bro' },
+            { role: 'assistant', content: 'CONVERSATION' },
+            { role: 'user', content: 'Can you tell me a joke?' },
+            { role: 'assistant', content: 'CONVERSATION' },
+            { role: 'user', content: 'A block slides down an inclined plane' },
+            { role: 'assistant', content: 'ACADEMIC' },
             { role: 'user', content: query }
           ],
-          max_tokens: 10,
-          temperature: 0.2
+          max_tokens: 5,
+          temperature: 0.1
         });
         const intent = intentRes.choices[0].message.content?.trim().toUpperCase() || 'ACADEMIC';
 
@@ -479,8 +497,8 @@ You are a dual-engine AI. Ensure your answer strictly aligns with the Ground Tru
             const stream = await primaryClient.chat.completions.create({
               model: config.primaryAiModel,
               messages: [
-                { role: 'system', content: `You are StudyFlow AI, a helpful and friendly study assistant. Respond in ${langName}. Keep it brief, conversational, and invite the user to ask a study-related question.` },
-                ...recentHistory,
+                { role: 'system', content: `You are StudyFlow AI, an advanced, highly intelligent conversational AI. You can chat about anything, tell jokes, have fun with the user, and engage in normal conversation. Respond naturally in ${langName}. If the user is just chatting, be engaging and fun. Do NOT stubbornly force them to study if they just want to chat.` },
+                ...shortHistory,
                 { role: 'user', content: query }
               ],
               stream: true
@@ -498,8 +516,8 @@ You are a dual-engine AI. Ensure your answer strictly aligns with the Ground Tru
             const convRes = await primaryClient.chat.completions.create({
               model: config.primaryAiModel,
               messages: [
-                { role: 'system', content: `You are StudyFlow AI, a helpful and friendly study assistant. Respond in ${langName}. Keep it brief, conversational, and invite the user to ask a study-related question.` },
-                ...recentHistory,
+                { role: 'system', content: `You are StudyFlow AI, an advanced, highly intelligent conversational AI. You can chat about anything, tell jokes, have fun with the user, and engage in normal conversation. Respond naturally in ${langName}. If the user is just chatting, be engaging and fun. Do NOT stubbornly force them to study if they just want to chat.` },
+                ...shortHistory,
                 { role: 'user', content: query }
               ]
             });
@@ -831,6 +849,24 @@ CRITICAL RULES FOR AUDIT:
     appCache.set(cacheKey, finalResponse, 3600 * 24);
     
     if (queryEmbedding) {
+      let semanticCount = 0; // FIX: Bug 3
+      let oldestKey = ''; // FIX: Bug 3
+      let oldestTime = Infinity; // FIX: Bug 3
+      for (const [key] of appCache.entries()) { // FIX: Bug 3
+        if (key.startsWith('semanticCache_')) { // FIX: Bug 3
+          semanticCount++; // FIX: Bug 3
+          const parts = key.split('_'); // FIX: Bug 3
+          const time = parseInt(parts[1] || '0', 10); // FIX: Bug 3
+          if (time < oldestTime) { // FIX: Bug 3
+            oldestTime = time; // FIX: Bug 3
+            oldestKey = key; // FIX: Bug 3
+          } // FIX: Bug 3
+        } // FIX: Bug 3
+      } // FIX: Bug 3
+      if (semanticCount >= 500 && oldestKey) { // FIX: Bug 3
+        appCache.delete(oldestKey); // FIX: Bug 3
+      } // FIX: Bug 3
+
       const semanticKey = `semanticCache_${Date.now()}_${Math.random().toString(36).substring(7)}`;
       appCache.set(semanticKey, {
         subject,

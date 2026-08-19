@@ -14,6 +14,7 @@ export interface ChatSession {
   user_id: string;
   title: string;
   created_at: string;
+  is_pinned?: boolean;
 }
 
 export interface TopicMastery {

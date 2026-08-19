@@ -2,14 +2,15 @@ import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { Request, Response } from 'express';
 
 // Intelligent key generator prioritizes authenticated user IDs, then falls back to IP
+// FIX: Bug 7 (Note: this middleware must run after body-parser)
 const intelligentKeyGenerator = (req: Request, res: Response): string => {
-  if (req.body && req.body.userId) return req.body.userId;
-  if (req.query && req.query.userId) return req.query.userId as string;
   const authHeader = req.headers.authorization;
   if (authHeader) {
-    return authHeader.substring(0, 32); // Use hash/token prefix as identifier if no explicit userId
+    return authHeader.substring(0, 32); // Use hash/token prefix as identifier
   }
-  return req.ip || req.socket.remoteAddress || '127.0.0.1';
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  console.warn(`[RateLimiter] Unauthenticated request, falling back to IP: ${ip}`);
+  return ipKeyGenerator(ip);
 };
 
 // Global Rate Limiter: Increased to 500 requests per 15 minutes for smooth SPA operation

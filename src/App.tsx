@@ -1,16 +1,16 @@
 import React, { useState, Suspense, lazy } from 'react';
 import { TabType, UnitOverview, VaultProblem, CohortMetric, ChatMessage } from './types';
 import { MOCK_UNITS, MOCK_VAULT_PROBLEMS, MOCK_COHORTS } from './data/mockData';
-import { Header } from './components/Header';
-import { Navbar } from './components/Navbar';
+import { Header } from './components/layout/Header';
+import { Navbar } from './components/layout/Navbar';
 
-const HubView = lazy(() => import('./components/HubView').then(module => ({ default: module.HubView })));
-const ChatView = lazy(() => import('./components/ChatView').then(module => ({ default: module.ChatView })));
-const AnalyticsView = lazy(() => import('./components/AnalyticsView').then(module => ({ default: module.AnalyticsView })));
-const VaultView = lazy(() => import('./components/VaultView').then(module => ({ default: module.VaultView })));
-import { LoginView } from './components/LoginView';
-import { SettingsModal } from './components/SettingsModal';
-import { ToastContainer, ToastMessage, ToastType } from './components/Toast';
+const HubView = lazy(() => import('./views/HubView').then(module => ({ default: module.HubView })));
+const ChatView = lazy(() => import('./views/ChatView').then(module => ({ default: module.ChatView })));
+const AnalyticsView = lazy(() => import('./views/AnalyticsView').then(module => ({ default: module.AnalyticsView })));
+const VaultView = lazy(() => import('./views/VaultView').then(module => ({ default: module.VaultView })));
+import { LoginView } from './views/LoginView';
+import { SettingsModal } from './components/settings/SettingsModal';
+import { ToastContainer, ToastMessage, ToastType } from './components/common/Toast';
 import { m, AnimatePresence, LazyMotion, domAnimation } from 'motion/react';
 import { SignedIn, SignedOut, useClerk, useAuth } from '@clerk/clerk-react';
 
@@ -42,6 +42,16 @@ export default function App() {
     }
   });
 
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    try { return localStorage.getItem('studyflow_sidebar_collapsed') === 'true'; } catch { return false; }
+  });
+
+  const toggleSidebar = () => {
+    const newVal = !isSidebarCollapsed;
+    setIsSidebarCollapsed(newVal);
+    try { localStorage.setItem('studyflow_sidebar_collapsed', String(newVal)); } catch (e) {}
+  };
+
   React.useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -63,38 +73,22 @@ export default function App() {
     }, 3000);
   }, []);
 
-
   const handleClearData = async () => {
     if (!userId) return;
     
     try {
-      const token = await getToken();
+      const token = await getToken({ template: 'supabase' });
       
       const response = await fetch(`/api/db/chats/user/${userId}`, {
+        method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch chats');
+        throw new Error('Failed to delete chats');
       }
-      
-      const chats = await response.json();
-      
-      const deletePromises = chats.map((chat: any) => 
-        fetch(`/api/db/chats/${chat._id || chat.id}`, {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }).then(res => {
-          if (!res.ok) throw new Error('Failed to delete chat');
-          return res;
-        })
-      );
-      
-      await Promise.all(deletePromises);
       
       setChatMessages([]);
       window.dispatchEvent(new Event('clear-chat-history'));
@@ -112,12 +106,10 @@ export default function App() {
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="flex flex-col h-[100dvh] w-full bg-neo transition-colors duration-300 relative">
-      
-      {/* Toast Notifications container */}
+      <div className="flex flex-col min-h-[100dvh] w-full bg-slate-50 dark:bg-mesh-dark text-slate-900 dark:text-zinc-50 transition-colors duration-700 relative selection:bg-[#2563EB]/30">
       <ToastContainer toasts={toasts} />
       <SignedIn>
-        <div className="flex flex-col h-full w-full md:pl-24">
+        <div className={`flex flex-col h-full w-full transition-all duration-300 ${isSidebarCollapsed ? 'md:pl-[88px]' : 'md:pl-[260px]'}`}>
           <Header 
             currentUnit={selectedUnitId}
             onSelectUnit={(unitId) => setSelectedUnitId(unitId)}
@@ -191,7 +183,14 @@ export default function App() {
       </main>
 
       {/* Persistent Bottom Tab Navigation */}
-      <Navbar activeTab={activeTab} onTabChange={setActiveTab} soundEnabled={soundEnabled} />
+      <Navbar 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+        soundEnabled={soundEnabled} 
+        onOpenSettings={() => setShowSettings(true)}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={toggleSidebar}
+      />
     </div>
       </SignedIn>
       <SignedOut>

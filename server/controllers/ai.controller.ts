@@ -16,16 +16,6 @@ export const handleSolverCritic = async (req: Request, res: Response, next: Next
       return res.status(400).json({ error: 'Query is required' });
     }
 
-    // Save user message to DB
-    if (chatId) {
-      const { error: userErr } = await getClient(req).from('messages').insert([{
-        chat_id: chatId,
-        role: 'user',
-        content: query
-      }]);
-      if (userErr) console.error("Error saving user message:", userErr);
-    }
-
     const isStream = req.query.stream === 'true' || req.headers.accept === 'text/event-stream';
 
     let finalResponse: any;
@@ -77,6 +67,16 @@ export const handleSolverCritic = async (req: Request, res: Response, next: Next
       res.json(finalResponse);
     }
 
+    // Save user message to DB // FIX: Bug 6
+    if (chatId && finalResponse) { // FIX: Bug 6
+      const { error: userErr } = await getClient(req).from('messages').insert([{ // FIX: Bug 6
+        chat_id: chatId, // FIX: Bug 6
+        role: 'user', // FIX: Bug 6
+        content: query // FIX: Bug 6
+      }]); // FIX: Bug 6
+      if (userErr) console.error("Error saving user message:", userErr); // FIX: Bug 6
+    } // FIX: Bug 6
+
     // Save assistant message to DB (stringified JSON)
     if (chatId && finalResponse) {
       const { error: astErr } = await getClient(req).from('messages').insert([{
@@ -101,7 +101,7 @@ export const handleSolverCritic = async (req: Request, res: Response, next: Next
       if (masteryErr) console.error("Error upserting mastery:", masteryErr);
     }
 
-  } catch (err) {
+  } catch (err: any) {
     if (res.headersSent) {
       if (!res.writableEnded) {
         res.write(`event: error\ndata: ${JSON.stringify({ error: err.message || 'Stream error' })}\n\n`);
@@ -132,36 +132,28 @@ export const handleAuditTopic = async (req: Request, res: Response, next: NextFu
 
 export const handleChatStream = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { messages, chatId } = req.body;
+    const { messages, chatId, subject } = req.body; // FIX: Bug 5
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: 'messages array cannot be empty' });
     }
 
-    // Save user message to DB
+    const systemInstruction = "You are StudyFlow AI, an intelligent and helpful academic study assistant. Provide clear, step-by-step explanations for the user's queries across various subjects.";
+
     let originalUserContent = '';
     if (messages.length > 0) {
       const lastMsg = messages[messages.length - 1];
       if (lastMsg.role === 'user') {
         originalUserContent = lastMsg.content;
-        if (chatId) {
-          const { error: userErr } = await getClient(req).from('messages').insert([{
-            chat_id: chatId,
-            role: 'user',
-            content: originalUserContent
-          }]);
-          if (userErr) console.error("Error saving user message:", userErr);
-        }
       }
     }
-
-    const systemInstruction = "You are StudyFlow AI, an intelligent and helpful academic study assistant. Provide clear, step-by-step explanations for the user's queries across various subjects.";
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    const cacheKey = 'chat_' + Buffer.from(JSON.stringify(messages)).toString('base64');
+    const lastUserMsg = messages.length > 0 ? messages[messages.length - 1].content : ''; // FIX: Bug 4
+    const cacheKey = `chat_${messages.length}_${Buffer.from(lastUserMsg).toString('base64')}`; // FIX: Bug 4
     const cachedResponse = appCache.get<string>(cacheKey);
 
     let fullAssistantContent = '';
@@ -170,7 +162,7 @@ export const handleChatStream = async (req: Request, res: Response, next: NextFu
       fullAssistantContent = cachedResponse;
       res.write(`data: ${JSON.stringify({ content: cachedResponse })}\n\n`);
     } else {
-      const stream = await AiService.streamChat(messages, systemInstruction);
+      const stream = await AiService.streamChat(messages, systemInstruction, { subject }); // FIX: Bug 5
       for await (const chunk of stream) {
         const content = chunk.choices[0]?.delta?.content || '';
         if (content) {
@@ -184,17 +176,28 @@ export const handleChatStream = async (req: Request, res: Response, next: NextFu
     res.write('data: [DONE]\n\n');
     res.end();
 
-    // Save assistant message to DB
-    if (chatId && fullAssistantContent) {
-      const { error: astErr } = await getClient(req).from('messages').insert([{
-        chat_id: chatId,
-        role: 'assistant',
-        content: fullAssistantContent
-      }]);
-      if (astErr) console.error("Error saving assistant message:", astErr);
+    // Save messages to DB now that AI generated a response
+    if (chatId) {
+      if (originalUserContent) {
+        const { error: userErr } = await getClient(req).from('messages').insert([{
+          chat_id: chatId,
+          role: 'user',
+          content: originalUserContent
+        }]);
+        if (userErr) console.error("Error saving user message:", userErr);
+      }
+      
+      if (fullAssistantContent) {
+        const { error: astErr } = await getClient(req).from('messages').insert([{
+          chat_id: chatId,
+          role: 'assistant',
+          content: fullAssistantContent
+        }]);
+        if (astErr) console.error("Error saving assistant message:", astErr);
+      }
     }
 
-  } catch (err) {
+  } catch (err: any) {
     if (res.headersSent) {
       if (!res.writableEnded) {
         res.write(`data: ${JSON.stringify({ error: err.message || 'Stream error' })}\n\n`);

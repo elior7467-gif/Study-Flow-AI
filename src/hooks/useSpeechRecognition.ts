@@ -4,6 +4,11 @@ export const useSpeechRecognition = (onTranscript: (text: string) => void) => {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
   const recognitionRef = useRef<any>(null);
+  
+  const onTranscriptRef = useRef(onTranscript);
+  useEffect(() => {
+    onTranscriptRef.current = onTranscript;
+  }, [onTranscript]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -28,7 +33,7 @@ export const useSpeechRecognition = (onTranscript: (text: string) => void) => {
         }
       }
       if (finalTranscript) {
-        onTranscript(finalTranscript.trim());
+        onTranscriptRef.current(finalTranscript.trim());
       }
     };
 
@@ -42,7 +47,14 @@ export const useSpeechRecognition = (onTranscript: (text: string) => void) => {
     };
 
     recognitionRef.current = recognition;
-  }, [onTranscript]);
+
+    return () => {
+      recognition.stop();
+      recognition.onresult = null;
+      recognition.onerror = null;
+      recognition.onend = null;
+    };
+  }, []);
 
   const startListening = () => {
     if (!recognitionRef.current) return;

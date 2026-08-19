@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { ingestDocument } from '../scripts/ingest';
 import fs from 'fs';
+import crypto from 'crypto';
 
 import path from 'path';
 
@@ -10,15 +11,33 @@ const router = Router();
 // Configure multer for file uploads
 const upload = multer({ dest: 'server/data/' });
 
-// Simple shared-secret protection
+// Secure shared-secret protection
 const adminAuth = (req: Request, res: Response, next: any) => {
-  const secret = req.headers['x-admin-secret'];
-  if (!secret || secret !== process.env.ADMIN_SECRET) {
+  const providedSecret = req.headers['x-admin-secret'];
+  const expectedSecret = process.env.ADMIN_SECRET;
+
+  if (!expectedSecret) {
+    return res.status(500).json({ error: 'Server misconfiguration: Admin Secret is not set.' });
+  }
+
+  if (!providedSecret || typeof providedSecret !== 'string') {
+    return res.status(401).json({ error: 'Unauthorized: Missing or invalid Admin Secret' });
+  }
+
+  const providedBuffer = Buffer.from(providedSecret);
+  const expectedBuffer = Buffer.from(expectedSecret);
+
+  if (providedBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(providedBuffer, expectedBuffer)) {
     return res.status(401).json({ error: 'Unauthorized: Invalid Admin Secret' });
   }
+  
   next();
 };
 import { adminLimiter } from '../middlewares/rateLimiter';
+
+router.get('/system/health', adminAuth, (req: Request, res: Response) => {
+  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
 
 router.post('/ingest', adminLimiter, adminAuth, upload.single('file'), async (req: Request, res: Response) => {
   try {
