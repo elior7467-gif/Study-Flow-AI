@@ -2,11 +2,21 @@ import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { Request, Response } from 'express';
 
 // Intelligent key generator prioritizes authenticated user IDs, then falls back to IP
-// FIX: Bug 7 (Note: this middleware must run after body-parser)
 const intelligentKeyGenerator = (req: Request, res: Response): string => {
-  const authHeader = req.headers.authorization;
-  if (authHeader) {
-    return authHeader.substring(0, 32); // Use hash/token prefix as identifier
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const payloadBase64 = token.split('.')[1];
+      if (payloadBase64) {
+        const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString('utf8'));
+        if (payload && payload.sub) {
+          return `user_${payload.sub}`;
+        }
+      }
+    }
+  } catch (e) {
+    // Ignore decode errors and fall back to IP
   }
   // @ts-ignore
   return ipKeyGenerator(req, res);

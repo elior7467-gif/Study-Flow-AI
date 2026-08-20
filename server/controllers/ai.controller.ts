@@ -152,8 +152,9 @@ export const handleChatStream = async (req: Request, res: Response, next: NextFu
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    const lastUserMsg = messages.length > 0 ? messages[messages.length - 1].content : ''; // FIX: Bug 4
-    const cacheKey = `chat_${messages.length}_${Buffer.from(lastUserMsg).toString('base64')}`; // FIX: Bug 4
+    const crypto = require('crypto');
+    const messagesHash = crypto.createHash('sha256').update(JSON.stringify(messages)).digest('hex');
+    const cacheKey = `chat_${messagesHash}`;
     const cachedResponse = appCache.get<string>(cacheKey);
 
     let fullAssistantContent = '';

@@ -98,7 +98,15 @@ export class AiService {
             if (error) console.error('[Usage Logger] Error:', error); // FIX: Bug 1
           }); // FIX: Bug 1
         } // FIX: Bug 1
-        return content ? JSON.parse(content) : {};
+        if (content) {
+          try {
+            return JSON.parse(content);
+          } catch (e) {
+            console.error('[AI Engine] Failed to parse JSON stream chunk:', e);
+            return {};
+          }
+        }
+        return {};
       }
 
       if (userId && endpoint && tokensUsed > 0) { // FIX: Bug 1
@@ -145,7 +153,15 @@ export class AiService {
         }
         cleanContent = cleanContent.trim();
       }
-      return cleanContent ? JSON.parse(cleanContent) : {};
+      if (cleanContent) {
+        try {
+          return JSON.parse(cleanContent);
+        } catch (e) {
+          console.error('[AI Engine] Failed to parse JSON response:', e);
+          return {};
+        }
+      }
+      return {};
     }
   }
 

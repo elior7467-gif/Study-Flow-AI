@@ -40,7 +40,7 @@ async function startServer() {
   }));
 
   // Body parser
-  app.use(express.json({ limit: '10kb' }));
+  app.use(express.json({ limit: '10mb' }));
 
   // Protect against HTTP Parameter Pollution
   app.use(hpp());
