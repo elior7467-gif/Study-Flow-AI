@@ -8,6 +8,7 @@ const intelligentKeyGenerator = (req: Request, res: Response): string => {
   if (authHeader) {
     return authHeader.substring(0, 32); // Use hash/token prefix as identifier
   }
+  // @ts-ignore
   return ipKeyGenerator(req, res);
 };
 

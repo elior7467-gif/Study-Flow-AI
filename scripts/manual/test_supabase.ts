@@ -4,6 +4,12 @@ dotenv.config({ path: '../../.env' });
 
 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!);
 
-supabase.from('chats').insert([{ user_id: 'test', title: 'test chat' }]).select().single()
-  .then(res => console.log('OK:', res))
-  .catch(err => console.error('ERR:', err));
+const run = async () => {
+  try {
+    const res = await supabase.from('chats').insert([{ user_id: 'test', title: 'test chat' }]).select().single();
+    console.log('OK:', res);
+  } catch (err: any) {
+    console.error('ERR:', err);
+  }
+};
+run();
