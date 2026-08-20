@@ -198,9 +198,14 @@ export const DualAiResponseView: React.FC<Props> = React.memo(({ data, preproces
       </h2>
       
       {data.summary && (
-        <p className="text-sm opacity-80 mb-6 leading-relaxed">
-          {data.summary}
-        </p>
+        <div className="text-sm opacity-80 mb-6 leading-relaxed">
+          <ReactMarkdown 
+            remarkPlugins={[remarkGfm, remarkMath]}
+            rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
+          >
+            {preprocessMath(data.summary)}
+          </ReactMarkdown>
+        </div>
       )}
 
       {/* Steps */}
@@ -219,7 +224,16 @@ export const DualAiResponseView: React.FC<Props> = React.memo(({ data, preproces
                 )}
               </div>
               
-              {step.description && <p className="text-sm leading-relaxed">{step.description}</p>}
+              {step.description && (
+                <div className="text-sm leading-relaxed">
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm, remarkMath]}
+                    rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
+                  >
+                    {preprocessMath(step.description)}
+                  </ReactMarkdown>
+                </div>
+              )}
               
               {step.mathBlock && (
                 <div className="bg-zinc-50 dark:bg-zinc-900 border border-black/5 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-900/50 p-3 rounded-xl overflow-x-auto my-2 text-sm">
@@ -234,7 +248,13 @@ export const DualAiResponseView: React.FC<Props> = React.memo(({ data, preproces
               
               {!isVerifying && !step.verified && step.criticFeedback && (
                 <div className="mt-2 text-xs text-rose-600 dark:text-rose-400 bg-rose-500/10 p-2.5 rounded-lg border border-rose-500/20 leading-relaxed">
-                  <strong>Critic Alert:</strong> {step.criticFeedback}
+                  <strong>Critic Alert:</strong>
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm, remarkMath]}
+                    rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
+                  >
+                    {preprocessMath(step.criticFeedback)}
+                  </ReactMarkdown>
                 </div>
               )}
             </div>

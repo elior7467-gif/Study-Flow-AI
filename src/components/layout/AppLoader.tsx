@@ -43,7 +43,7 @@ export const AppLoader: React.FC<AppLoaderProps> = ({ onComplete }) => {
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, y: -20, filter: "blur(10px)" }}
       transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0A0A0B] text-white"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-zinc-50 dark:bg-[#0A0A0B] text-zinc-900 dark:text-white"
     >
       <div className="flex flex-col items-center flex-1 justify-center relative mt-20">
         <div className="flex items-center gap-4 mb-10">
@@ -51,7 +51,7 @@ export const AppLoader: React.FC<AppLoaderProps> = ({ onComplete }) => {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-white/[0.06] flex items-center justify-center shadow-[0_0_40px_rgba(59,130,246,0.3)] overflow-hidden border border-black/5 dark:border-white/5"
+            className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-white/[0.06] flex items-center justify-center shadow-[0_0_40px_rgba(59,130,246,0.2)] dark:shadow-[0_0_40px_rgba(59,130,246,0.3)] overflow-hidden border border-black/5 dark:border-white/5"
           >
             <img src="/logo.jpg" alt="StudyFlow AI" className="w-full h-full object-cover" />
           </m.div>
@@ -69,7 +69,7 @@ export const AppLoader: React.FC<AppLoaderProps> = ({ onComplete }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="font-medium text-xl text-white/80"
+          className="font-medium text-xl text-zinc-500 dark:text-white/80"
         >
           {progress}%
         </m.div>
@@ -82,7 +82,7 @@ export const AppLoader: React.FC<AppLoaderProps> = ({ onComplete }) => {
         transition={{ duration: 0.5, delay: 0.3 }}
         className="w-full max-w-sm px-6 pb-24 relative"
       >
-        <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+        <div className="h-1.5 w-full bg-zinc-200 dark:bg-white/10 rounded-full overflow-hidden">
           <div 
             className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-75 ease-out"
             style={{ width: `${progress}%` }}
