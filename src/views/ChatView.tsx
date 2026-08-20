@@ -47,6 +47,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
   const [soundEnabled, setSoundEnabled] = useState(propSoundEnabled);
   
   const [chatSearchQuery, setChatSearchQuery] = useState('');
+  const [isSearchActive, setIsSearchActive] = useState(false);
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editChatTitle, setEditChatTitle] = useState('');
   
@@ -246,11 +247,11 @@ export const ChatView: React.FC<ChatViewProps> = ({
     playSound('click', soundEnabled);
     setIsProcessingImage(true);
     
-    // Simulate OCR processing for demo
+    // Honest demo state instead of fake OCR
     setTimeout(() => {
       setIsProcessingImage(false);
-      setUserPrompt("A block of mass m = 2kg is sliding down a frictionless inclined plane at an angle of 30 degrees. Calculate the acceleration of the block.");
-      onNotify?.("Image scanned and text extracted successfully!", "success");
+      setUserPrompt("Demo Mode: image scanning coming soon");
+      onNotify?.("Image scanning feature is coming soon!", "info");
     }, 1500);
   };
 
@@ -450,7 +451,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
     }, 100);
   };
   return (
-    <div className="flex h-full w-full overflow-hidden relative transition-all duration-300">
+    <div className="flex flex-1 w-full overflow-hidden relative transition-all duration-300">
       
       {/* Mobile Sidebar Toggle */}
       <button 
@@ -462,34 +463,64 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
       {/* Sidebar for Chat History */}
       <div className={`
-        absolute md:static inset-y-0 left-0 z-40 w-60 bg-white dark:bg-[#111113] border-r border-zinc-200 dark:border-white/[0.06] flex flex-col transition-transform duration-300 ease-in-out
+        absolute md:static inset-y-0 left-0 z-40 w-60 bg-zinc-50 dark:bg-[#1E1F20] flex flex-col transition-transform duration-300 ease-in-out pt-16 md:pt-4
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
-        <div className="p-3 border-b border-zinc-200 dark:border-white/[0.06] space-y-2">
+        <div className="px-4 py-2 flex items-center gap-2 mb-4">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <span className="font-semibold text-zinc-900 dark:text-zinc-100 text-lg tracking-tight">StudyFlow</span>
+        </div>
+
+        <div className="px-3 space-y-1">
           <button 
             onClick={() => {
               isManualSwitch.current = true;
               setActiveChatId(null);
               setSidebarOpen(false);
             }}
-            className="w-full flex items-center justify-center gap-2 bg-zinc-100 dark:bg-white/[0.04] border border-zinc-200 dark:border-white/[0.06] text-zinc-700 dark:text-zinc-200 py-2 px-3 rounded-lg text-sm font-medium hover:bg-zinc-200 dark:hover:bg-white/[0.08] active:scale-[0.98] premium-transition"
+            className="w-full flex items-center gap-3 text-zinc-700 dark:text-zinc-300 py-2.5 px-3 rounded-full text-sm font-medium hover:bg-zinc-200 dark:hover:bg-white/[0.08] active:scale-[0.98] transition-all"
           >
             <Plus className="w-4 h-4" />
-            New Chat
+            New chat
           </button>
+          {isSearchActive ? (
+            <div className="relative mt-2">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+              <input 
+                type="text"
+                autoFocus
+                placeholder="Search chats..."
+                value={chatSearchQuery}
+                onChange={(e) => setChatSearchQuery(e.target.value)}
+                onBlur={() => { if (!chatSearchQuery) setIsSearchActive(false); }}
+                className="w-full bg-zinc-200/50 dark:bg-white/[0.04] border border-transparent dark:border-white/[0.06] text-zinc-900 dark:text-zinc-200 text-sm rounded-full pl-9 pr-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-blue-500/40 transition-all placeholder:text-zinc-500"
+              />
+            </div>
+          ) : (
+            <button 
+              onClick={() => setIsSearchActive(true)}
+              className="w-full flex items-center gap-3 text-zinc-700 dark:text-zinc-300 py-2.5 px-3 rounded-full text-sm font-medium hover:bg-zinc-200 dark:hover:bg-white/[0.08] active:scale-[0.98] transition-all"
+            >
+              <Search className="w-4 h-4" />
+              Search chats
+            </button>
+          )}
           
-          {/* Chat Search */}
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-            <input 
-              type="text"
-              placeholder="Search history..."
-              value={chatSearchQuery}
-              onChange={(e) => setChatSearchQuery(e.target.value)}
-              className="w-full bg-zinc-50 dark:bg-white/[0.03] border border-zinc-200 dark:border-white/[0.06] text-zinc-900 dark:text-zinc-200 text-xs rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:border-blue-500/40 premium-transition placeholder:text-zinc-400"
-            />
-          </div>
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full flex items-center gap-3 text-zinc-700 dark:text-zinc-300 py-2.5 px-3 rounded-full text-sm font-medium hover:bg-zinc-200 dark:hover:bg-white/[0.08] active:scale-[0.98] transition-all"
+          >
+            <Camera className="w-4 h-4" />
+            Images
+          </button>
         </div>
+
+        <div className="mt-8 px-5 pb-2">
+          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Recents</span>
+        </div>
+
         
         <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[#E2E8F0] dark:scrollbar-thumb-[#1E293B] p-3 space-y-1">
           {chats
@@ -574,30 +605,24 @@ export const ChatView: React.FC<ChatViewProps> = ({
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col h-full bg-white dark:bg-[#0A0A0B] relative">
+      <div className="flex-1 flex flex-col h-full bg-white dark:bg-[#131314] relative">
         {/* Scrollable Chat History */}
         <div 
           ref={scrollRef}
-          className="flex-1 overflow-y-auto space-y-6 px-4 md:px-8 scrollbar-thin scrollbar-thumb-zinc-300 dark:scrollbar-thumb-white/[0.08] scrollbar-track-transparent pt-16 md:pt-8 pb-12"
+          className="flex-1 overflow-y-auto space-y-6 px-4 md:px-8 scrollbar-thin scrollbar-thumb-zinc-300 dark:scrollbar-thumb-[#1E1F20] scrollbar-track-transparent pt-16 md:pt-16 pb-12"
         >
           <AnimatePresence mode="popLayout">
           {messages.length === 0 && (
             <m.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 200, damping: 20 }}
-              className="flex justify-start items-start gap-3 mb-6"
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.4 }}
+              className="flex flex-col items-center justify-center h-full min-h-[40vh] gap-4"
             >
-              <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 flex-shrink-0 mt-1">
-                <Bot className="w-4 h-4" />
-              </div>
-              <div className="bg-zinc-50 dark:bg-white/[0.04] border border-zinc-200 dark:border-white/[0.06] rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
-                <p className="text-[13px] text-zinc-600 dark:text-zinc-300 leading-relaxed">
-                  Hi! I'm the <span className="font-semibold text-zinc-900 dark:text-white">StudyFlow AI</span>. 
-                  Ask me any academic question and I'll explain it step-by-step.
-                </p>
-              </div>
+              <h1 className="text-3xl md:text-4xl font-medium text-transparent bg-clip-text bg-gradient-to-r from-zinc-800 to-zinc-500 dark:from-zinc-100 dark:to-zinc-400 text-center">
+                What can I help with, {user?.firstName || 'Agnishwar'}?
+              </h1>
             </m.div>
           )}
 
@@ -630,8 +655,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
         </div>
 
         {/* Input Container */}
-        <div className="px-4 md:px-8 pt-3 pb-24 md:pb-6 w-full max-w-4xl mx-auto">
-          <div className="sf-card p-1.5">
+        <div className="px-4 md:px-8 pt-3 pb-6 md:pb-8 w-full max-w-3xl mx-auto flex flex-col items-center">
+          <div className="w-full bg-zinc-100 dark:bg-[#1E1F20] rounded-[32px] p-2 pr-4 shadow-sm relative transition-all focus-within:ring-2 focus-within:ring-white/10">
             {/* Demo Preset Chips - only show on empty chat */}
             {!activeChatId && messages.length === 0 && (
               <m.div 
@@ -641,7 +666,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                   visible: { transition: { staggerChildren: 0.1 } },
                   hidden: {}
                 }}
-                className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none px-2 pt-2"
+                className="absolute bottom-full mb-4 left-0 flex items-center justify-center w-full gap-2 overflow-x-auto px-4 scrollbar-none"
               >
                 {presetQueries.map((preset, idx) => (
                   <m.button
@@ -657,7 +682,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                       playSound('click', soundEnabled);
                       handleSubmit(undefined, preset.text);
                     }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 dark:bg-white/[0.04] border border-zinc-200 dark:border-white/[0.06] hover:border-zinc-300 dark:hover:border-white/[0.12] rounded-lg text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-all flex-shrink-0 cursor-pointer"
+                    className="px-4 py-2 bg-zinc-100 dark:bg-[#1E1F20] rounded-full text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-all flex-shrink-0 cursor-pointer shadow-sm"
                   >
                     {preset.label}
                   </m.button>
@@ -665,20 +690,29 @@ export const ChatView: React.FC<ChatViewProps> = ({
               </m.div>
             )}
 
-            <form onSubmit={(e) => handleSubmit(e)} className="flex items-center gap-1 relative">
-              <select
-                value={language}
-                onChange={(e) => {
-                  const newLang = e.target.value;
-                  setLanguage(newLang);
-                  try { localStorage.setItem('preferred_language', newLang); } catch (err) {}
-                }}
-                className="bg-zinc-100 dark:bg-white/[0.04] border border-zinc-200 dark:border-white/[0.06] rounded-lg px-2 py-2 mx-1 text-[11px] font-semibold tracking-wider uppercase text-zinc-600 dark:text-zinc-400 focus:outline-none cursor-pointer flex-shrink-0 premium-transition"
+            <form onSubmit={(e) => handleSubmit(e)} className="flex items-center gap-2 w-full">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isProcessingImage}
+                className="cursor-pointer text-zinc-400 hover:text-zinc-900 dark:hover:text-white w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all ml-1"
+                title="Upload image"
               >
-                <option value="en" className="bg-white dark:bg-[#111113]">EN</option>
-                <option value="bn" className="bg-white dark:bg-[#111113]">BN</option>
-                <option value="hi" className="bg-white dark:bg-[#111113]">HI</option>
-              </select>
+                {isProcessingImage ? (
+                  <RefreshCw className="w-5 h-5 animate-spin text-zinc-300" />
+                ) : (
+                  <Plus className="w-6 h-6 text-zinc-300 dark:text-zinc-400" />
+                )}
+              </button>
+              
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                accept="image/*" 
+                className="hidden" 
+                onChange={handleImageUpload} 
+              />
+
               <textarea
                 ref={inputRef as any}
                 value={userPrompt}
@@ -695,85 +729,57 @@ export const ChatView: React.FC<ChatViewProps> = ({
                     }
                   }
                 }}
-                placeholder="Message AI... (Shift+Enter for new line)"
-                className="flex-1 bg-transparent px-3 py-3 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none placeholder:text-zinc-400 resize-none overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-300 dark:scrollbar-thumb-white/[0.08]"
-                style={{ minHeight: '44px', maxHeight: '150px' }}
+                placeholder="Ask StudyFlow..."
+                className="flex-1 bg-transparent px-2 py-3.5 text-base text-zinc-900 dark:text-zinc-100 focus:outline-none placeholder:text-zinc-500 resize-none overflow-y-auto scrollbar-none"
+                style={{ minHeight: '52px', maxHeight: '150px' }}
                 rows={1}
                 disabled={loading}
               />
               
-              <AnimatePresence>
-                {userPrompt.trim() && !isListening && (
-                  <m.div
-                    initial={{ opacity: 0, scale: 0.5, x: 10 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    exit={{ opacity: 0, scale: 0.5, x: 10 }}
-                    className="absolute right-[115px] top-1/2 -translate-y-1/2 pointer-events-none"
+              <div className="flex items-center gap-2 flex-shrink-0">
+
+
+                {isSupported && (
+                  <button
+                    type="button"
+                    onClick={toggleListening}
+                    className={`cursor-pointer w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${isListening ? 'text-rose-500 bg-rose-500/10' : 'text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white/5'}`}
                   >
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#2563EB] dark:bg-[#60A5FA] animate-ping opacity-75" />
-                  </m.div>
+                    {isListening ? (
+                      <MicOff className="w-5 h-5" />
+                    ) : (
+                      <Mic className="w-5 h-5 text-zinc-300 dark:text-zinc-400" />
+                    )}
+                  </button>
                 )}
-              </AnimatePresence>
-              
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                accept="image/*" 
-                className="hidden" 
-                onChange={handleImageUpload} 
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isProcessingImage}
-                className="cursor-pointer text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.06] w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 premium-transition self-end mb-0.5"
-              >
-                {isProcessingImage ? (
-                  <RefreshCw className="w-4 h-4 animate-spin text-blue-500" />
-                ) : (
-                  <Camera className="w-4 h-4" />
+
+                {loading ? (
+                  <button
+                    type="button"
+                    onClick={handleStop}
+                    className="cursor-pointer text-zinc-400 hover:text-white w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all bg-white/5 hover:bg-white/10"
+                    title="Stop generating"
+                  >
+                    <Square className="w-4 h-4 fill-current" />
+                  </button>
+                ) : userPrompt.trim() && (
+                  <m.button
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    type="submit"
+                    className="cursor-pointer text-zinc-300 dark:text-zinc-200 hover:text-white w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all bg-zinc-800 dark:bg-white/5 hover:bg-zinc-700 dark:hover:bg-white/10"
+                  >
+                    <Send className="w-4 h-4" />
+                  </m.button>
                 )}
-              </button>
-
-              {isSupported && (
-                <button
-                  type="button"
-                  onClick={toggleListening}
-                  className={`cursor-pointer w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 premium-transition relative self-end mb-0.5 ${isListening ? 'text-rose-500 bg-rose-500/10' : 'text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.06]'}`}
-                >
-                  {isListening ? (
-                    <MicOff className="w-4 h-4" />
-                  ) : (
-                    <Mic className="w-4 h-4" />
-                  )}
-                  {isListening && (
-                    <span className="absolute w-2 h-2 bg-rose-500 rounded-full animate-ping right-0.5 top-0.5" />
-                  )}
-                </button>
-              )}
-
-              {loading ? (
-                <button
-                  type="button"
-                  onClick={handleStop}
-                  className="cursor-pointer bg-rose-500 hover:bg-rose-600 text-white w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 premium-transition self-end mb-0 shadow-sm"
-                  title="Stop generating"
-                >
-                  <Square className="w-4 h-4 fill-current" />
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={!userPrompt.trim() && !isListening}
-                  className="cursor-pointer bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-800 dark:hover:bg-zinc-100 w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 premium-transition self-end mb-0 shadow-sm disabled:shadow-none"
-                >
-                  <Send className="w-4 h-4 ml-0.5" />
-                </button>
-              )}
+              </div>
             </form>
           </div>
+          
+          <div className="mt-3 text-[11px] text-zinc-500 dark:text-zinc-500/80 text-center">
+            StudyFlow is AI and can make mistakes.
+          </div>
         </div>
-      </div>
       
       {/* Overlay for mobile sidebar */}
       {sidebarOpen && (
@@ -782,6 +788,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
           onClick={() => setSidebarOpen(false)}
         />
       )}
+    </div>
     </div>
   );
 };

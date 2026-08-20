@@ -106,10 +106,10 @@ export default function App() {
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="flex flex-col min-h-[100dvh] w-full bg-zinc-50 dark:bg-mesh-dark text-zinc-900 dark:text-zinc-100 transition-colors duration-500 relative selection:bg-blue-500/20">
+      <div className="flex flex-col min-h-[100dvh] w-full bg-zinc-50 dark:bg-[#0A0A0B] text-zinc-900 dark:text-zinc-100 transition-colors duration-500 relative selection:bg-blue-500/20">
       <ToastContainer toasts={toasts} />
       <SignedIn>
-        <div className={`flex flex-col h-full w-full transition-all duration-300 ${isSidebarCollapsed ? 'md:pl-[72px]' : 'md:pl-[240px]'}`}>
+        <div className={`flex flex-col flex-1 h-full w-full transition-all duration-300 ${isSidebarCollapsed ? 'md:pl-[72px]' : 'md:pl-[240px]'}`}>
           <Header 
             currentUnit={selectedUnitId}
             onSelectUnit={(unitId) => setSelectedUnitId(unitId)}
@@ -136,7 +136,7 @@ export default function App() {
           />
 
       {/* Main View Container with Animated View Transitions */}
-      <main className={`flex-1 w-full mx-auto relative overflow-x-hidden ${activeTab === 'chat' ? 'px-0 max-w-none overflow-y-hidden' : 'px-4 md:px-6 lg:px-8 max-w-[1600px] overflow-y-auto'}`}>
+      <main className={`flex-1 w-full mx-auto relative overflow-x-hidden ${activeTab === 'chat' ? 'px-0 max-w-none overflow-y-hidden flex flex-col' : 'px-4 md:px-6 lg:px-8 max-w-[1600px] overflow-y-auto'}`}>
         <AnimatePresence mode="wait">
           <m.div
             key={activeTab}
@@ -144,7 +144,7 @@ export default function App() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12, scale: 0.99 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className={`w-full ${activeTab === 'chat' ? 'h-full' : 'min-h-full pb-32 md:pb-12'}`}
+            className={`w-full ${activeTab === 'chat' ? 'flex-1 flex flex-col' : 'min-h-full pb-32 md:pb-12'}`}
           >
             <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><div className="w-8 h-8 rounded-full border-4 border-t-[#2563EB] border-black/10 dark:border-white/10 animate-spin" /></div>}>
               {activeTab === 'hub' && (

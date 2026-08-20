@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CohortMetric } from '../types';
+import { MOCK_UNITS } from '../data/mockData';
 import { Globe, ShieldCheck, TrendingUp, ChevronUp, RefreshCw } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
 
@@ -9,6 +10,10 @@ interface AnalyticsProps {
 }
 
 export const AnalyticsView: React.FC<AnalyticsProps> = ({ onNotify, isTeacherMode = false }) => {
+  const getTopicTitle = (id: string) => {
+    const unit = MOCK_UNITS.find(u => u.id === id);
+    return unit ? unit.title : id;
+  };
   const [cohorts, setCohorts] = useState<CohortMetric[]>([]);
   const [globalStats, setGlobalStats] = useState({ overallVerifiedRate: 0, totalQueries: 0 });
   const [loading, setLoading] = useState(true);
@@ -120,7 +125,7 @@ export const AnalyticsView: React.FC<AnalyticsProps> = ({ onNotify, isTeacherMod
             .map((c) => (
             <div key={c.cohortId}>
               <div className="flex items-center justify-between font-bold text-zinc-900 dark:text-zinc-50 mb-1">
-                <span className="truncate pr-2">{c.cohortId}</span>
+                <span className="truncate pr-2">{getTopicTitle(c.cohortId)}</span>
                 <span className="text-[#2563EB] dark:text-[#60A5FA]">{c.meanScore.toFixed(1)}%</span>
               </div>
               <div className="w-full bg-white dark:bg-[#09090b] border border-black/5 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-900/50 h-2.5 rounded-full overflow-hidden">
@@ -176,7 +181,7 @@ export const AnalyticsView: React.FC<AnalyticsProps> = ({ onNotify, isTeacherMod
             <tbody className="divide-y divide-black/5 dark:divide-white/5 font-medium text-zinc-900 dark:text-zinc-50">
               {sortedCohorts.map((c) => (
                 <tr key={c.cohortId} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                  <td className="py-3 px-1 font-bold">{c.cohortId}</td>
+                  <td className="py-3 px-1 font-bold">{getTopicTitle(c.cohortId)}</td>
                   <td className="py-3 px-1 text-right">{c.meanScore.toFixed(1)}</td>
                   <td className="py-3 px-1 text-right text-zinc-900 dark:text-zinc-50 opacity-80">
                     {c.variance === 0 ? '—' : c.variance.toFixed(1)}
@@ -207,7 +212,7 @@ export const AnalyticsView: React.FC<AnalyticsProps> = ({ onNotify, isTeacherMod
                   className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center relative group cursor-pointer shadow-sm border border-black/5 dark:border-white/5 hover:scale-110 transition-all ${bgColor}`}
                 >
                   <div className="opacity-0 group-hover:opacity-100 absolute bottom-full mb-2 bg-white dark:bg-[#09090b] border border-black/5 dark:border-white/5 shadow-sm text-zinc-900 dark:text-zinc-50 text-[10px] font-bold px-2 py-1 rounded-lg pointer-events-none whitespace-nowrap z-10 transition-opacity">
-                    {c.cohortId}: {c.meanScore.toFixed(1)}%
+                    {getTopicTitle(c.cohortId)}: {c.meanScore.toFixed(1)}%
                   </div>
                 </div>
               );

@@ -1,13 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { getExtractor } from '../utils/pipeline';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 import * as dotenv from 'dotenv';
 dotenv.config();
-
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function ingestDocument(filePath: string, subject: string, chapter: string) {
   console.log("Loading embedding model...");

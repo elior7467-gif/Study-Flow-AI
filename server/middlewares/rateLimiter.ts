@@ -10,7 +10,7 @@ const intelligentKeyGenerator = (req: Request, res: Response): string => {
   }
   const ip = req.ip || req.socket.remoteAddress || 'unknown';
   console.warn(`[RateLimiter] Unauthenticated request, falling back to IP: ${ip}`);
-  return ipKeyGenerator(ip);
+  return ip;
 };
 
 // Global Rate Limiter: Increased to 500 requests per 15 minutes for smooth SPA operation

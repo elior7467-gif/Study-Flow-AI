@@ -9,184 +9,57 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  
+
   html, body {
-    @apply bg-zinc-50 text-zinc-900 dark:bg-[#0A0A0B] dark:text-zinc-100;
+    @apply bg-zinc-50 text-zinc-900 dark:bg-[#0A0A0B] dark:text-zinc-200;
   }
 
-  /* Better scrollbar in dark mode */
   html.dark ::-webkit-scrollbar { width: 6px; }
   html.dark ::-webkit-scrollbar-track { background: transparent; }
   html.dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 999px; }
-  html.dark ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
 }
 
-/* ── Premium Dark Tech Surface ── */
-@layer utilities {
-  .bg-mesh-dark {
-    @apply bg-zinc-50 dark:bg-[#0A0A0B];
-    background-image: none;
-  }
-
-  html.dark .bg-mesh-dark {
-    background-image: 
-      radial-gradient(ellipse 80% 60% at 15% -5%, rgba(56, 120, 230, 0.12) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 40% at 85% 105%, rgba(56, 120, 230, 0.06) 0%, transparent 50%);
-    background-attachment: fixed;
-  }
-
-  /* ── Card System: Single-Layer Clean Glass ── */
-  .sf-card {
-    @apply relative rounded-2xl bg-zinc-100 dark:bg-white/[0.04] border border-zinc-200/80 dark:border-white/[0.06] overflow-hidden;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-  }
-  html.dark .sf-card {
-    box-shadow: 
-      0 0 0 1px rgba(255,255,255,0.03),
-      0 8px 40px -12px rgba(0,0,0,0.6);
-  }
-  html.dark .sf-card:hover {
-    border-color: rgba(255,255,255,0.10);
-    box-shadow: 
-      0 0 0 1px rgba(255,255,255,0.05),
-      0 12px 48px -12px rgba(0,0,0,0.7);
-  }
-
-  /* Legacy aliases — map old double-bezel to new clean card */
-  .ethereal-card-shell {
-    @apply relative rounded-2xl bg-zinc-100 dark:bg-white/[0.03] border border-zinc-200/80 dark:border-white/[0.06] overflow-hidden p-0;
-    box-shadow: none;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-  }
-  html.dark .ethereal-card-shell {
-    box-shadow: 
-      0 0 0 1px rgba(255,255,255,0.02),
-      0 8px 40px -12px rgba(0,0,0,0.5);
-  }
-
-  .ethereal-card-core {
-    @apply w-full h-full rounded-2xl bg-white dark:bg-[#111113] p-6 md:p-8;
-    box-shadow: none;
-  }
-  html.dark .ethereal-card-core {
-    box-shadow: none;
-  }
-  
-  /* ── Smooth Transitions ── */
-  .premium-transition {
-    transition-property: all;
-    transition-duration: 500ms;
-    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-  }
+/* Smooth transition */
+.premium-transition {
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* 
- * Legacy neo-* class aliases
- */
-.bg-neo {
-  @apply bg-white dark:bg-[#0A0A0B];
-}
-
-.bg-neo-convex {
-  @apply bg-white/60 dark:bg-[#111113]/80 backdrop-blur-2xl border border-zinc-200 dark:border-white/[0.06];
-}
-
-.bg-neo-concave {
-  @apply bg-zinc-50 dark:bg-[#0A0A0B] border border-zinc-200 dark:border-white/[0.04];
-}
-
-.bg-grid-pattern {
-  background: none;
-}
-
-.text-neo {
-  @apply text-zinc-900 dark:text-zinc-100;
-}
-
-.shadow-neo {
-  box-shadow: 0 4px 24px -8px rgba(0,0,0,0.04);
-  @apply border border-zinc-200 dark:border-white/[0.06];
-  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-}
-html.dark .shadow-neo {
-  box-shadow: 0 4px 24px -8px rgba(0,0,0,0.4);
-}
-
-.shadow-neo-accent {
-  box-shadow: 0 4px 24px -8px rgba(59, 130, 246, 0.12);
-  @apply border border-blue-500/40;
-  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-}
-html.dark .shadow-neo-accent {
-  box-shadow: 0 4px 24px -8px rgba(59, 130, 246, 0.15);
-}
-
-.shadow-neo-sm {
-  @apply border border-zinc-200 dark:border-white/[0.06];
-  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.shadow-neo-inner {
-  @apply bg-zinc-100/50 dark:bg-black/40 border border-zinc-200 dark:border-white/[0.04];
-  box-shadow: inset 0 1px 4px rgba(0,0,0,0.03);
-  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-}
-html.dark .shadow-neo-inner {
-  box-shadow: inset 0 1px 4px rgba(0,0,0,0.3);
-}
-
-/* ── Animations ── */
+/* Animations */
 @keyframes shimmer {
   0% { transform: translateX(-150%); }
   100% { transform: translateX(150%); }
 }
 
-.shimmer-effect {
-  position: relative;
-  overflow: hidden;
-}
-.shimmer-effect::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.03), transparent);
-  transform: translateX(-150%);
-  animation: shimmer 3s infinite;
-  pointer-events: none;
-}
-html.dark .shimmer-effect::after {
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
-}
-
-/* ── Math / Code Blocks ── */
+/* Math / Code */
 .math-block {
   font-family: 'JetBrains Mono', 'Courier New', Courier, monospace;
-  @apply bg-zinc-100 dark:bg-black/40 border border-zinc-200 dark:border-white/[0.06] rounded-lg px-4 py-3 text-sm font-medium;
+  @apply bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-4 py-3 text-sm font-medium;
 }
 
-/* Fix KaTeX Math Overlaps */
 .katex-display {
   margin: 1.5em 0 !important;
   padding: 0.5em 0;
   overflow-x: auto;
   overflow-y: hidden;
 }
-
-.katex {
-  line-height: 1.5 !important;
-}
-
-/* Ensure paragraph and list line heights accommodate inline fractions */
+.katex { line-height: 1.5 !important; }
 .prose p, .prose li, .prose blockquote {
   line-height: 2 !important;
   margin-top: 1em !important;
   margin-bottom: 1em !important;
 }
-
 .prose .katex-display {
   margin-top: 1.5em !important;
   margin-bottom: 1.5em !important;
 }
+
+/* Legacy aliases — keep them minimal, no dark mode logic here */
+.bg-neo { @apply bg-white dark:bg-[#0A0A0B]; }
+.bg-neo-convex { @apply bg-white/60 dark:bg-zinc-900/80 backdrop-blur-2xl border border-zinc-200 dark:border-zinc-800; }
+.bg-neo-concave { @apply bg-zinc-50 dark:bg-[#0A0A0B] border border-zinc-200 dark:border-zinc-800; }
+.bg-grid-pattern { background: none; }
+.text-neo { @apply text-zinc-900 dark:text-zinc-200; }
+.shadow-neo { @apply border border-zinc-200 dark:border-zinc-800; transition: all 0.4s cubic-bezier(0.22,1,0.36,1); }
+.shadow-neo-accent { @apply border border-blue-500/40; transition: all 0.4s cubic-bezier(0.22,1,0.36,1); }
+.shadow-neo-sm { @apply border border-zinc-200 dark:border-zinc-800; transition: all 0.4s cubic-bezier(0.22,1,0.36,1); }
+.shadow-neo-inner { @apply bg-zinc-100/50 dark:bg-black/40 border border-zinc-200 dark:border-zinc-800; transition: all 0.4s cubic-bezier(0.22,1,0.36,1); }

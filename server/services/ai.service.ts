@@ -476,15 +476,19 @@ You are a dual-engine AI. Ensure your answer strictly aligns with the Ground Tru
         const intentRes = await primaryClient.chat.completions.create({
           model: config.primaryAiModel,
           messages: [
-            { role: 'system', content: 'You are a strict router. You must classify the user\'s message and respond with EXACTLY one word: either "ACADEMIC" or "CONVERSATION". No punctuation, no explanation.\n- Output "ACADEMIC" if it contains a physics, math, science, or study-related question that requires a step-by-step solver.\n- Output "CONVERSATION" for casual greetings (e.g. "Hello bro", "Hi"), small talk, jokes, or off-topic questions.' },
-            { role: 'user', content: 'What is the formula for kinetic energy?' },
+            { role: 'system', content: 'You are a strict router. Classify the user\'s message into EXACTLY one word: "ACADEMIC" or "CONVERSATION". No punctuation or explanation.\n- Output "ACADEMIC" ONLY for complex physics, math, chemistry, or rigorous science problems that require numeric calculation, mathematical derivation, formulas, or a step-by-step analytical solver.\n- Output "CONVERSATION" for everything else, including general knowledge, writing help, coding, conceptual definitions, casual reasoning, small talk, and greetings.' },
+            { role: 'user', content: 'Solve 2x^2 + 5x - 3 = 0' },
+            { role: 'assistant', content: 'ACADEMIC' },
+            { role: 'user', content: 'Write a python script to parse JSON' },
+            { role: 'assistant', content: 'CONVERSATION' },
+            { role: 'user', content: 'What caused the fall of the Roman Empire?' },
+            { role: 'assistant', content: 'CONVERSATION' },
+            { role: 'user', content: 'Calculate the tension in the rope if mass is 5kg and a=2m/s^2' },
             { role: 'assistant', content: 'ACADEMIC' },
             { role: 'user', content: 'Hello bro' },
             { role: 'assistant', content: 'CONVERSATION' },
-            { role: 'user', content: 'Can you tell me a joke?' },
+            { role: 'user', content: 'What is a black hole?' },
             { role: 'assistant', content: 'CONVERSATION' },
-            { role: 'user', content: 'A block slides down an inclined plane' },
-            { role: 'assistant', content: 'ACADEMIC' },
             { role: 'user', content: query }
           ],
           max_tokens: 5,
@@ -497,7 +501,7 @@ You are a dual-engine AI. Ensure your answer strictly aligns with the Ground Tru
             const stream = await primaryClient.chat.completions.create({
               model: config.primaryAiModel,
               messages: [
-                { role: 'system', content: `You are StudyFlow AI, an advanced, highly intelligent conversational AI. You can chat about anything, tell jokes, have fun with the user, and engage in normal conversation. Respond naturally in ${langName}. If the user is just chatting, be engaging and fun. Do NOT stubbornly force them to study if they just want to chat.` },
+                { role: 'system', content: `You are StudyFlow AI, an advanced and highly capable AI assistant. You confidently answer general knowledge questions, write code, explain conceptual definitions, and engage in casual conversation. Respond naturally and directly in ${langName}. You are a fully capable assistant; do not force the user to study if they ask for writing help, general information, or just want to chat.` },
                 ...shortHistory,
                 { role: 'user', content: query }
               ],
@@ -516,7 +520,7 @@ You are a dual-engine AI. Ensure your answer strictly aligns with the Ground Tru
             const convRes = await primaryClient.chat.completions.create({
               model: config.primaryAiModel,
               messages: [
-                { role: 'system', content: `You are StudyFlow AI, an advanced, highly intelligent conversational AI. You can chat about anything, tell jokes, have fun with the user, and engage in normal conversation. Respond naturally in ${langName}. If the user is just chatting, be engaging and fun. Do NOT stubbornly force them to study if they just want to chat.` },
+                { role: 'system', content: `You are StudyFlow AI, an advanced and highly capable AI assistant. You confidently answer general knowledge questions, write code, explain conceptual definitions, and engage in casual conversation. Respond naturally and directly in ${langName}. You are a fully capable assistant; do not force the user to study if they ask for writing help, general information, or just want to chat.` },
                 ...shortHistory,
                 { role: 'user', content: query }
               ]

@@ -47,7 +47,8 @@ export const createChat = async (req: Request, res: Response, next: NextFunction
 
     if (error) throw error;
     res.json(data);
-  } catch (err) {
+  } catch (err: any) {
+    require('fs').appendFileSync('error_log.txt', JSON.stringify(err, Object.getOwnPropertyNames(err)) + '\n');
     next(err);
   }
 };
@@ -152,7 +153,7 @@ export const getPersonalCohortAnalytics = async (req: Request, res: Response, ne
       const total = (row.verified_count || 0) + (row.flagged_count || 0);
       const meanScore = total > 0 ? (row.verified_count / total) * 100 : 0;
       return {
-        cohortId: row.topic_id,
+        cohortId: row.topic_title || row.topic_id,
         meanScore,
         variance: 0,
         participation: 1

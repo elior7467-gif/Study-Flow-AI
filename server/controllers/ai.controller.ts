@@ -88,7 +88,7 @@ export const handleSolverCritic = async (req: Request, res: Response, next: Next
     }
 
     // Upsert mastery
-    if (userId && finalResponse) {
+    if (userId && finalResponse && !finalResponse.isConversation) {
       const topicTitle = finalResponse.citation?.chapter || 'Unknown Topic';
       const topicId = topicTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       const isVerified = finalResponse.criticAuditStatus === 'VERIFIED';

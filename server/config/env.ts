@@ -13,4 +13,22 @@ export const config = {
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   appUrl: process.env.APP_URL || 'http://localhost:3000',
   adminSecret: process.env.ADMIN_SECRET,
+  razorpayKeyId: process.env.RAZORPAY_KEY_ID,
+  razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET,
 };
+
+// Startup Assertions
+if (config.razorpayKeyId) {
+  if (!config.razorpayKeyId.startsWith('rzp_live_') && !config.razorpayKeyId.startsWith('rzp_test_')) {
+    console.warn('\x1b[33m[Warning]\x1b[0m RAZORPAY_KEY_ID should start with "rzp_live_" or "rzp_test_". Your payment integrations might fail.');
+  }
+  if (config.razorpayKeyId.length < 14) {
+    console.warn('\x1b[33m[Warning]\x1b[0m RAZORPAY_KEY_ID seems suspiciously short. Truncated keys will fail Razorpay\'s checksum validation on every payment attempt.');
+  }
+} else {
+  console.warn('\x1b[33m[Warning]\x1b[0m RAZORPAY_KEY_ID is not set. Razorpay features will not work.');
+}
+
+if (!config.razorpayKeySecret) {
+  console.warn('\x1b[33m[Warning]\x1b[0m RAZORPAY_KEY_SECRET is not set. Razorpay features will not work.');
+}
