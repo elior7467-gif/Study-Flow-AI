@@ -139,7 +139,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ problems, soundEnabled = t
                   <CheckCircle2 className="w-4 h-4" /> Core NCERT Principle:
                 </div>
                 <p className="text-zinc-900 dark:text-zinc-50 leading-relaxed font-medium">
-                  Centripetal force on a level road is provided purely by static friction: f_s = m v² / r. The maximum speed before skidding depends only on v_max = √(μ_s r g) and is independent of mass m.
+                  {activeProblem.factCheck || activeProblem.solution.summary}
                 </p>
               </m.div>
             )}

@@ -14,11 +14,14 @@ import { ToastContainer, ToastMessage, ToastType } from './components/common/Toa
 import { m, AnimatePresence, LazyMotion, domAnimation } from 'motion/react';
 import { SignedIn, SignedOut, useClerk, useAuth } from '@clerk/clerk-react';
 
+import { AppLoader } from './components/layout/AppLoader';
+
 export default function App() {
   const { signOut } = useClerk();
   const { userId, getToken } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [appLoaded, setAppLoaded] = useState(false);
 
   const [activeTab, setActiveTab] = useState<TabType>('hub');
   const [selectedUnitId, setSelectedUnitId] = useState<string>('unit-active');
@@ -106,7 +109,10 @@ export default function App() {
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="flex flex-col min-h-[100dvh] w-full bg-zinc-50 dark:bg-[#0A0A0B] text-zinc-900 dark:text-zinc-100 transition-colors duration-500 relative selection:bg-blue-500/20">
+      <AnimatePresence>
+        {!appLoaded && <AppLoader onComplete={() => setAppLoaded(true)} key="app-loader" />}
+      </AnimatePresence>
+      <div className="flex flex-col h-[100dvh] overflow-hidden w-full bg-zinc-50 dark:bg-[#0A0A0B] text-zinc-900 dark:text-zinc-100 transition-colors duration-500 relative selection:bg-blue-500/20">
       <ToastContainer toasts={toasts} />
       <SignedIn>
         <div className={`flex flex-col flex-1 h-full w-full transition-all duration-300 ${isSidebarCollapsed ? 'md:pl-[72px]' : 'md:pl-[240px]'}`}>

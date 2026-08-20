@@ -21,10 +21,9 @@ export const supabase = createClient(
   }
 );
 
-// Create an authenticated Supabase client using a user's Clerk JWT
 export const getAuthSupabase = (token?: string) => {
   // If a user token is provided, prioritize it to respect RLS policies tied to the user's Clerk JWT
-  if (token) {
+  if (token && token !== 'null' && token !== 'undefined') {
     return createClient(
       supabaseUrl,
       supabaseKey,

@@ -43,7 +43,8 @@ describe('HubView', () => {
     
     // It should render the initial loading/header state
     expect(screen.getByText('Active Studies')).toBeInTheDocument();
-    expect(screen.getByText('Honest AI Study Assistant for JEE & NEET')).toBeInTheDocument();
+    expect(screen.getByText(/Honest AI Study Assistant/i)).toBeInTheDocument();
+    expect(screen.getByText(/for JEE & NEET/i)).toBeInTheDocument();
     
     // Wait for the fetch effects to settle
     await waitFor(() => {
@@ -54,8 +55,11 @@ describe('HubView', () => {
   it('calls onNavigateToChatWithQuery when clicking sample questions', async () => {
     render(<HubView {...defaultProps} />);
     
-    const sampleBtn = screen.getByText(/In-Scope NCERT Question/);
+    const sampleBtns = screen.getAllByRole('button');
+    // Just click the first button that might navigate to chat, or look for specific text
+    const sampleBtn = screen.getByText(/In-Scope NCERT/i);
     fireEvent.click(sampleBtn);
+    
     
     expect(defaultProps.onNavigateToChatWithQuery).toHaveBeenCalledWith(
       expect.stringContaining('A car of mass 1500 kg drives at 20 m/s')

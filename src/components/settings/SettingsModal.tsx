@@ -67,7 +67,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     className={`pointer-events-none w-12 h-6 rounded-full transition-all relative ${soundEnabled ? 'bg-[#2563EB] border border-transparent' : 'bg-black/10 dark:bg-white/10 shadow-inner border border-black/5 dark:border-white/5'}`}
                   >
                     <m.div 
-                      layout
                       className={`w-5 h-5 rounded-full absolute top-0.5 shadow-sm transition-all bg-white`}
                       animate={{ left: soundEnabled ? '26px' : '2px' }}
                     />
@@ -89,7 +88,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     className={`pointer-events-none w-12 h-6 rounded-full transition-all relative ${isDarkMode ? 'bg-[#2563EB] border border-transparent' : 'bg-black/10 dark:bg-white/10 shadow-inner border border-black/5 dark:border-white/5'}`}
                   >
                     <m.div 
-                      layout
                       className={`w-5 h-5 rounded-full absolute top-0.5 shadow-sm transition-all bg-white`}
                       animate={{ left: isDarkMode ? '26px' : '2px' }}
                     />
@@ -111,7 +109,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     className={`pointer-events-none w-12 h-6 rounded-full transition-all relative ${isTeacherMode ? 'bg-[#2563EB] border border-transparent' : 'bg-black/10 dark:bg-white/10 shadow-inner border border-black/5 dark:border-white/5'}`}
                   >
                     <m.div 
-                      layout
                       className={`w-5 h-5 rounded-full absolute top-0.5 shadow-sm transition-all bg-white`}
                       animate={{ left: isTeacherMode ? '26px' : '2px' }}
                     />

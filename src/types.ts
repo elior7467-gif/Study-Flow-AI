@@ -85,6 +85,7 @@ export interface VaultProblem {
     chapter: string;
     page: string;
   };
+  factCheck?: string;
   solution: SolverResult;
   params: {
     mass: number;

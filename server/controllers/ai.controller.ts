@@ -4,8 +4,8 @@ import { supabase, getAuthSupabase } from '../lib/supabase';
 import { appCache } from '../utils/cache';
 
 const getClient = (req: Request) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  return token ? getAuthSupabase(token) : supabase;
+  const tokenHeader = req.headers.authorization?.split(' ')[1];
+  return getAuthSupabase(tokenHeader);
 };
 
 export const handleSolverCritic = async (req: Request, res: Response, next: NextFunction) => {

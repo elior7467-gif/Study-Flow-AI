@@ -26,7 +26,8 @@ async function startServer() {
         workerSrc: ["'self'", "blob:"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
-        frameSrc: ["'self'", "https://*.clerk.accounts.dev", "https://*.clerk.com", "https://challenges.cloudflare.com", "https://stable-crawdad-86.clerk.accounts.dev"]
+        frameSrc: ["'self'", "https://*.clerk.accounts.dev", "https://*.clerk.com", "https://challenges.cloudflare.com", "https://stable-crawdad-86.clerk.accounts.dev"],
+        upgradeInsecureRequests: null,
       },
     },
     crossOriginEmbedderPolicy: false,

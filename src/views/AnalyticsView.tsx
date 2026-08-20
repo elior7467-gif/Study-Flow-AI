@@ -12,7 +12,7 @@ interface AnalyticsProps {
 export const AnalyticsView: React.FC<AnalyticsProps> = ({ onNotify, isTeacherMode = false }) => {
   const getTopicTitle = (id: string) => {
     const unit = MOCK_UNITS.find(u => u.id === id);
-    return unit ? unit.title : id;
+    return unit ? unit.name : id;
   };
   const [cohorts, setCohorts] = useState<CohortMetric[]>([]);
   const [globalStats, setGlobalStats] = useState({ overallVerifiedRate: 0, totalQueries: 0 });

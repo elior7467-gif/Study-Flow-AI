@@ -27,12 +27,19 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
   }, []);
 
   useEffect(() => {
+    let rafId: number;
     const handleMouseMove = (e: MouseEvent) => {
-      mouseX.set((e.clientX / window.innerWidth - 0.5) * 20);
-      mouseY.set((e.clientY / window.innerHeight - 0.5) * 20);
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        mouseX.set((e.clientX / window.innerWidth - 0.5) * 20);
+        mouseY.set((e.clientY / window.innerHeight - 0.5) * 20);
+      });
     };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      cancelAnimationFrame(rafId);
+    };
   }, []);
 
   // Floating animation variants
@@ -60,17 +67,17 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
   };
 
   return (
-    <div className="min-h-[100dvh] bg-white dark:bg-[#09090b] flex flex-col relative overflow-x-hidden overflow-y-auto perspective-1000 scroll-smooth">
+    <div className="h-full w-full min-h-[100dvh] bg-white dark:bg-[#09090b] relative overflow-x-hidden overflow-y-auto perspective-1000 scroll-smooth">
       {/* Decorative background blobs with impressive animations */}
       <m.div 
         variants={glowVariants}
         animate="animate"
-        className="fixed top-[-10%] left-[-10%] w-[600px] h-[600px] bg-[#2563EB]/15 rounded-full blur-[120px] pointer-events-none" 
+        className="fixed top-[-10%] left-[-10%] w-[600px] h-[600px] bg-[#2563EB]/15 rounded-full blur-[120px] pointer-events-none transform-gpu will-change-transform" 
       />
       <m.div 
         variants={glowVariants}
         animate="animate"
-        className="fixed bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-[#F43F5E]/10 rounded-full blur-[120px] pointer-events-none"
+        className="fixed bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-[#F43F5E]/10 rounded-full blur-[120px] pointer-events-none transform-gpu will-change-transform"
         style={{ animationDelay: '2s' }}
       />
       
@@ -92,10 +99,10 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
       )}
 
       {/* Hero Content Wrapper */}
-      <div className="min-h-[100dvh] w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-center p-4 sm:p-6 lg:p-8 z-10 pt-20 pb-12 lg:py-16 relative">
+      <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-start justify-between p-4 sm:p-6 lg:p-8 z-10 pt-16 lg:pt-20 pb-16 lg:pb-24 relative gap-12 lg:gap-8">
         
         {/* Left Column: Branding & Features */}
-        <div className="w-full lg:w-1/2 max-w-xl flex flex-col justify-center mb-12 lg:mb-0 lg:pr-12 relative">
+        <div className="w-full lg:w-1/2 max-w-xl flex flex-col justify-start mb-12 lg:mb-0 lg:pr-12 relative">
           <m.div
             initial={{ opacity: 0, x: -40, rotateY: 10 }}
             animate={{ opacity: 1, x: 0, rotateY: 0 }}
@@ -119,9 +126,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
             <m.div 
               variants={floatVariants}
               animate="animate"
-              className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-[#2563EB] to-[#1E40AF] rounded-[28px] sm:rounded-[32px] flex items-center justify-center shadow-sm border border-[#2563EB] mb-6 sm:mb-8 transform -rotate-3 hover:rotate-0 hover:scale-110 transition-all duration-500 ease-out cursor-pointer"
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-[28px] sm:rounded-[32px] flex items-center justify-center shadow-sm border border-[#2563EB]/20 mb-6 sm:mb-8 transform -rotate-3 hover:rotate-0 hover:scale-110 transition-all duration-500 ease-out cursor-pointer overflow-hidden bg-zinc-100 dark:bg-white/[0.06]"
             >
-              <Bot className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
+              <img src="/logo.jpg" alt="StudyFlow AI" className="w-full h-full object-cover" />
             </m.div>
 
             <m.h1 
@@ -346,8 +353,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
                </div>
 
                {/* Decorative Graphic */}
-               <div className="absolute right-0 bottom-0 w-64 h-64 translate-x-16 translate-y-16 opacity-30 dark:opacity-20 pointer-events-none group-hover:scale-105 transition-transform duration-700">
-                 <div className="w-full h-full border-[20px] border-blue-500 rounded-full blur-2xl" />
+               <div className="absolute right-0 bottom-0 w-64 h-64 translate-x-16 translate-y-16 opacity-30 dark:opacity-20 pointer-events-none group-hover:scale-105 transition-transform duration-700 transform-gpu will-change-transform">
+                 <div className="w-full h-full border-[20px] border-blue-500 rounded-full blur-2xl transform-gpu" />
                </div>
             </div>
           </m.div>
@@ -407,8 +414,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
                  <p className="text-zinc-500 dark:text-zinc-400 max-w-sm text-sm">Don't just read about physics—experience it. Interactive simulations map directly to your curriculum.</p>
                </div>
                
-               <div className="absolute right-0 bottom-0 w-48 h-48 translate-x-8 translate-y-8 opacity-40 dark:opacity-20 pointer-events-none group-hover:scale-110 transition-transform duration-1000 ease-[cubic-bezier(0.32,0.72,0,1)]">
-                 <div className="w-full h-full bg-gradient-to-tr from-purple-500 to-transparent blur-3xl rounded-full" />
+               <div className="absolute right-0 bottom-0 w-48 h-48 translate-x-8 translate-y-8 opacity-40 dark:opacity-20 pointer-events-none group-hover:scale-110 transition-transform duration-1000 ease-[cubic-bezier(0.32,0.72,0,1)] transform-gpu will-change-transform">
+                 <div className="w-full h-full bg-gradient-to-tr from-purple-500 to-transparent blur-3xl rounded-full transform-gpu" />
                </div>
             </div>
           </m.div>
@@ -566,8 +573,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ soundEnabled, isDarkMode, 
       <footer className="w-full bg-white dark:bg-[#09090b] py-12 border-t border-black/5 dark:border-white/5 z-10 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
-              <Bot className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-lg overflow-hidden bg-zinc-100 dark:bg-white/[0.06] flex items-center justify-center border border-black/5 dark:border-white/5">
+              <img src="/logo.jpg" alt="StudyFlow AI" className="w-full h-full object-cover" />
             </div>
             <span className="font-extrabold text-zinc-900 dark:text-zinc-50 tracking-tight">StudyFlow AI</span>
           </div>

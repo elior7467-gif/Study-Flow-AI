@@ -194,6 +194,7 @@ export const MOCK_VAULT_PROBLEMS: VaultProblem[] = [
       chapter: 'Chapter 5: Laws of Motion',
       page: 'Pg 104',
     },
+    factCheck: 'Centripetal force on a level road is provided purely by static friction: f_s = m v² / r. The maximum speed before skidding depends only on v_max = √(μ_s r g) and is independent of mass m.',
     solution: INITIAL_CHAT_SOLUTIONS[0],
     params: {
       mass: 1500,
@@ -214,6 +215,7 @@ export const MOCK_VAULT_PROBLEMS: VaultProblem[] = [
       chapter: 'Chapter 5: Laws of Motion',
       page: 'Pg 105',
     },
+    factCheck: 'For a banked curve without relying on friction, the horizontal component of the normal force provides the centripetal force: N sin θ = m v² / r, and N cos θ = mg. Thus, v = √(rg tan θ).',
     solution: {
       id: 'sol-403',
       query: 'Banked curve optimal speed without friction',

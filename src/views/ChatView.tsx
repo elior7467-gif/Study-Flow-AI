@@ -154,8 +154,22 @@ export const ChatView: React.FC<ChatViewProps> = ({
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      
+      // Additional scrolls to handle framer-motion layout animations and katex rendering
+      const t1 = setTimeout(() => {
+        if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }, 100);
+      
+      const t2 = setTimeout(() => {
+        if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }, 350);
+      
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
     }
-  }, [messages, loading]);
+  }, [messages, loading, activeChatId]);
 
   // Auto-focus input when loading finishes
   useEffect(() => {
@@ -280,14 +294,21 @@ export const ChatView: React.FC<ChatViewProps> = ({
           body: JSON.stringify({ userId, title }),
         });
         if (res.ok) {
-          const newChat = await res.json();
-          setChats(prev => [newChat, ...prev]);
-          currentChatId = newChat.id;
+          const chat = await res.json();
+          currentChatId = chat.id;
           isManualSwitch.current = false;
           setActiveChatId(currentChatId);
+          setChats(prev => [{ ...chat, is_pinned: false }, ...prev]);
+        } else {
+          console.error('Failed to create chat');
+          onNotify("Failed to create chat", "error");
+          setLoading(false);
+          return;
         }
       } catch (err) {
         console.error('Failed to create chat:', err);
+        setLoading(false);
+        return;
       }
     }
 
@@ -395,7 +416,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
                   return [...prev, { id: assistantMessageId, role: 'assistant', content: newContent }];
                 });
               } else if (currentEvent === 'error') {
-                throw new Error(parsed.error);
+                onNotify(parsed.error, 'error');
+                return;
               }
             } catch (e) {
               console.error("Error parsing stream data:", e);
@@ -467,8 +489,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         <div className="px-4 py-2 flex items-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
-            <Sparkles className="w-4 h-4 text-white" />
+          <div className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-white/[0.06] border border-zinc-200/80 dark:border-white/[0.06] flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
+            <img src="/logo.jpg" alt="StudyFlow AI" className="w-full h-full object-cover" />
           </div>
           <span className="font-semibold text-zinc-900 dark:text-zinc-100 text-lg tracking-tight">StudyFlow</span>
         </div>

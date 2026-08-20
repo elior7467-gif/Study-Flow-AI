@@ -7,6 +7,8 @@ export const config = {
   secondaryAiApiKey: process.env.SECONDARY_AI_API_KEY,
   secondaryAiBaseUrl: process.env.SECONDARY_AI_BASE_URL || 'https://api.openai.com/v1',
   secondaryAiModel: process.env.SECONDARY_AI_MODEL || 'gpt-3.5-turbo',
+  visionAiModel: process.env.VISION_AI_MODEL || 'gpt-4o',
+  multilingualAiModel: process.env.MULTILINGUAL_AI_MODEL || 'gpt-4o-mini',
   nodeEnv: process.env.NODE_ENV || 'development',
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
@@ -15,6 +17,18 @@ export const config = {
   adminSecret: process.env.ADMIN_SECRET,
   razorpayKeyId: process.env.RAZORPAY_KEY_ID,
   razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET,
+  fallbackApiKeys: [
+    process.env.GROQ_FALLBACK_KEY_1,
+    process.env.GROQ_FALLBACK_KEY_2,
+    process.env.GROQ_FALLBACK_KEY_3,
+    process.env.GROQ_FALLBACK_KEY_4,
+    process.env.GROQ_FALLBACK_KEY_5,
+    process.env.GROQ_FALLBACK_KEY_6,
+    process.env.GROQ_FALLBACK_KEY_7,
+    process.env.GROQ_FALLBACK_KEY_8,
+    process.env.GROQ_FALLBACK_KEY_9,
+    process.env.GROQ_FALLBACK_KEY_10,
+  ].filter((key): key is string => !!key), // filter out empty/undefined keys
 };
 
 // Startup Assertions

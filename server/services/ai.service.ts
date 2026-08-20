@@ -66,10 +66,15 @@ export class AiService {
       const response = await client.chat.completions.create({
         model,
         messages: currentMessages,
-        response_format: { 
-          type: 'json_schema',
-          json_schema: { name: schemaName, strict: true, schema: jsonSchema }
-        },
+        ...(!(tools && tools.length > 0) ? {
+          response_format: { 
+            type: 'json_schema',
+            json_schema: { name: schemaName, strict: true, schema: jsonSchema }
+          }
+        } : {
+          // If tools are present, we omit response_format as Groq doesn't allow both.
+          // The system prompt must instruct the model to return JSON.
+        }),
         ...(tools && tools.length > 0 ? { tools } : {}),
         ...(temperature !== undefined ? { temperature } : {}),
         stream: !!onChunk && !(tools && tools.length > 0), // FIX: Bug 2
@@ -132,7 +137,15 @@ export class AiService {
       if (onChunk && content) { // FIX: Bug 2
         onChunk(content); // FIX: Bug 2
       } // FIX: Bug 2
-      return content ? JSON.parse(content) : {};
+      let cleanContent = content;
+      if (cleanContent) {
+        const match = cleanContent.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        if (match) {
+          cleanContent = match[1];
+        }
+        cleanContent = cleanContent.trim();
+      }
+      return cleanContent ? JSON.parse(cleanContent) : {};
     }
   }
 
@@ -140,10 +153,42 @@ export class AiService {
     let primaryError: any = null;
     let secondaryError: any = null;
 
+    let modelToUse = config.primaryAiModel;
+    let hasImage = false;
+    let hasMultilingual = false;
+
+    const hindiRegex = /[\u0900-\u097F]/;
+    const bengaliRegex = /[\u0980-\u09FF]/;
+
+    for (const msg of messages) {
+      if (typeof msg.content === 'string') {
+        if (hindiRegex.test(msg.content) || bengaliRegex.test(msg.content)) {
+          hasMultilingual = true;
+        }
+      } else if (Array.isArray(msg.content)) {
+        for (const part of msg.content) {
+          if (part.type === 'image_url') {
+            hasImage = true;
+          }
+          if (part.type === 'text' && (hindiRegex.test(part.text) || bengaliRegex.test(part.text))) {
+            hasMultilingual = true;
+          }
+        }
+      }
+    }
+
+    if (hasImage) {
+      modelToUse = config.visionAiModel;
+      console.log(`[AI Engine] Vision detected. Switching to specialized model: ${modelToUse}`);
+    } else if (hasMultilingual) {
+      modelToUse = config.multilingualAiModel;
+      console.log(`[AI Engine] Hindi/Bengali detected. Switching to specialized model: ${modelToUse}`);
+    }
+
     try {
       const primaryClient = this.getPrimaryClient();
-      console.log(`[AI Engine] Attempting generation with Primary API (${config.primaryAiModel})...`);
-      return await this.executeLoop(primaryClient, config.primaryAiModel, messages, jsonSchema, schemaName, userId, endpoint, temperature, onChunk, tools, toolCallback);
+      console.log(`[AI Engine] Attempting generation with Primary API (${modelToUse})...`);
+      return await this.executeLoop(primaryClient, modelToUse, messages, jsonSchema, schemaName, userId, endpoint, temperature, onChunk, tools, toolCallback);
     } catch (error) {
       console.warn(`[AI Engine] Primary API failed:`, error);
       primaryError = error;
@@ -151,14 +196,30 @@ export class AiService {
 
     try {
       const secondaryClient = this.getSecondaryClient();
-      console.log(`[AI Engine] Attempting generation with Secondary API (${config.secondaryAiModel})...`);
-      return await this.executeLoop(secondaryClient, config.secondaryAiModel, messages, jsonSchema, schemaName, userId, endpoint, temperature, onChunk, tools, toolCallback);
+      console.log(`[AI Engine] Attempting generation with Secondary API (${modelToUse})...`);
+      return await this.executeLoop(secondaryClient, modelToUse, messages, jsonSchema, schemaName, userId, endpoint, temperature, onChunk, tools, toolCallback);
     } catch (error) {
       console.error(`[AI Engine] Secondary API also failed:`, error);
       secondaryError = error;
     }
 
-    throw new Error(`AI Engine Failure. Primary Error: ${primaryError?.message}. Secondary Error: ${secondaryError?.message}`);
+    if (config.fallbackApiKeys && config.fallbackApiKeys.length > 0) {
+      for (let i = 0; i < config.fallbackApiKeys.length; i++) {
+        try {
+          const fallbackKey = config.fallbackApiKeys[i];
+          const fallbackClient = new OpenAI({
+            apiKey: fallbackKey,
+            baseURL: config.secondaryAiBaseUrl,
+          });
+          console.log(`[AI Engine] Attempting generation with Fallback API ${i + 1} (${modelToUse})...`);
+          return await this.executeLoop(fallbackClient, modelToUse, messages, jsonSchema, schemaName, userId, endpoint, temperature, onChunk, tools, toolCallback);
+        } catch (error) {
+          console.error(`[AI Engine] Fallback API ${i + 1} failed:`, error);
+        }
+      }
+    }
+
+    throw new Error(`AI Engine Exhausted all keys. Primary Error: ${primaryError?.message}. Secondary Error: ${secondaryError?.message}`);
   }
 
   static async retrieveContext(query: string, filter?: { subject?: string; chapter?: string }) {
@@ -424,11 +485,46 @@ You are a dual-engine AI. Ensure your answer strictly aligns with the Ground Tru
 
     const fullSystemInstruction = pipelineSystemInstruction;
 
+    primaryError = null;
+    let secondaryError: any = null;
+
+    let modelToUse = config.primaryAiModel;
+    let hasImage = false;
+    let hasMultilingual = false;
+
+    const hindiRegex = /[\u0900-\u097F]/;
+    const bengaliRegex = /[\u0980-\u09FF]/;
+
+    for (const msg of processedMessages) {
+      if (typeof msg.content === 'string') {
+        if (hindiRegex.test(msg.content) || bengaliRegex.test(msg.content)) {
+          hasMultilingual = true;
+        }
+      } else if (Array.isArray(msg.content)) {
+        for (const part of msg.content) {
+          if (part.type === 'image_url') {
+            hasImage = true;
+          }
+          if (part.type === 'text' && (hindiRegex.test(part.text) || bengaliRegex.test(part.text))) {
+            hasMultilingual = true;
+          }
+        }
+      }
+    }
+
+    if (hasImage) {
+      modelToUse = config.visionAiModel;
+      console.log(`[AI Engine] Vision detected in stream. Switching to specialized model: ${modelToUse}`);
+    } else if (hasMultilingual) {
+      modelToUse = config.multilingualAiModel;
+      console.log(`[AI Engine] Hindi/Bengali detected in stream. Switching to specialized model: ${modelToUse}`);
+    }
+
     try {
       const primaryClient = this.getPrimaryClient();
-      console.log(`[AI Engine] Attempting stream with Primary API (${config.primaryAiModel})...`);
+      console.log(`[AI Engine] Attempting stream with Primary API (${modelToUse})...`);
       const stream = await primaryClient.chat.completions.create({
-        model: config.primaryAiModel,
+        model: modelToUse,
         messages: [
           { role: 'system', content: fullSystemInstruction },
           { role: 'system', content: `=== GROUND TRUTH ===\n${retrievedContext}\n====================` },
@@ -444,9 +540,9 @@ You are a dual-engine AI. Ensure your answer strictly aligns with the Ground Tru
 
     try {
       const secondaryClient = this.getSecondaryClient();
-      console.log(`[AI Engine] Attempting stream with Secondary API (${config.secondaryAiModel})...`);
+      console.log(`[AI Engine] Attempting stream with Secondary API (${modelToUse})...`);
       const stream = await secondaryClient.chat.completions.create({
-        model: config.secondaryAiModel,
+        model: modelToUse,
         messages: [
           { role: 'system', content: fullSystemInstruction },
           { role: 'system', content: `=== GROUND TRUTH ===\n${retrievedContext}\n====================` },
@@ -549,7 +645,7 @@ You are a dual-engine AI. Ensure your answer strictly aligns with the Ground Tru
     const masteryContext = await this.fetchUserMasteryContext(userId);
     
     const solverMessages = [
-      { role: 'system', content: MASTER_SYSTEM_PROMPT + `\n\nYou are StudyFlow AI, an intelligent study assistant. Provide a step-by-step derivation without verifying your own work. ${languageInstruction}${masteryContext}` },
+      { role: 'system', content: MASTER_SYSTEM_PROMPT + `\n\nYou are StudyFlow AI, an intelligent study assistant. Provide a step-by-step derivation without verifying your own work. ${languageInstruction}${masteryContext}\n\nIMPORTANT: YOU MUST OUTPUT STRICTLY VALID JSON. DO NOT WRAP YOUR RESPONSE IN MARKDOWN BLOCK QUOTES (e.g. \`\`\`json). OUTPUT ONLY THE RAW JSON OBJECT.` },
       { role: 'system', content: `=== NCERT GROUND TRUTH KNOWLEDGE BASE ===\n${ncertContext}\n=========================================\n\nCRITICAL RULE FOR HONESTY:\n- You MUST ONLY use formulas and concepts found in the Ground Truth Knowledge Base above.` },
       ...recentHistory,
       { role: 'user', content: `Solve the following question strictly using principles relevant to ${subject}.\n\nQuestion: "${query}"` }
@@ -648,7 +744,7 @@ You are a dual-engine AI. Ensure your answer strictly aligns with the Ground Tru
     }
 
     const criticMessages = [
-      { role: 'system', content: MASTER_SYSTEM_PROMPT + `\n\nYou are the StudyFlow AI Critic Auditor. You audit physics concepts for mathematical consistency, sign errors, reference frames, and edge cases. You have NEVER seen this derivation before and must audit it skeptically step by step.\n\n${languageInstruction}` },
+      { role: 'system', content: MASTER_SYSTEM_PROMPT + `\n\nYou are the StudyFlow AI Critic Auditor. You audit physics concepts for mathematical consistency, sign errors, reference frames, and edge cases. You have NEVER seen this derivation before and must audit it skeptically step by step.\n\n${languageInstruction}\n\nIMPORTANT: YOU MUST OUTPUT STRICTLY VALID JSON. DO NOT WRAP YOUR RESPONSE IN MARKDOWN BLOCK QUOTES (e.g. \`\`\`json). OUTPUT ONLY THE RAW JSON OBJECT.` },
       { role: 'system', content: `=== NCERT GROUND TRUTH KNOWLEDGE BASE ===\n${ncertContext}\n=========================================` },
       ...recentHistory,
       { role: 'user', content: `Fact-check the following Solver AI's derivation line-by-line against standard academic curriculum and the ground truth.

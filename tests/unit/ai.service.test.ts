@@ -23,48 +23,28 @@ config.secondaryAiApiKey = 'test-secondary';
 config.secondaryAiBaseUrl = 'http://test-secondary.local';
 
 describe('AiService', () => {
-  let primaryMock: jest.SpyInstance;
-  let secondaryMock: jest.SpyInstance;
+  let executeLoopMock: jest.SpyInstance;
 
   beforeEach(() => {
-    // We can spy on getPrimaryClient and getSecondaryClient
-    primaryMock = jest.spyOn(AiService as any, 'getPrimaryClient');
-    secondaryMock = jest.spyOn(AiService as any, 'getSecondaryClient');
+    executeLoopMock = jest.spyOn(AiService as any, 'executeLoop');
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  it('should fallback to secondary client when primary fails', async () => {
-    // Mock primary throwing an error
-    primaryMock.mockReturnValue({
-      chat: {
-        completions: {
-          create: jest.fn().mockRejectedValue(new Error('Primary API down'))
-        }
-      }
-    } as any);
+  it('should fallback to secondary/fallback clients when primary fails', async () => {
+    // Fail first 2 attempts, succeed on 3rd
+    executeLoopMock
+      .mockRejectedValueOnce(new Error('Primary API down'))
+      .mockRejectedValueOnce(new Error('Secondary API down'))
+      .mockResolvedValueOnce({ success: true, dummy: "data" });
 
-    // Mock secondary succeeding
-    const mockSuccessResponse = {
-      usage: { total_tokens: 100 },
-      choices: [{
-        message: { content: JSON.stringify({ success: true, dummy: "data" }) }
-      }]
-    };
-
-    secondaryMock.mockReturnValue({
-      chat: {
-        completions: {
-          create: jest.fn().mockResolvedValue(mockSuccessResponse)
-        }
-      }
-    } as any);
+    config.secondaryAiApiKey = 'test-secondary';
+    config.fallbackApiKeys = ['test-fallback-1'];
 
     const schema = { type: 'object', properties: { success: { type: 'boolean' } } };
     
-    // Call the protected fallback method via ts-ignore or casting
     const result = await (AiService as any).executeWithFallback(
       [{ role: 'user', content: 'test' }],
       schema,
@@ -73,17 +53,14 @@ describe('AiService', () => {
 
     expect(result).toBeDefined();
     expect(result.success).toBe(true);
-    expect(primaryMock).toHaveBeenCalled();
-    expect(secondaryMock).toHaveBeenCalled();
+    expect(executeLoopMock).toHaveBeenCalledTimes(3);
   });
 
-  it('should throw Error if both primary and secondary fail', async () => {
-    primaryMock.mockReturnValue({
-      chat: { completions: { create: jest.fn().mockRejectedValue(new Error('Primary down')) } }
-    } as any);
-    secondaryMock.mockReturnValue({
-      chat: { completions: { create: jest.fn().mockRejectedValue(new Error('Secondary down')) } }
-    } as any);
+  it('should throw Error if all keys fail', async () => {
+    executeLoopMock.mockRejectedValue(new Error('API down'));
+
+    config.secondaryAiApiKey = 'test-secondary';
+    config.fallbackApiKeys = ['test-fallback-1'];
 
     const schema = { type: 'object', properties: { success: { type: 'boolean' } } };
 
@@ -91,6 +68,6 @@ describe('AiService', () => {
       [{ role: 'user', content: 'test' }],
       schema,
       'test_schema'
-    )).rejects.toThrow(/AI Engine Failure/);
+    )).rejects.toThrow(/AI Engine Exhausted all keys/);
   });
 });
