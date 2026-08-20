@@ -569,33 +569,47 @@ You are a dual-engine AI. Ensure your answer strictly aligns with the Ground Tru
       if (query.length < 1000) {
         const primaryClient = this.getPrimaryClient();
         const shortHistory = messages.slice(-4).map(m => ({ role: m.role, content: m.content }));
-        const intentRes = await primaryClient.chat.completions.create({
-          model: config.primaryAiModel,
-          messages: [
-            { role: 'system', content: 'You are a strict router. Classify the user\'s message into EXACTLY one word: "ACADEMIC" or "CONVERSATION". No punctuation or explanation.\n- Output "ACADEMIC" ONLY for complex physics, math, chemistry, or rigorous science problems that require numeric calculation, mathematical derivation, formulas, or a step-by-step analytical solver.\n- Output "CONVERSATION" for everything else, including general knowledge, writing help, coding, conceptual definitions, casual reasoning, small talk, and greetings.' },
-            { role: 'user', content: 'Solve 2x^2 + 5x - 3 = 0' },
-            { role: 'assistant', content: 'ACADEMIC' },
-            { role: 'user', content: 'Write a python script to parse JSON' },
-            { role: 'assistant', content: 'CONVERSATION' },
-            { role: 'user', content: 'What caused the fall of the Roman Empire?' },
-            { role: 'assistant', content: 'CONVERSATION' },
-            { role: 'user', content: 'Calculate the tension in the rope if mass is 5kg and a=2m/s^2' },
-            { role: 'assistant', content: 'ACADEMIC' },
-            { role: 'user', content: 'Hello bro' },
-            { role: 'assistant', content: 'CONVERSATION' },
-            { role: 'user', content: 'What is a black hole?' },
-            { role: 'assistant', content: 'CONVERSATION' },
-            { role: 'user', content: query }
-          ],
-          max_tokens: 5,
-          temperature: 0.1
-        });
-        const intent = intentRes.choices[0].message.content?.trim().toUpperCase() || 'ACADEMIC';
+        
+        let intent = 'ACADEMIC';
+        const normalizedQuery = query.toLowerCase().trim();
+        const casualGreetings = ['hello', 'hi', 'hey', 'yo', 'sup', 'what\'s up', 'whats up', 'how are you', 'good morning', 'good evening', 'good afternoon', 'write a python script', 'write a script'];
+        
+        if (casualGreetings.some(g => normalizedQuery.includes(g)) || (normalizedQuery.length < 20 && !/\d/.test(normalizedQuery))) {
+          intent = 'CONVERSATION';
+        } else {
+          try {
+            const intentRes = await primaryClient.chat.completions.create({
+              model: config.multilingualAiModel || config.primaryAiModel, // use smarter versatile model
+              messages: [
+                { role: 'system', content: 'You are a strict router. Classify the user\'s message into EXACTLY one word: "ACADEMIC" or "CONVERSATION". No punctuation or explanation.\n- Output "ACADEMIC" ONLY for complex physics, math, chemistry, or rigorous science problems that require numeric calculation, mathematical derivation, formulas, or a step-by-step analytical solver.\n- Output "CONVERSATION" for everything else, including general knowledge, writing help, coding, conceptual definitions, casual reasoning, small talk, and greetings.' },
+                { role: 'user', content: 'Solve 2x^2 + 5x - 3 = 0' },
+                { role: 'assistant', content: 'ACADEMIC' },
+                { role: 'user', content: 'Write a python script to parse JSON' },
+                { role: 'assistant', content: 'CONVERSATION' },
+                { role: 'user', content: 'What caused the fall of the Roman Empire?' },
+                { role: 'assistant', content: 'CONVERSATION' },
+                { role: 'user', content: 'Calculate the tension in the rope if mass is 5kg and a=2m/s^2' },
+                { role: 'assistant', content: 'ACADEMIC' },
+                { role: 'user', content: 'Hello bro' },
+                { role: 'assistant', content: 'CONVERSATION' },
+                { role: 'user', content: 'What is a black hole?' },
+                { role: 'assistant', content: 'CONVERSATION' },
+                { role: 'user', content: query }
+              ],
+              max_tokens: 5,
+              temperature: 0.1
+            });
+            intent = intentRes.choices[0].message.content?.trim().toUpperCase() || 'ACADEMIC';
+          } catch (e) {
+            console.warn('[AI Engine] LLM Router failed, assuming ACADEMIC.', e);
+          }
+        }
 
         if (intent.includes('CONVERSATION')) {
+          const chatModelToUse = (language !== 'en' || /[\u0900-\u09FF]/.test(query)) ? config.multilingualAiModel : config.primaryAiModel;
           if (onEvent) {
             const stream = await primaryClient.chat.completions.create({
-              model: config.primaryAiModel,
+              model: chatModelToUse,
               messages: [
                 { role: 'system', content: `You are StudyFlow AI, an advanced and highly capable AI assistant. You confidently answer general knowledge questions, write code, explain conceptual definitions, and engage in casual conversation. Respond naturally and directly in ${langName}. You are a fully capable assistant; do not force the user to study if they ask for writing help, general information, or just want to chat.` },
                 ...shortHistory,
@@ -614,7 +628,7 @@ You are a dual-engine AI. Ensure your answer strictly aligns with the Ground Tru
             return { isConversation: true, content: fullText };
           } else {
             const convRes = await primaryClient.chat.completions.create({
-              model: config.primaryAiModel,
+              model: chatModelToUse,
               messages: [
                 { role: 'system', content: `You are StudyFlow AI, an advanced and highly capable AI assistant. You confidently answer general knowledge questions, write code, explain conceptual definitions, and engage in casual conversation. Respond naturally and directly in ${langName}. You are a fully capable assistant; do not force the user to study if they ask for writing help, general information, or just want to chat.` },
                 ...shortHistory,
