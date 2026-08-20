@@ -277,6 +277,9 @@ export const ChatView: React.FC<ChatViewProps> = ({
     playSound('click', soundEnabled);
     setLoading(true);
     setUserPrompt(''); 
+    if (inputRef.current) {
+      (inputRef.current as any).style.height = 'auto';
+    }
 
     let currentChatId = activeChatId;
 
@@ -473,7 +476,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
     }, 100);
   };
   return (
-    <div className="flex flex-1 w-full overflow-hidden relative transition-all duration-300">
+    <div className="flex flex-1 min-h-0 w-full overflow-hidden relative transition-all duration-300">
       
       {/* Mobile Sidebar Toggle */}
       <button 
@@ -627,7 +630,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col h-full bg-white dark:bg-[#131314] relative">
+      <div className="flex-1 min-h-0 flex flex-col h-full bg-white dark:bg-[#131314] relative">
         {/* Scrollable Chat History */}
         <div 
           ref={scrollRef}

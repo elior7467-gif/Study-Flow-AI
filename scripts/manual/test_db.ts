@@ -1,4 +1,4 @@
-import { getAuthSupabase } from './server/lib/supabase';
+import { getAuthSupabase } from '../../server/lib/supabase';
 async function test() {
   console.log("Testing with null token");
   const client = getAuthSupabase('null'); // Should ignore 'null' and use Admin
